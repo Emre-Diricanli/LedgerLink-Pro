@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\LedgerLink-Pro_Backend.props" />
+</Project>
