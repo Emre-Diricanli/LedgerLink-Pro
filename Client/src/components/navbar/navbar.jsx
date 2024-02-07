@@ -1,8 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom'; // Import NavLink
+import { test_auth } from '../../services/auth_service';
 import './navbar.css';
 
 function Navbar() {
+  const testAuth = () => {
+    test_auth();
+  };
   return (
     <nav className="navbar-container">
       <div className='navbar-navlinks-container'>
@@ -23,6 +27,9 @@ function Navbar() {
         </div>
         <div className='navbar-item'>
           <NavLink to="/signup" className={({ isActive }) => isActive ? "selected" : ""}>Signup</NavLink>
+        </div>
+        <div className='navbar-item'>
+          <button onClick={testAuth}>Test Auth</button>
         </div>
       </div>
       <div className='navbar-profile-container'>

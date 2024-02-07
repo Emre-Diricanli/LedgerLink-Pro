@@ -4,6 +4,7 @@ import './App.css';
 import Navbar from './components/navbar/navbar';
 import Dashboard from './pages/dashboard/dashboard';
 import UserSignin from './pages/signin-signup/user-signin';
+import AdminSignin from './pages/signin-signup/admin-signin';
 
 function App() {
   // This component will determine whether to show the Navbar
@@ -28,6 +29,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout><Dashboard /></Layout>} />
         <Route path="/user-signin" element={<Layout><UserSignin /></Layout>} />
+        <Route path="/admin-signin" element={<Layout><AdminSignin /></Layout>} />
       </Routes>
     </Router>
   );
