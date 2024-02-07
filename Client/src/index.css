@@ -1,25 +1,46 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
+:root {
+  font-family:sans-serif;
+
+  color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: var(--secondary-color);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden;
+
+  --primary-color: #1F1F1F;   /* 60% of the usage */
+  --secondary-color: #ffffff; /* 30% of the usage */
+  --accent-color: #006eff;     /* 10% of the usage */
+
+  --soft-border: #cbcbcb;
+  --secondary-bg-offset: rgb(250, 251, 252);
+
+  --link-color: #1a47e8;
+  --accent-hover-color: #0059c1;
+
+  --soft-gray: #cbcbcb;
+
+  color: var(--primary-color) ;
+
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+a{
+  text-decoration: none;
+  color: var(--primary-color)
 }
+
 a:hover {
-  color: #535bf2;
+  color: var(--accent-color);
 }
 
 body {
@@ -35,34 +56,140 @@ h1 {
   line-height: 1.1;
 }
 
+
 button {
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  font-size: 16px;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--accent-color);
+  color: var(--secondary-color);
   cursor: pointer;
   transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  width: fit-content;
+  padding: 0.5rem 1rem;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover {
+  background-color: var(--accent-hover-color);
+}
+
+.primary-button {
+  display: block;
+  width: 100px;
+  height: 30px;
+  margin: 20px auto 0;
+  background-color: var(--accent-color); /* Green */
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+input {
+  width: 100%;
+  height: 40px;
+  background-color: var(--secondary-bg-offset);
+  border: 1px solid var(--soft-border);
+  border-radius: 4px;
+  color: var(--primary-color);
+  font-size: 16px;
+  font-weight: 500;
+  padding-left: 10px;
+}
+
+textarea {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  border: none;
+  background-color: var(--calendar-bg-offset);
+  color: var(--soft-gray);
+  border-radius: 24px;
+
+  border: 1px solid var(--tertiary-color);
+}
+
+input[type="checkbox"] {
+  width: 22px; /* Adjust the width as needed */
+  height: 22px; /* Adjust the height as needed */
+  cursor: pointer;
+  appearance: auto;
+  background-color: white !important; /* White background */
+  border: 2px solid #ccc; /* Light gray border */
+  border-radius: 4px; /* Rounded corners */
+}
+
+input[type="checkbox"]:checked {
+  background-color: white;
+  border: 2px solid var(--accent-color); /* Blue border for checked state */
+}
+
+input[type="checkbox"]:focus {
+  outline: none; /* Removes outline on focus */
+  border-color: var(--accent-color); /* Highlight color when focused */
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--accent-color);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--accent-color);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }
