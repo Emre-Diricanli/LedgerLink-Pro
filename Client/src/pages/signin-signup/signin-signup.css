@@ -6,7 +6,11 @@
     align-items: center;
     position: relative; /* Needed for absolute positioning of pseudo-elements */
     background: linear-gradient(45deg, var(--accent-color) 0%, var(--accent-color) 70%, var(--link-color) 70%);
-}
+    background-size: 200% 200%;
+    -webkit-animation: userBackgroundAnimationWK 200s ease infinite;
+    -moz-animation: userBackgroundAnimationMZ 200s ease infinite;
+    animation: userBackgroundAnimation 200s ease infinite;
+  }
 
 /* Adding pseudo-element for the shadow effect */
 .signin-page::before {
@@ -41,6 +45,22 @@
     color: var(--primary-color);
 
     z-index: 1;
+
+    opacity: 0;
+
+    animation: fadeInModal 0.5s ease forwards;
+
+    box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeInModal{
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+
 }
 
 .signin-modal strong{
@@ -140,6 +160,11 @@
     align-items: center;
     position: relative; /* Needed for absolute positioning of pseudo-elements */
     background: linear-gradient(45deg, rgb(109, 109, 109) 30%, gray 30%, white 100%);
+
+    background-size: 200% 200%;
+    -webkit-animation: adminBackgroundAnimationWK 200s ease infinite;
+    -moz-animation: adminBackgroundAnimationMZ 200s ease infinite;
+    animation: adminBackgroundAnimation 200s ease infinite;
 }
 
 /* Adding pseudo-element for the shadow effect */
@@ -152,4 +177,77 @@
     height: 100%;
     background: linear-gradient(45deg, rgba(0, 0, 0, 0.2) 30%, transparent 30%, transparent 100%);
 
+}
+
+
+@-webkit-keyframes adminBackgroundAnimationWK {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@-moz-keyframes adminBackgroundAnimationMZ {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes adminBackgroundAnimation {
+    0% {
+        background-position: 0% 55%;
+    }
+    50% {
+        background-position: 70% 50%;
+    }
+    100% {
+        background-position: 0% 55%;
+    }
+}
+
+@-webkit-keyframes userBackgroundAnimationWK {
+  0% {
+      background-position: 0% 50%;
+  }
+  50% {
+      background-position: 100% 50%;
+  }
+  100% {
+      background-position: 0% 50%;
+  }
+}
+
+@-moz-keyframes userBackgroundAnimationMZ {
+  0% {
+      background-position: 0% 50%;
+  }
+  50% {
+      background-position: 100% 50%;
+  }
+  100% {
+      background-position: 0% 50%;
+  }
+}
+
+@keyframes userBackgroundAnimation {
+  0% {
+      background-position: 45% 0%;
+  }
+  50% {
+      background-position: 30% 50%;
+  }
+  100% {
+      background-position: 45% 0%;
+  }
 }
