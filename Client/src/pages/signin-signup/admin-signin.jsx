@@ -17,9 +17,8 @@ const AdminSignin = () => {
             //print value of response to console
             console.log(response);
 
-            if (response) {
+            if (response === true) {
                 console.log('signin successful');
-                
 
                 //redirect to home page
                 navigate('/');
@@ -47,8 +46,8 @@ const AdminSignin = () => {
                     <h2>Admin Sign In</h2>
                 </div>  
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
-                    <p>Email<strong>*</strong></p>
-                    <input type="text" placeholder="Email" className="signin-input" onChange={(e) => setUsername(e.target.value)}/>
+                    <p>Username<strong>*</strong></p>
+                    <input type="text" placeholder="Username" className="signin-input" onChange={(e) => setUsername(e.target.value)}/>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Password<strong>*</strong></p>
