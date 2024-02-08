@@ -18,9 +18,8 @@ const AdminSignin = () => {
             console.log(response);
 
             if (response) {
-                console.log('signin successful:', response);
-                //fetch user info
-                const get_user_info = await get_user_info();
+                console.log('signin successful');
+                
 
                 //redirect to home page
                 navigate('/');
