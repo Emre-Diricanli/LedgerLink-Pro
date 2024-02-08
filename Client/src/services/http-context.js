@@ -2,11 +2,11 @@ export const http_context = async (url, options) => {
     try {
         const response = await fetch(url, options);
 
-        // if(response.status === 401){
+        if(response.status === 401){
             
-        //     window.location.href = '/signin';
-        //     console.log('401');
-        // }
+            window.location.href = '/user-signin';
+            console.log('401');
+        }
 
         return response;
     } catch (error) {

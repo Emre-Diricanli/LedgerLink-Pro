@@ -4,7 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import { user_signin_service } from '../../services/auth_service';
 import logo from '../../assets/llp-logo.png';
 
-const UserSignin = () => {
+const AdminSignin = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -17,10 +17,8 @@ const UserSignin = () => {
             //print value of response to console
             console.log(response);
 
-            if (response) {
-                console.log('signin successful:', response);
-                //fetch user info
-                const get_user_info = await get_user_info();
+            if (response === true) {
+                console.log('signin successful');
 
                 //redirect to home page
                 navigate('/');
@@ -37,7 +35,7 @@ const UserSignin = () => {
     
 
     return (
-        <div className='signin-page'>
+        <div className='admin-signin-page'>
             <div className="signin-modal">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
@@ -45,11 +43,11 @@ const UserSignin = () => {
                 </div>
 
                 <div className="flex flex-row content-center justify-start gap-2 w-full pt-8">
-                    <h2>User Sign In</h2>
+                    <h2>Admin Sign In</h2>
                 </div>  
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
-                    <p>Email<strong>*</strong></p>
-                    <input type="text" placeholder="Email" className="signin-input" onChange={(e) => setUsername(e.target.value)}/>
+                    <p>Username<strong>*</strong></p>
+                    <input type="text" placeholder="Username" className="signin-input" onChange={(e) => setUsername(e.target.value)}/>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Password<strong>*</strong></p>
@@ -67,15 +65,15 @@ const UserSignin = () => {
 
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <button className="signin-btn" onClick={handlesignin}>Sign In</button>
+                    <button className="admin-signin-btn" onClick={handlesignin}>Sign In</button>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <p>Don't have an account? <a href="/user-signup">Sign Up</a></p>
+                    <p>Don't have an account? <a href="/admin-signup">Sign Up</a></p>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">
-                    <p>Looking for Admin signin? <a href="/admin-signin">Admin Signin</a></p>
+                    <p>Looking for User signin? <a href="/user-signin">User Signin</a></p>
                 </div>
             
             </div>
@@ -83,4 +81,4 @@ const UserSignin = () => {
     );
 };
 
-export default UserSignin;
+export default AdminSignin;
