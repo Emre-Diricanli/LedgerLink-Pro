@@ -30,6 +30,39 @@ export const user_signin_service = async (email, password) => {
     }
 };
 
+export const user_signout_service = async () => {
+    try {
+        const response = await http_context(`${API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+};
+
+export const remove_user_info = async () => {
+    try {
+        //Remove user role token
+        localStorage.removeItem('role');
+
+
+        return;
+    }catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+};
+
+
 export const confirm_email = async (email, token) => {
     try {
         const encodedToken = encodeURIComponent(token);
@@ -61,7 +94,7 @@ export const confirm_email = async (email, token) => {
 export const resend_confirmation_email = async (email) => {
     try {
 
-        
+
         const response = await http_context(`${API_URL}/auth/resend-confirmation-email`, {
             method: 'POST',
             headers: {
