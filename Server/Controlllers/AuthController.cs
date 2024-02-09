@@ -121,6 +121,19 @@ namespace Team_Tactics_Backend.Controllers
                         //return 429 status code to indicate user needs to change password
                         return StatusCode(4298, "User needs to change password"); //428 = Precondition Required
                     }
+
+                    //TODO: Implement password expiration checks
+
+                    //if passed all checks then report login
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    var lastLogin = new UserLoginHistory
+                    {
+                        userId = user.Id,
+                        loginTime = DateTime.Now
+                    };
+
+                    db.UserLoginHistories.Add(lastLogin);
+                    await db.SaveChangesAsync();
                 }
 
                 return Ok();
@@ -302,6 +315,39 @@ namespace Team_Tactics_Backend.Controllers
 
                         db.PreviousUsedPasswords.Add(oldPassword);
                         await db.SaveChangesAsync();
+
+                        //assuming user has changed password, set InitialPassword to false and update password expiration date
+                        var needsCreateNewPassword = await db.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == user.Email);
+                        if (needsCreateNewPassword == null)
+                        {
+                            //do nothing
+                        }
+                        else
+                        {
+                            needsCreateNewPassword.InitialPassword = false;
+                            db.NeedsCreateNewPasswords.Update(needsCreateNewPassword);
+                            await db.SaveChangesAsync();
+                        }
+
+                        var PasswordExpiration = await db.PasswordExpirations.FirstOrDefaultAsync(u => u.UserId == user.Id);
+                        if (PasswordExpiration == null)
+                        {
+                            //create new password expiration record
+                            var newPasswordExpiration = new PasswordExpirationInfo
+                            {
+                                UserId = user.Id,
+                                PasswordExpiration = DateTime.Now.AddMonths(3)
+                            };
+
+                            db.PasswordExpirations.Add(newPasswordExpiration);
+                            await db.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            PasswordExpiration.PasswordExpiration = DateTime.Now.AddMonths(3);
+                            db.PasswordExpirations.Update(PasswordExpiration);
+                            await db.SaveChangesAsync();
+                        }
                     }
                 }
 

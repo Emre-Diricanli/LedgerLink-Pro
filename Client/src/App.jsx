@@ -6,13 +6,14 @@ import Dashboard from './pages/dashboard/dashboard';
 import UserSignin from './pages/signin-signup/user-signin';
 import AdminSignin from './pages/signin-signup/admin-signin';
 import AdminConfirmEmail from './pages/confirm-email/admin-confirm-email';
+import UserManagement from './pages/user-management/user-mangement';
 
 function App() {
   // This component will determine whether to show the Navbar
   const Layout = ({ children }) => {
     const location = useLocation(); // Get the current location
     const [showNavbar, setShowNavbar] = useState(true);
-    const [noShowNavbarLocations, setNoShowNavbarLocations] = useState(["/user-signin", "/admin-signin", "/admin-confirm-email"]);
+    const [noShowNavbarLocations, setNoShowNavbarLocations] = useState(["/user-signin", "/admin-signin", "/admin-confirm-email", "/user-signup", "user-mangement"]);
 
     
     useEffect(() => {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/user-signin" element={<Layout><UserSignin /></Layout>} />
         <Route path="/admin-signin" element={<Layout><AdminSignin /></Layout>} />
         <Route path="/admin-confirm-email" element={<Layout><AdminConfirmEmail /></Layout>} />
+        <Route path="/user-management" element={<Layout><UserManagement /></Layout>} />
       </Routes>
     </Router>
   );

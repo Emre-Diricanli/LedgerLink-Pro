@@ -2,6 +2,7 @@
 using LedgerLink_Pro_Backend.Models.Users;
 using LedgerLink_Pro_Backend.Services;
 using LedgerLinkPro.Database;
+using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -112,6 +113,126 @@ namespace LedgerLink_Pro_Backend.Controlllers
         }
 
         //Get all users
+        [HttpGet("admin/get-users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUsers([FromBody] FetchUsersParameterModel model)
+        {
+            try
+            {
+                //Verify information is present
+                if (model == null)
+                {
+                    return BadRequest("No information was provided");
+                }
+
+                // Verify the model is valid
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                //verify if the user is an admin
+                if (!User.IsInRole("Admin"))
+                {
+                    return Unauthorized("You are not authorized to perform this action");
+                }
+
+                //convert active status to boolean. 0 for all, 1 for active, 2 for inactive
+                // bool activeStatus = model.activeStatus switch
+                // {
+                //     0 => true,
+                //     1 => true,
+                //     2 => false,
+                //     _ => true
+                // };
+
+                //pageIndex is nullable, create non-nullable variable
+                int pageIndex = model.pageIndex ?? 1;
+
+                //pageSize is nullable, create non-nullable variable
+                int pageSize = model.pageSize ?? 10;
+
+                using var db = _contextFactory.CreateDbContext();
+                var users = db.Users
+                    .Where(u => u.UserRole == model.userType)
+                    .Where(u => u.Username.Contains(model.searchString) || u.FirstName.Contains(model.searchString) || u.LastName.Contains(model.searchString))
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize);
+
+                //apply active status filter
+                if (model.activeStatus == 1)
+                {
+                    users = users.Where(u => u.IsActive == true);
+                }
+                else if (model.activeStatus == 2)
+                {
+                    users = users.Where(u => u.IsActive == false);
+                }
+                else
+                {
+                    users = users.Where(u => u.IsActive == true || u.IsActive == false);
+                }
+
+                //return as a list of UserInfoReturnModel
+                var usersList = await users.Select(u => new UserInfoReturnModel
+                {
+                    UserId = u.id,
+                    Username = u.Username,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    IsActive = u.IsActive,
+                    StreetAddress = u.StreetAddress,
+                    City = u.City,
+                    State = u.State,
+                    ZipCode = u.ZipCode,
+                    PhoneNumber = u.PhoneNumber,
+                    Role = u.UserRole == 1 ? "User" :
+                           u.UserRole == 2 ? "Manager" :
+                           u.UserRole == 3 ? "Admin" :
+                           "Unknown"
+                }).ToListAsync();
+
+                //Gather role, confirmed email, last login, password expiration, and password reset information
+                foreach (var user in usersList)
+                {
+                    var identUser = await _userManager.FindByIdAsync(user.UserId);
+                    user.ConfirmedEmail = identUser.EmailConfirmed;
+
+                    var lastLogin = await db.UserLoginHistories.Where(u => u.userId == user.UserId).OrderByDescending(u => u.loginTime).FirstOrDefaultAsync();
+
+                    //null check
+                    if (lastLogin != null)
+                    {
+                        user.LastLogin = lastLogin.loginTime;
+                    }
+                    else
+                    {
+                        user.LastLogin = null;
+                    }
+
+                    //password expiration
+                    var PasswordExpiration = await db.PasswordExpirations.Where(u => u.UserId == user.UserId).FirstOrDefaultAsync();
+
+                    //null check
+                    if (PasswordExpiration != null)
+                    {
+                        user.PasswordExpieration = PasswordExpiration.PasswordExpiration; //<= Date
+                    }
+                    else
+                    {
+                        user.PasswordExpieration = null;
+                    }
+                }
+
+                return Ok(usersList);
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
 
         //Get specific user
 

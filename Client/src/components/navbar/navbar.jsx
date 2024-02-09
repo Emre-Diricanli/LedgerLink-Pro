@@ -47,7 +47,7 @@ function Navbar() {
           <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
         </div>
         <div className='navbar-item'>
-          <NavLink to="/about" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+          <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
         </div>
         <div className='navbar-item'>
           <NavLink to="/contact" className={({ isActive }) => isActive ? "selected" : ""}>Other</NavLink>
