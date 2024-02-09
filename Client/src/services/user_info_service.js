@@ -11,6 +11,10 @@ export const get_user_info = async () => {
             credentials: 'include'
         });
 
+        //get and store data in local storage
+        const data = await response.json();
+        
+
        
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
