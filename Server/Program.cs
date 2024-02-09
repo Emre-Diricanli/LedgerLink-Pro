@@ -6,6 +6,7 @@ using LedgerLinkPro.Database;
 using LedgerLink_Pro_Backend.Services;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
@@ -16,16 +17,21 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 
+// builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+//     options.UseNpgsql(
+//         configuration.GetConnectionString("DefaultConnection"),
+//         npgsqlOptionsAction: npgsqlOptions =>
+//         {
+//             npgsqlOptions.EnableRetryOnFailure(
+//                 maxRetryCount: 5,
+//                 maxRetryDelay: TimeSpan.FromSeconds(30),
+//                 errorCodesToAdd: null);
+//         }));
+
+
 builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-    options.UseNpgsql(
-        configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptionsAction: npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorCodesToAdd: null);
-        }));
+    options.UseSqlServer(
+        configuration.GetConnectionString("AzureSQLConnection")));
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
@@ -103,7 +109,7 @@ static async Task CreateRoles(IServiceProvider serviceProvider)
 {
     var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    string[] roleNames = { "Admin", "Manager", "User"};
+    string[] roleNames = { "Admin", "Manager", "User" };
     foreach (var roleName in roleNames)
     {
         var roleExist = await RoleManager.RoleExistsAsync(roleName);

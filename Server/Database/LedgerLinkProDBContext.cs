@@ -1,4 +1,5 @@
 ﻿using LedgerLink_Pro_Backend.Models.Users;
+using LedgerLinkPro.Models.Auth;
 using LedgerLinkPro.Models.Users;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +13,16 @@ namespace LedgerLinkPro.Database
         {
         }
 
-         public LedgerLinkProDBContext()
+        public LedgerLinkProDBContext()
         {
         }
 
         public DbSet<User> Users { get; set; }
         public DbSet<NeedsCreateNewPassword> NeedsCreateNewPasswords { get; set; }
+        public DbSet<PreviousUsedPasswords> PreviousUsedPasswords { get; set; }
 
-        
-        
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

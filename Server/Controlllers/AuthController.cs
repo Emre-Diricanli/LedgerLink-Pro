@@ -7,6 +7,9 @@ using LedgerLinkPro.Models.Users;
 using LedgerLink_Pro_Backend.Services;
 using System.Web;
 using LedgerLink_Pro_Backend.DTO;
+using Microsoft.AspNetCore.Authorization;
+using LedgerLinkPro.DTO;
+using LedgerLinkPro.Models.Auth;
 
 namespace Team_Tactics_Backend.Controllers
 {
@@ -30,13 +33,9 @@ namespace Team_Tactics_Backend.Controllers
         [HttpPost("admin/register")]
         public async Task<IActionResult> Register([FromBody] AdminRegisterModel model)
         {
-
-            
-            using var db = _contextFactory.CreateDbContext();
-            using var transaction = await db.Database.BeginTransactionAsync();  
             try
             {
-                //Verify information is present
+                // Verify information is present
                 if (model == null) return BadRequest("No information was provided");
 
                 // Verify the model is valid
@@ -57,7 +56,7 @@ namespace Team_Tactics_Backend.Controllers
                 var roleResult = await _userManager.AddToRoleAsync(identuser, "Admin");
                 if (!roleResult.Succeeded)
                 {
-                    await _userManager.DeleteAsync(identuser); // Might not be necessary if transaction is rolled back
+                    await _userManager.DeleteAsync(identuser);
                     return BadRequest(roleResult.Errors);
                 }
 
@@ -72,20 +71,21 @@ namespace Team_Tactics_Backend.Controllers
                     IsActive = false // false until email is confirmed
                 };
 
-                db.Users.Add(user);
-                await db.SaveChangesAsync();
+                using (var db = _contextFactory.CreateDbContext())
+                {
+                    db.Users.Add(user);
+                    await db.SaveChangesAsync();
+                }
 
                 // Generate and send confirmation token
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(identuser);
                 var codeEncoded = HttpUtility.UrlEncode(token);
                 await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your email by clicking this link: <a href='https://localhost:5001/auth/confirm-email?email={model.Email}&token={codeEncoded}'>Confirm Email</a>");
 
-                await transaction.CommitAsync(); // Commit transaction if all operations succeed
                 return Ok();
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync(); // Rollback transaction in case of an error
                 Debug.WriteLine(ex.Message);
                 return StatusCode(500, ex.Message);
             }
@@ -198,9 +198,9 @@ namespace Team_Tactics_Backend.Controllers
 
                 //send reset password email
                 await _emailService.SendEmailAsync(email, "Reset your password", "Please reset your password by clicking this link: <a href='https://localhost:5001/auth/reset-password?email=" + email + "&token=" + codeEncoded + "'>Reset Password</a>");
-                
+
                 return Ok();
-            
+
             }
             catch (Exception ex)
             {
@@ -260,6 +260,89 @@ namespace Team_Tactics_Backend.Controllers
             }
         }
 
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePassword([FromBody] PasswordChangeModel newModel)
+        {
+            try
+            {
+                //verify information is present
+                if (newModel == null)
+                {
+                    return BadRequest("No information was provided");
+                }
+
+                //get user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                //verify that password is not reused
+                if (IsPasswordReused(user.Id, newModel.newpassword))
+                {
+                    return BadRequest("Password has been used before");
+                }
+
+                //Change password
+                var result = await _userManager.ChangePasswordAsync(user, newModel.oldPassword, newModel.newpassword);
+
+                //if password change is successful, add old password to PreviousUsedPasswords table
+                if (result.Succeeded)
+                {
+                    using (var db = _contextFactory.CreateDbContext())
+                    {
+                        var oldPassword = new PreviousUsedPasswords
+                        {
+                            UserId = user.Id,
+                            PasswordHash = _userManager.PasswordHasher.HashPassword(user, newModel.newpassword)
+                        };
+
+                        db.PreviousUsedPasswords.Add(oldPassword);
+                        await db.SaveChangesAsync();
+                    }
+                }
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest(result.Errors);
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error: " + ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        private bool IsPasswordReused(string userId, string newPassword)
+        {
+            var user = _userManager.FindByIdAsync(userId).Result;
+            var passwordHasher = _userManager.PasswordHasher;
+
+            var _context = _contextFactory.CreateDbContext();
+
+            var oldPasswords = _context.PreviousUsedPasswords
+
+                .Where(op => op.UserId == userId)
+                .Select(op => op.PasswordHash)
+                .ToList();
+
+            foreach (var oldPasswordHash in oldPasswords)
+            {
+                var verificationResult = passwordHasher.VerifyHashedPassword(user, oldPasswordHash, newPassword);
+                if (verificationResult == PasswordVerificationResult.Success)
+                {
+                    return true; // The new password matches one of the old passwords
+                }
+            }
+
+            return false; // The new password does not match any of the old passwords
+        }
     }
 
 }
