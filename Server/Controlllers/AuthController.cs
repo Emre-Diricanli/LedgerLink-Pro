@@ -194,8 +194,8 @@ namespace Team_Tactics_Backend.Controllers
             }
         }
 
+
         [HttpGet("role")]
-        [Authorize]
         public async Task<IActionResult> GetRole()
         {
             try
@@ -203,7 +203,7 @@ namespace Team_Tactics_Backend.Controllers
                 var user = await _userManager.GetUserAsync(User);
 
                 // Verify the user is valid
-                if (user == null) return BadRequest("User not found");
+                if (user == null) return Unauthorized("User not found");
 
                 var role = await _userManager.GetRolesAsync(user);
 

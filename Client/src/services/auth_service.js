@@ -77,6 +77,40 @@ export const admin_signin_service = async (email, password) => {
     }
 };
 
+export const admin_signup_service = async (email, password, firstName, lastName) => {
+    try {
+        const body = {
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName
+        };
+        const response = await http_context(`${API_URL}/auth/admin/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: body
+        });
+
+        // //check if response was 428, if so redirect to new user new password page
+        // if (response.ok) {
+        //    return true
+        // }
+
+        if (!response.ok) {
+            return false;
+        }
+       
+        //return role
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+};
+
 
 export const user_signup_service = async (email, firstName, lastName, dob, streetAddress, city, state, zipcode, apptnumber) => {
     try {
