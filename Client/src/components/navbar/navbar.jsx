@@ -59,6 +59,9 @@ function Navbar() {
           <NavLink to="/admin-signin" className={({ isActive }) => isActive ? "selected" : ""}>Admin Signin</NavLink>
         </div>
         <div className='navbar-item'>
+          <NavLink to="/user-registration" className={({ isActive }) => isActive ? "selected" : ""}>User Signup</NavLink>
+        </div>
+        <div className='navbar-item'>
           <NavLink to="/signup" className={({ isActive }) => isActive ? "selected" : ""}>Signup</NavLink>
         </div>
         <div className='navbar-item'>
