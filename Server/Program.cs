@@ -17,6 +17,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 
+<<<<<<< Updated upstream
 // builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
 //     options.UseNpgsql(
 //         configuration.GetConnectionString("DefaultConnection"),
@@ -32,6 +33,13 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseSqlServer(
         configuration.GetConnectionString("AzureSQLConnection")));
+=======
+
+       builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+    options.UseSqlServer(
+        configuration.GetConnectionString("DefaultConnection")));
+ 
+>>>>>>> Stashed changes
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
