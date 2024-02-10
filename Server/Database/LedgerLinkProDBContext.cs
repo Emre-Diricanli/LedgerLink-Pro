@@ -20,6 +20,9 @@ namespace LedgerLinkPro.Database
         public DbSet<User> Users { get; set; }
         public DbSet<NeedsCreateNewPassword> NeedsCreateNewPasswords { get; set; }
         public DbSet<PreviousUsedPasswords> PreviousUsedPasswords { get; set; }
+        public DbSet<UserLoginHistory> UserLoginHistories { get; set; }
+        public DbSet<PasswordExpirationInfo> PasswordExpirations { get; set; }
+        public DbSet<UserToBeApproved> UsersToBeApproved { get; set; }
 
 
 

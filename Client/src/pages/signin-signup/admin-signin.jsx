@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './signin-signup.css';
 import {useNavigate} from 'react-router-dom';
-import { user_signin_service } from '../../services/auth_service';
+import { admin_signin_service, user_signin_service } from '../../services/auth_service';
 import logo from '../../assets/llp-logo.png';
 
 const AdminSignin = () => {
@@ -12,7 +12,7 @@ const AdminSignin = () => {
 
     const handlesignin = async () => {
         try {
-            const response = await user_signin_service(username, password);
+            const response = await admin_signin_service(username, password);
 
             //print value of response to console
             console.log(response);

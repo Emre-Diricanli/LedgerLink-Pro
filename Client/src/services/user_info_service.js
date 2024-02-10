@@ -21,3 +21,33 @@ export const get_user_info = async () => {
         throw error;
     }
 };
+
+export const fetch_users = async (pageSize, pageIndex, userType, activeStatus) => {
+    try {
+        const body = {
+            pageSize: pageSize,
+            pageIndex: pageIndex,
+            userType: userType,
+            activeStatus: activeStatus
+        };
+
+        const response = await http_context(`${API_URL}/user/admin/get-users`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+}

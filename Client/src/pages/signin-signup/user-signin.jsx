@@ -15,18 +15,24 @@ const UserSignin = () => {
             const response = await user_signin_service(username, password);
 
             //print value of response to console
-            console.log(response);
+            
 
-            if (response) {
+            if (response === true) {
                 console.log('signin successful:', response);
                 //fetch user info
-                const get_user_info = await get_user_info();
+                //const get_user_info = await get_user_info();
 
                 //redirect to home page
                 navigate('/');
 
-            } else {
-                console.log('signin failed:', response);
+            } 
+            else if (response.code === 428) {
+                console.log('Navigating to new user password reset');
+                const id = response.id;
+                navigate(`/new-user/reset-password?id=${id}`);
+            }
+            else {
+                alert('signin failed:', response);
             }
         } catch (error) {
             //print error to console
@@ -71,7 +77,7 @@ const UserSignin = () => {
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <p>Don't have an account? <a href="/user-signup">Sign Up</a></p>
+                    <p>Don't have an account? <a href="/user-registration">Sign Up</a></p>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">

@@ -10,6 +10,8 @@ using LedgerLink_Pro_Backend.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Auth;
+using LedgerLink_Pro_Backend.Models.Users;
+using LedgerLinkPro;
 
 namespace Team_Tactics_Backend.Controllers
 {
@@ -80,7 +82,7 @@ namespace Team_Tactics_Backend.Controllers
                 // Generate and send confirmation token
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(identuser);
                 var codeEncoded = HttpUtility.UrlEncode(token);
-                await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your email by clicking this link: <a href='https://localhost:5001/auth/confirm-email?email={model.Email}&token={codeEncoded}'>Confirm Email</a>");
+                await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your email by clicking this link: <a href='http://localhost:5173/admin-confirm-email?email={model.Email}&token={codeEncoded}'>Confirm Email</a>");
 
                 return Ok();
             }
@@ -108,9 +110,13 @@ namespace Team_Tactics_Backend.Controllers
                 //check if user needs to change password
                 using (var db = _contextFactory.CreateDbContext())
                 {
+                    //get identity user
+                    var identityUser = await _userManager.FindByNameAsync(model.Email);
+
+                    var usersEmail = identityUser.Email;
 
                     //get object from NeedsCreateNewPassword table
-                    var needsCreateNewPassword = await db.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == model.Email);
+                    var needsCreateNewPassword = await db.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == usersEmail);
                     if (needsCreateNewPassword == null)
                     {
                         return BadRequest("User not found");
@@ -119,9 +125,276 @@ namespace Team_Tactics_Backend.Controllers
                     if (needsCreateNewPassword.InitialPassword)
                     {
                         //return 429 status code to indicate user needs to change password
-                        return StatusCode(4298, "User needs to change password"); //428 = Precondition Required
+                        //genereate new password token
+                        var token = await _userManager.GeneratePasswordResetTokenAsync(await _userManager.FindByNameAsync(model.Email));
+
+                        // Encode the token for URL
+                        var codeEncoded = HttpUtility.UrlEncode(token);
+
+                        return Ok(new { status = 428, token = codeEncoded, id = identityUser.Id });
                     }
+
+                    //TODO: Implement password expiration checks
+
+                    //if passed all checks then report login
+                    var user = await _userManager.FindByNameAsync(model.Email);
+                    var lastLogin = new UserLoginHistory
+                    {
+                        userId = user.Id,
+                        loginTime = DateTime.Now
+                    };
+
+                    db.UserLoginHistories.Add(lastLogin);
+                    await db.SaveChangesAsync();
                 }
+
+                return Ok(new { userNeedsPasswordReset = false });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("admin/login")]
+        public async Task<IActionResult> AdminLogin([FromBody] UserLoginModel model)
+        {
+            try
+            {
+                if (model == null) return BadRequest("No information was provided");
+
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest("Invalid email or password");
+                }
+
+                var _context = _contextFactory.CreateDbContext();
+
+                //log admin login
+                var user = await _context.Users.Where(u => u.Username == model.Email).FirstOrDefaultAsync();
+                var lastLogin = new UserLoginHistory
+                {
+                    userId = user.id,
+                    loginTime = DateTime.Now
+                };
+
+                _context.UserLoginHistories.Add(lastLogin);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("role")]
+        [Authorize]
+        public async Task<IActionResult> GetRole()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+
+                // Verify the user is valid
+                if (user == null) return BadRequest("User not found");
+
+                var role = await _userManager.GetRolesAsync(user);
+
+                // Verify the role is valid
+                if (role == null) return Ok(1);
+
+                return Ok(ReturnRole(role[0]));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("user/request-access")]
+        public async Task<IActionResult> UserRequestAccess([FromBody] UserRequestAccessModel model)
+        {
+            try
+            {
+                // Verify information is present
+                if (model == null) return BadRequest("No information was provided");
+
+                // Verify the model is valid
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                Random rand = new Random();
+                int randId = rand.Next(100, 999);
+                UserToBeApproved user = new UserToBeApproved
+                {
+                    Email = model.email,
+                    GeneratedPassword = "Password" + DateTime.Now.ToString("MMyy") + "$", // Password is "Password" + current month and year + "$"
+                    Username = model.firstname.Substring(0, 1).ToLower() + model.lastname.ToLower() + randId, //first letter of first name + last name + random 3 digit number
+                    FirstName = model.firstname,
+                    LastName = model.lastname,
+                    DOB = model.dob.ToString("yyyy-MM-dd"),
+                    StreetAddress = model.streetaddress,
+                    City = model.city,
+                    State = model.state,
+                    ZipCode = model.zipcode,
+                    ApptNumber = model.apptnumber
+                };
+
+                using (var db = _contextFactory.CreateDbContext())
+                {
+                    db.UsersToBeApproved.Add(user);
+                    await db.SaveChangesAsync();
+                }
+
+                var adminsToEmail = await _userManager.GetUsersInRoleAsync("Admin");
+
+
+                //email admins to approve user
+                var emailBody = $@"
+                    <html>
+                    <head>
+                        <style>
+                            .button {{display: inline-block;
+                                padding: 10px 20px;
+                                font-size: 16px;
+                                cursor: pointer;
+                                text-align: center;
+                                text-decoration: none;
+                                outline: none;
+                                color: #fff;
+                                background-color: #4CAF50;
+                                border: none;
+                                border-radius: 15px;
+                                box-shadow: 0 9px #999;
+                            }}
+
+                            .button:hover {{background - color: #3e8e41
+                                }}
+
+                            .button:active {{background - color: #3e8e41;
+                                box-shadow: 0 5px #666;
+                                transform: translateY(4px);
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <p>A user is requesting access to the system with the following details:</p>
+                        <ul>
+                            <li>Email: {model.email}</li>
+                            <li>Username: {user.Username}</li>
+                            <li>Name: {model.firstname} {model.lastname}</li>
+                            <li>Date of Birth: {user.DOB}</li>
+                            <li>Address: {model.streetaddress}, {model.apptnumber}, {model.city}, {model.state}, {model.zipcode}</li>
+                        </ul>
+                        <a href='http://localhost:5173/confirm-user/?name={model.firstname + " " + model.lastname}&email={model.email}&username={user.Username}' class='button'>Confirm User</a>
+                    </body>
+                    </html>
+                    ";
+
+                foreach (var admin in adminsToEmail)
+                {
+                    await _emailService.SendEmailAsync(admin.Email, "A user is requesting access", emailBody);
+                }
+
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("confirm-user-access")]
+        public async Task<IActionResult> ConfirmUserAccess([FromQuery] string email)
+        {
+            try
+            {
+                // Verify information is present
+                if (email == null) return BadRequest("No information was provided");
+
+                //find user by email
+                var _context = _contextFactory.CreateDbContext();
+                var user = await _context.UsersToBeApproved.FirstOrDefaultAsync(u => u.Email == email);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Create a new user
+                var identuser = new IdentityUser
+                {
+                    UserName = user.Username,
+                    Email = user.Email,
+                    EmailConfirmed = true
+                };
+
+                var identRegistrationResult = await _userManager.CreateAsync(identuser, user.GeneratedPassword);
+
+                var newPasswordHistory = new PreviousUsedPasswords
+                {
+                    UserId = identuser.Id,
+                    PasswordHash = _userManager.PasswordHasher.HashPassword(identuser, user.GeneratedPassword)
+                };
+
+                _context.PreviousUsedPasswords.Add(newPasswordHistory);
+                await _context.SaveChangesAsync();
+
+                if (!identRegistrationResult.Succeeded) return BadRequest(identRegistrationResult.Errors);
+
+                // Add user to role
+                var roleResult = await _userManager.AddToRoleAsync(identuser, "User");
+
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(identuser);
+                    return BadRequest(roleResult.Errors);
+                }
+
+                // Additional operations with your custom User entity
+                var newUser = new User
+                {
+                    id = identuser.Id,
+                    Username = identuser.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    StreetAddress = user.StreetAddress,
+                    City = user.City,
+                    State = user.State,
+                    ZipCode = user.ZipCode,
+                    UserRole = 1, // Assuming User
+                    IsActive = true
+                };
+
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+
+                //auto confirm email, setNeedsCreateNewPassword to true and delete user from UsersToBeApproved table
+                identuser = await _userManager.FindByEmailAsync(email);
+                await _userManager.ConfirmEmailAsync(identuser, await _userManager.GenerateEmailConfirmationTokenAsync(identuser));
+
+                var needsCreateNewPassword = new NeedsCreateNewPassword
+                {
+                    Email = email,
+                    InitialPassword = true
+                };
+
+                _context.NeedsCreateNewPasswords.Add(needsCreateNewPassword);
+                _context.UsersToBeApproved.Remove(user);
+
+                await _context.SaveChangesAsync();
+
+                //send new user email with generated password
+                await _emailService.SendEmailAsync(email, "Welcome to LedgerLinkPro", $"Welcome to LedgerLinkPro. Your username is {user.Username} and your password is {user.GeneratedPassword}. Please change your password after logging in.");
 
                 return Ok();
             }
@@ -211,16 +484,16 @@ namespace Team_Tactics_Backend.Controllers
 
         //TODO: Implement transaction rollback in case of an error
         [HttpPost("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
+        public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmationModel emailConfirmationModel)
         {
             try
             {
-                if (email == null || token == null)
+                if (emailConfirmationModel.email == null || emailConfirmationModel.token == null)
                 {
                     return BadRequest("No information was provided");
                 }
 
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await _userManager.FindByEmailAsync(emailConfirmationModel.email);
 
                 if (user == null)
                 {
@@ -228,7 +501,7 @@ namespace Team_Tactics_Backend.Controllers
                 }
 
                 // Decode the token from URL
-                var tokenDecoded = HttpUtility.UrlDecode(token);
+                var tokenDecoded = HttpUtility.UrlDecode(emailConfirmationModel.token);
 
                 // Then use the decoded token in ConfirmEmailAsync
                 var result = await _userManager.ConfirmEmailAsync(user, tokenDecoded);
@@ -302,6 +575,39 @@ namespace Team_Tactics_Backend.Controllers
 
                         db.PreviousUsedPasswords.Add(oldPassword);
                         await db.SaveChangesAsync();
+
+                        //assuming user has changed password, set InitialPassword to false and update password expiration date
+                        var needsCreateNewPassword = await db.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == user.Email);
+                        if (needsCreateNewPassword == null)
+                        {
+                            //do nothing
+                        }
+                        else
+                        {
+                            needsCreateNewPassword.InitialPassword = false;
+                            db.NeedsCreateNewPasswords.Update(needsCreateNewPassword);
+                            await db.SaveChangesAsync();
+                        }
+
+                        var PasswordExpiration = await db.PasswordExpirations.FirstOrDefaultAsync(u => u.UserId == user.Id);
+                        if (PasswordExpiration == null)
+                        {
+                            //create new password expiration record
+                            var newPasswordExpiration = new PasswordExpirationInfo
+                            {
+                                UserId = user.Id,
+                                PasswordExpiration = DateTime.Now.AddMonths(3)
+                            };
+
+                            db.PasswordExpirations.Add(newPasswordExpiration);
+                            await db.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            PasswordExpiration.PasswordExpiration = DateTime.Now.AddMonths(3);
+                            db.PasswordExpirations.Update(PasswordExpiration);
+                            await db.SaveChangesAsync();
+                        }
                     }
                 }
 
@@ -315,6 +621,104 @@ namespace Team_Tactics_Backend.Controllers
             catch (Exception ex)
             {
                 Debug.WriteLine("Error: " + ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("new-user/reset-password")]
+        public async Task<IActionResult> NewUserResetPassword([FromBody] NewUserResetPasswordModel model)
+        {
+            try
+            {
+                //verify information is present
+                if (model == null)
+                {
+                    return BadRequest("No information was provided");
+                }
+
+                //get user by id
+                var user = await _userManager.FindByIdAsync(model.userid);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                //verify that password is not reused
+                if (IsPasswordReused(user.Id, model.newpassword))
+                {
+                    return Conflict("Password has been used before");
+                }
+
+
+                var _context = _contextFactory.CreateDbContext();
+
+
+                //TODO FIX TOKEN ISSUE
+                var fakeToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                //Change password
+                var result = await _userManager.ResetPasswordAsync(user, fakeToken, model.newpassword);
+
+                //if password change is successful, add old password to PreviousUsedPasswords table
+                if (result.Succeeded)
+                {
+                    var currentPassword = new PreviousUsedPasswords
+                    {
+                        UserId = user.Id,
+                        PasswordHash = _userManager.PasswordHasher.HashPassword(user, model.newpassword)
+                    };
+
+                    _context.PreviousUsedPasswords.Add(currentPassword);
+                    await _context.SaveChangesAsync();
+
+                    //assuming user has changed password, set InitialPassword to false and update password expiration date
+                    var needsCreateNewPassword = await _context.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == user.Email);
+                    if (needsCreateNewPassword == null)
+                    {
+                        //do nothing
+                    }
+                    else
+                    {
+                        needsCreateNewPassword.InitialPassword = false;
+                        _context.NeedsCreateNewPasswords.Update(needsCreateNewPassword);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    var PasswordExpiration = await _context.PasswordExpirations.FirstOrDefaultAsync(u => u.UserId == user.Id);
+                    if (PasswordExpiration == null)
+                    {
+                        //create new password expiration record
+                        var newPasswordExpiration = new PasswordExpirationInfo
+                        {
+                            UserId = user.Id,
+                            PasswordExpiration = DateTime.Now.AddMonths(3)
+                        };
+
+                        _context.PasswordExpirations.Add(newPasswordExpiration);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        PasswordExpiration.PasswordExpiration = DateTime.Now.AddMonths(3);
+                        _context.PasswordExpirations.Update(PasswordExpiration);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest(result.Errors);
+                }
+
+                //sign user in
+                await _signInManager.SignInAsync(user, false);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
                 return StatusCode(500, ex.Message);
             }
         }
@@ -343,6 +747,20 @@ namespace Team_Tactics_Backend.Controllers
 
             return false; // The new password does not match any of the old passwords
         }
-    }
 
+        private int ReturnRole(string role)
+        {
+            switch (role)
+            {
+                case "Admin":
+                    return 3;
+                case "Manager":
+                    return 2;
+                case "User":
+                    return 1;
+                default:
+                    return 1;
+            }
+        }
+    }
 }

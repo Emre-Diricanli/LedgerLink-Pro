@@ -20,6 +20,8 @@ const AdminConfirmEmail = () => {
         const confirmEmail = async () => {
             if (madeCall) return;
             try {
+                console.log('Email:', email);
+                console.log('Token:', token);
                 const response = await confirm_email(email, token);
                 setMadeCall(true);
                 setEmailConfirmed(response);
