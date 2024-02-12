@@ -11,13 +11,14 @@ import UserManagement from './pages/user-management/user-mangement';
 import ConfirmUser from './pages/confirm-user/confirm-user';
 import NewUserResetPassword from './pages/new-user/new-user-reset-password';
 import AdminSignup from './pages/signin-signup/admin-signup';
+import ServerOfflinePage from './pages/server-offline/server-offline';
 
 function App() {
   // This component will determine whether to show the Navbar
   const Layout = ({ children }) => {
     const location = useLocation(); // Get the current location
     const [showNavbar, setShowNavbar] = useState(true);
-    const [noShowNavbarLocations, setNoShowNavbarLocations] = useState(["/user-signin", "/admin-signin", "/admin-confirm-email", "/user-signup", '/user-registration', '/confirm-user','/new-user/reset-password', '/admin-signup']);
+    const [noShowNavbarLocations, setNoShowNavbarLocations] = useState(["/user-signin", "/admin-signin", "/admin-confirm-email", "/user-signup", '/user-registration', '/confirm-user','/new-user/reset-password', '/admin-signup', '/server-offline']);
 
     
     useEffect(() => {
@@ -44,6 +45,7 @@ function App() {
         <Route path="/confirm-user" element={<Layout><ConfirmUser /></Layout>} />
         <Route path="/new-user/reset-password" element={<Layout><NewUserResetPassword /></Layout>} />
         <Route path="/user-management" element={<Layout><UserManagement /></Layout>} />
+        <Route path="/server-offline" element={<Layout><ServerOfflinePage /></Layout>} />
       </Routes>
     </Router>
   );

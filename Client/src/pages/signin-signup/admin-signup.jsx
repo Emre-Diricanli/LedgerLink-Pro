@@ -11,6 +11,8 @@ const AdminSignup = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
 
+    const [signupSuccess, setSignupSuccess] = useState(false); // New state for tracking signup success
+
     const navigate = useNavigate();
 
     const handleSignup = async () => {
@@ -30,7 +32,7 @@ const AdminSignup = () => {
                 console.log('signin successful');
 
                 //redirect to home page
-                navigate('/');
+                setSignupSuccess(true); // Set signupSuccess to true on successful registration
 
             } else {
                 console.log('signin failed:', response);
@@ -42,7 +44,14 @@ const AdminSignup = () => {
     };
 
     
-
+    if (signupSuccess) {
+        return (
+            <div className="confirmation-modal">
+                <p>Please check your email for a confirmation message.</p>
+                <button onClick={() => navigate('/admin-signin')}>Go to Sign In</button>
+            </div>
+        );
+    }
     return (
         <div className='admin-signin-page'>
             <div className="signin-modal">
@@ -77,18 +86,9 @@ const AdminSignup = () => {
                     <input type="password" placeholder="Confirm Password" className="signin-input" onChange={(e) => setConfirmPassword(e.target.value)} />
                 </div>
 
-                <div className="flex flex-row content-center justify-start gap-2 w-full pt-2">
-                    <p>Forgot password? <a href="/forgot-password">Reset Password</a></p>
-                </div>
-
-                <div className="flex flex-row content-center justify-start gap-2 w-full pt-4">
-                    <p>Keep me signed in</p>
-                    <input type="checkbox" />
-                </div>
-
-
+            
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <button className="admin-signin-btn" onClick={handleSignup}>Sign In</button>
+                    <button className="admin-signin-btn" onClick={handleSignup}>Register</button>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
@@ -96,7 +96,7 @@ const AdminSignup = () => {
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">
-                    <p>Looking for User signup? <a href="/user-signin">User Signup</a></p>
+                    <p>Looking for User signup? <a href="/user-signin">User Sign Up</a></p>
                 </div>
             
             </div>

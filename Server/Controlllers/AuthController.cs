@@ -82,7 +82,21 @@ namespace Team_Tactics_Backend.Controllers
                 // Generate and send confirmation token
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(identuser);
                 var codeEncoded = HttpUtility.UrlEncode(token);
-                await _emailService.SendEmailAsync(model.Email, "Confirm your email", $"Please confirm your email by clicking this link: <a href='http://localhost:5173/admin-confirm-email?email={model.Email}&token={codeEncoded}'>Confirm Email</a>");
+                var username = identuser.UserName; // Extract the username from the IdentityUser object
+                var confirmationLink = $"http://localhost:5173/admin-confirm-email?email={HttpUtility.UrlEncode(model.Email)}&token={codeEncoded}";
+
+                var htmlContent = $@"
+                    <html>
+                        <body>
+                            <h1>Welcome, {username}!</h1>
+                            <p>Thank you for registering as an admin. Before you can start using your account, you need to confirm your email address.</p>
+                            <p>Please click the link below to confirm your email:</p>
+                            <p><a href='{confirmationLink}'>Confirm Email</a></p>
+                            <p>If you did not register for an account, no further action is required.</p>
+                        </body>
+                    </html>";
+
+                await _emailService.SendEmailAsync(model.Email, "Confirm your email", htmlContent);
 
                 return Ok();
             }
@@ -173,12 +187,14 @@ namespace Team_Tactics_Backend.Controllers
 
                 var _context = _contextFactory.CreateDbContext();
 
+                DateTime utcNow = DateTime.UtcNow;
+
                 //log admin login
                 var user = await _context.Users.Where(u => u.Username == model.Email).FirstOrDefaultAsync();
                 var lastLogin = new UserLoginHistory
                 {
                     userId = user.id,
-                    loginTime = DateTime.Now
+                    loginTime = utcNow
                 };
 
                 _context.UserLoginHistories.Add(lastLogin);
@@ -207,10 +223,11 @@ namespace Team_Tactics_Backend.Controllers
 
                 var role = await _userManager.GetRolesAsync(user);
 
-                // Verify the role is valid
-                if (role == null) return Ok(1);
+                // Verify the role is valid and return as json 'role' property
+                if (role == null) return Ok(new { role = 1 });
 
-                return Ok(ReturnRole(role[0]));
+
+                return Ok(new { role = ReturnRole(role[0]) });
             }
             catch (Exception ex)
             {
@@ -393,8 +410,26 @@ namespace Team_Tactics_Backend.Controllers
 
                 await _context.SaveChangesAsync();
 
-                //send new user email with generated password
-                await _emailService.SendEmailAsync(email, "Welcome to LedgerLinkPro", $"Welcome to LedgerLinkPro. Your username is {user.Username} and your password is {user.GeneratedPassword}. Please change your password after logging in.");
+                var htmlContent = $@"
+                <html>
+                <body>
+                    <h1>Welcome to LedgerLinkPro!</h1>
+                    <p>Hello {user.FirstName},</p>
+                    <p>Welcome to LedgerLinkPro. We're excited to have you on board. Your account has been successfully created, and you're almost ready to start using your new account.</p>
+                    <h2>Your account details are as follows:</h2>
+                    <ul>
+                        <li><strong>Username:</strong> {user.Username}</li>
+                        <li><strong>Password:</strong> {user.GeneratedPassword}</li>
+                    </ul>
+                    <p><strong>Please change your password after logging in.</strong></p>
+                    <p>To log in to your account, please visit the <a href='http://localhost:5173/login'>login page</a>.</p>
+                    <p>If you have any questions or need further assistance, please do not hesitate to contact our support team.</p>
+                    <p>Best regards,<br/>The LedgerLinkPro Team</p>
+                </body>
+                </html>";
+
+                await _emailService.SendEmailAsync(email, "Welcome to LedgerLinkPro", htmlContent);
+
 
                 return Ok();
             }
@@ -670,7 +705,6 @@ namespace Team_Tactics_Backend.Controllers
                     };
 
                     _context.PreviousUsedPasswords.Add(currentPassword);
-                    await _context.SaveChangesAsync();
 
                     //assuming user has changed password, set InitialPassword to false and update password expiration date
                     var needsCreateNewPassword = await _context.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == user.Email);
@@ -682,17 +716,19 @@ namespace Team_Tactics_Backend.Controllers
                     {
                         needsCreateNewPassword.InitialPassword = false;
                         _context.NeedsCreateNewPasswords.Update(needsCreateNewPassword);
-                        await _context.SaveChangesAsync();
                     }
 
                     var PasswordExpiration = await _context.PasswordExpirations.FirstOrDefaultAsync(u => u.UserId == user.Id);
                     if (PasswordExpiration == null)
                     {
+                        DateTime utcnow = DateTime.UtcNow;
+                        utcnow = utcnow.AddMonths(3);
+
                         //create new password expiration record
                         var newPasswordExpiration = new PasswordExpirationInfo
                         {
                             UserId = user.Id,
-                            PasswordExpiration = DateTime.Now.AddMonths(3)
+                            PasswordExpiration = utcnow
                         };
 
                         _context.PasswordExpirations.Add(newPasswordExpiration);
@@ -714,6 +750,19 @@ namespace Team_Tactics_Backend.Controllers
                 //sign user in
                 await _signInManager.SignInAsync(user, false);
 
+                DateTime utcnow2 = DateTime.UtcNow;
+
+                //log user login
+                var lastLogin = new UserLoginHistory
+                {
+                    userId = user.Id,
+                    loginTime = utcnow2
+                };
+
+                _context.UserLoginHistories.Add(lastLogin);
+                await _context.SaveChangesAsync();
+
+
                 return Ok();
             }
             catch (Exception ex)
@@ -722,6 +771,21 @@ namespace Team_Tactics_Backend.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpPost("online-status")]
+        public async Task<IActionResult> CheckOnlineStatus()
+        {
+            try
+            {
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
 
         private bool IsPasswordReused(string userId, string newPassword)
         {

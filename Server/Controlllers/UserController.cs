@@ -115,65 +115,43 @@ namespace LedgerLink_Pro_Backend.Controlllers
         //Get all users
         [HttpGet("admin/get-users")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUsers([FromBody] FetchUsersParameterModel model)
+        public async Task<IActionResult> GetUsers([FromQuery] int pageSize, [FromQuery] int pageIndex, [FromQuery] int userType, [FromQuery] int activeStatus, [FromQuery] string searchString = "")
         {
             try
             {
-                //Verify information is present
-                if (model == null)
-                {
-                    return BadRequest("No information was provided");
-                }
+                // Verify pageSize and pageIndex are positive, else set to default values
+                pageSize = pageSize > 0 ? pageSize : 10;
+                pageIndex = pageIndex > 0 ? pageIndex : 1;
 
-                // Verify the model is valid
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                //verify if the user is an admin
+                // Verify if the user is an admin
                 if (!User.IsInRole("Admin"))
                 {
                     return Unauthorized("You are not authorized to perform this action");
                 }
 
-                //convert active status to boolean. 0 for all, 1 for active, 2 for inactive
-                // bool activeStatus = model.activeStatus switch
-                // {
-                //     0 => true,
-                //     1 => true,
-                //     2 => false,
-                //     _ => true
-                // };
-
-                //pageIndex is nullable, create non-nullable variable
-                int pageIndex = model.pageIndex ?? 1;
-
-                //pageSize is nullable, create non-nullable variable
-                int pageSize = model.pageSize ?? 10;
-
                 using var db = _contextFactory.CreateDbContext();
-                var users = db.Users
-                    .Where(u => u.UserRole == model.userType)
-                    .Where(u => u.Username.Contains(model.searchString) || u.FirstName.Contains(model.searchString) || u.LastName.Contains(model.searchString))
+                //var usersQuery = db.Users
+                //.Where(u => u.UserRole == userType && (u.Username.Contains(searchString) || u.FirstName.Contains(searchString) || u.LastName.Contains(searchString)));
+                IQueryable<User> usersQuery = db.Users;
+                //var usersTest = await usersQuery.ToListAsync();
+
+                // Apply active status filter
+                switch (activeStatus)
+                {
+                    case 1:
+                        usersQuery = usersQuery.Where(u => u.IsActive);
+                        break;
+                    case 2:
+                        usersQuery = usersQuery.Where(u => !u.IsActive);
+                        break;
+                }
+
+                var users = usersQuery
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize);
+                
 
-                //apply active status filter
-                if (model.activeStatus == 1)
-                {
-                    users = users.Where(u => u.IsActive == true);
-                }
-                else if (model.activeStatus == 2)
-                {
-                    users = users.Where(u => u.IsActive == false);
-                }
-                else
-                {
-                    users = users.Where(u => u.IsActive == true || u.IsActive == false);
-                }
-
-                //return as a list of UserInfoReturnModel
+                // Return as a list of UserInfoReturnModel
                 var usersList = await users.Select(u => new UserInfoReturnModel
                 {
                     UserId = u.id,
@@ -188,8 +166,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     PhoneNumber = u.PhoneNumber,
                     Role = u.UserRole == 1 ? "User" :
                            u.UserRole == 2 ? "Manager" :
-                           u.UserRole == 3 ? "Admin" :
-                           "Unknown"
+                           u.UserRole == 3 ? "Admin" : "Unknown"
                 }).ToListAsync();
 
                 //Gather role, confirmed email, last login, password expiration, and password reset information

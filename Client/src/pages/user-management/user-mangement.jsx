@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import './user-management.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
-import { fetch_users } from '../../services/user_info_service';
+import { fetch_users as fetchUsersFromService } from '../../services/user_info_service';
 
 const UserManagement = () => {
     const [userFilterOptions, setUserFilterOptions] = useState(['All', 'User', 'Manager', 'Admin']);
@@ -79,15 +79,24 @@ const UserManagement = () => {
                     break;
             }
 
-            const response = await fetchUsers(selectedRowCount, 0, userType, activeStatus);
-            setHasFetchedUsers(true);
-            console.log(response);
+            const response = await fetchUsersFromService(selectedRowCount, 0, userType, activeStatus);
 
-            //setFetchedUsers(data);
+            // If the response is false, we can assume there was an error
+            if (response === false) {
+                console.error('There was a problem fetching the users');
+                alert('There was a problem fetching the users');
+                return;
+            } else {
+                //data is the users list
+                setFetchedUsers(response);
+                setHasFetchedUsers(true);
+                console.log(response);
+            }
+
         }
 
         fetchUsers();
-    }, []);
+    }, [selectedUserFilter, selectedActiveFilter, selectedRowCount, hasFetchedUsers]);
 
     return (
        <div className='page-container'>

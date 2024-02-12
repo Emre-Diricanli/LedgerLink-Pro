@@ -85,13 +85,14 @@ export const admin_signup_service = async (email, password, firstName, lastName)
             firstName: firstName,
             lastName: lastName
         };
+        console.log(body);
         const response = await http_context(`${API_URL}/auth/admin/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: body
+            body: JSON.stringify(body)
         });
 
         // //check if response was 428, if so redirect to new user new password page
@@ -272,7 +273,24 @@ export const new_user_reset_password = async (newPassword, userid) => {
     }
 }
 
-
+export const check_online_status = async () => {
+    try {
+        const response = await http_context(`${API_URL}/auth/online-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+}
 
 export const test_auth = async () => {
     try {
@@ -308,7 +326,10 @@ export const get_auth_level = async () => {
 
         //grab role from response
         const data = await response.json();
+        console.log('Data:', data);
         const role = data.role;
+
+        console.log('Role:', role);
 
         //store in local storage
         localStorage.setItem('role', role);

@@ -35,6 +35,8 @@ namespace Team_Tactics_Backend.Controllers
                     context.Database.EnsureDeleted();
                     context.Database.EnsureCreated();
                 }
+
+
                 return Ok("All data has been deleted");
             }
             catch (Exception ex)

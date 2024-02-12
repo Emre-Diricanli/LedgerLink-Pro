@@ -24,19 +24,21 @@ export const get_user_info = async () => {
 
 export const fetch_users = async (pageSize, pageIndex, userType, activeStatus) => {
     try {
-        const body = {
-            pageSize: pageSize,
-            pageIndex: pageIndex,
-            userType: userType,
-            activeStatus: activeStatus
-        };
+        // Construct query string
+        const queryParams = new URLSearchParams({
+            pageSize,
+            pageIndex,
+            userType,
+            activeStatus
+        }).toString();
 
-        const response = await http_context(`${API_URL}/user/admin/get-users`, {
+        const url = `${API_URL}/user/admin/get-users?${queryParams}`;
+
+        const response = await http_context(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(body),
             credentials: 'include'
         });
 

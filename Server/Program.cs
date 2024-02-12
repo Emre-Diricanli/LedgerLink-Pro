@@ -17,29 +17,21 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 
-<<<<<<< Updated upstream
-// builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-//     options.UseNpgsql(
-//         configuration.GetConnectionString("DefaultConnection"),
-//         npgsqlOptionsAction: npgsqlOptions =>
-//         {
-//             npgsqlOptions.EnableRetryOnFailure(
-//                 maxRetryCount: 5,
-//                 maxRetryDelay: TimeSpan.FromSeconds(30),
-//                 errorCodesToAdd: null);
-//         }));
-
-
 builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-    options.UseSqlServer(
-        configuration.GetConnectionString("AzureSQLConnection")));
-=======
+    options.UseNpgsql(
+        configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptionsAction: npgsqlOptions =>
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+        }));
 
-       builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-    options.UseSqlServer(
-        configuration.GetConnectionString("DefaultConnection")));
- 
->>>>>>> Stashed changes
+
+// builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+//     options.UseSqlServer(
+//         configuration.GetConnectionString("AzureSQLConnection")));
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
