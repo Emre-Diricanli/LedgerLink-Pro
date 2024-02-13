@@ -5,10 +5,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { fetch_users as fetchUsersFromService } from '../../services/user_info_service';
 import UserTable from '../../components/user-table/user-table';
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
+import SelectedUserInfo from '../../components/selected-user-information/selected-user-info';
+import CircularProgress from '@mui/material/CircularProgress';
+import { User } from '../../components/interfaces/user-management';
 
-
-const UserManagement = () => {
+  
+const UserManagement: React.FC = () => {
     const [userFilterOptions, setUserFilterOptions] = useState(['All', 'User', 'Manager', 'Admin']);
     const [activeFilterOptions, setActiveFilterOptions] = useState(['All', 'Active', 'Inactive']);
     const [rowCountOptions, setRowCountOptions] = useState([5, 10, 25 ]);
@@ -23,8 +25,10 @@ const UserManagement = () => {
 
 
     const [hasFetchedUsers, setHasFetchedUsers] = useState(false) // New state for storing fetched users
-    const [fetchedUsers, setFetchedUsers] = useState([]); // New state for storing fetched users
-    const [selectedUser, setSelectedUser] = useState(null); // New state for storing the selected user
+    const [fetchedUsers, setFetchedUsers] = useState<User[]>([]);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+    const [isLoading, setIsLoading] = useState(false); // New state for tracking loading status
 
 
     // Function to toggle the visibility of the action dropdown
@@ -33,7 +37,7 @@ const UserManagement = () => {
     };
 
     const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
+        const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', options);
     };
@@ -42,7 +46,7 @@ const UserManagement = () => {
     // Close the dropdown if clicking outside of it
     useEffect(() => {
         function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (dropdownRef.current && (dropdownRef.current as HTMLElement).contains(event.target)) {
                 setShowActionDropdown(false);
             }
         }
@@ -55,9 +59,19 @@ const UserManagement = () => {
         };
     }, [dropdownRef]);
 
+    const handleActiveUserChange = (userId: string) => {
+        const user = fetchedUsers.find(user => user.userId === userId);
+        setSelectedUser(user || null);
+      };
+
+      const handleSelectedUsersChange = (selectedUserIds: string[]) => {
+        console.log('Selected Users:', selectedUserIds);
+      };
+
     // Fetch users when the component mounts
     useEffect(() => {
         async function fetchUsers() {
+            setIsLoading(true); // Set loading to true
             if (hasFetchedUsers) return; // If we've already fetched the users, return early
             //convert user type to int 0 for all, 1 for user, 2 for manager, 3 for admin
             let userType = 0;
@@ -104,6 +118,8 @@ const UserManagement = () => {
                 setHasFetchedUsers(true);
                 setSelectedUser(response[0]);
             }
+
+            setIsLoading(false); // Set loading to false
 
         }
 
@@ -161,47 +177,21 @@ const UserManagement = () => {
                 </div>
                
             </div>
-            <div className='flex flex-row justify-between w-full pl-8'>
-                <UserTable users={fetchedUsers} className='w-fit'/>
-                <div class="selected-user-info-container">
-                    <div class="selected-user-info-profile-image">
-                        <img src="https://via.placeholder.com/150" alt="profile" />
-                    </div>
-                    <h1 id="userFullName">John Doe 
-                        <span class="pencil-icon">
-                            <FontAwesomeIcon icon={faPencil} size="xs" className='icon-button-link'/>
-                        </span>
-                        </h1>
-                    <h3 id="userRole">User</h3>
-                    <div className="user-details">
-                        <p id="username">Username: ajohnson0224</p>
-                        <p id="emailStatus">Email Confirmed: Yes</p>
-                        <p id="accountStatus">Account Status: Active</p>
-                        <p id="phonenumber">706-436-1212</p>
-                        <p id="address">Address: 123 Hart, GA, 12345</p>
-                    </div>
-                    <div className="selected-user-info-last5logins">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Login Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {selectedUser.last5Logins.map((login, index) => (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td>{formatDate(login)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
+            { isLoading ? ( 
+                <div className='flex flex-col w-full h-full justify-center items-center'>
+                    <CircularProgress size={80}/>
                 </div>
+            ): (
+                <div className='flex flex-row justify-between w-full pl-8'>
+                    <UserTable
+                        users={fetchedUsers}
+                        onActiveUserChange={handleActiveUserChange}
+                        onSelectedUsersChange={handleSelectedUsersChange} // Ensure this is correctly passed
+                        />
 
-            </div>
+                    {selectedUser && <SelectedUserInfo selectedUser={selectedUser} />}
+                </div>
+            )}
 
        </div>
     );

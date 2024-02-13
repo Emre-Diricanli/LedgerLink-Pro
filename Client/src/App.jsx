@@ -7,7 +7,7 @@ import UserSignin from './pages/signin-signup/user-signin';
 import AdminSignin from './pages/signin-signup/admin-signin';
 import UserRegistration from './pages/signin-signup/user-registration';
 import AdminConfirmEmail from './pages/confirm-email/admin-confirm-email';
-import UserManagement from './pages/user-management/user-mangement';
+import UserManagement from './pages/user-management/user-management';
 import ConfirmUser from './pages/confirm-user/confirm-user';
 import NewUserResetPassword from './pages/new-user/new-user-reset-password';
 import AdminSignup from './pages/signin-signup/admin-signup';

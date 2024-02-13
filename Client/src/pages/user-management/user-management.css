@@ -21,6 +21,16 @@
     border-radius: 4px;
     margin-top: 70px; /* Adjust based on your layout */
   }
+
+  .action-dropdown-user {
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+    z-index: 1;
+    border-radius: 4px;
+    
+  }
   
   /* Style for individual action buttons within the dropdown */
   .dropdown-action-button {
@@ -83,13 +93,6 @@
       color: #333;
   }
 
-  #userFullName, #userRole {
-      margin: 5px 0;
-  }
-
-  #emailStatus, #accountStatus {
-      color: #4CAF50; /* Green for positive messages */
-  }
 
   .selected-user-info-profile-image{
     width: 100%;
