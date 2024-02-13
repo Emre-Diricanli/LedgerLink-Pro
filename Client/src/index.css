@@ -22,6 +22,9 @@
   --secondary-color: #ffffff; /* 30% of the usage */
   --accent-color: #006eff;     /* 10% of the usage */
 
+  --page-container-bg: #f5f5f5;
+  --soft-gray-text: #b1b1b1;
+
   --soft-border: #cbcbcb;
   --secondary-bg-offset: rgb(250, 251, 252);
 
@@ -59,7 +62,7 @@ body {
   justify-content: flex-start;
   height: 100vh;
   width: 100%;
-  background-color: #f5f5f5;
+  background-color: var(--page-container-bg);
 }
 
 h1 {
@@ -120,6 +123,16 @@ button:hover {
 }
 .icon-button.secondary:hover{
   background-color: var(--soft-gray-hover);
+}
+
+.icon-button-link{
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.icon-button-link:hover{
+  color: var(--accent-color);
+  scale: 1.1;
 }
 
 input {

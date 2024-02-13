@@ -149,7 +149,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 var users = usersQuery
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize);
-                
+
 
                 // Return as a list of UserInfoReturnModel
                 var usersList = await users.Select(u => new UserInfoReturnModel
@@ -181,6 +181,11 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     if (lastLogin != null)
                     {
                         user.LastLogin = lastLogin.loginTime;
+
+                        //gather the last 5 logins
+                        var last5Logins = await db.UserLoginHistories.Where(u => u.userId == user.UserId).OrderByDescending(u => u.loginTime).Take(5).Select(u => u.loginTime).ToListAsync();
+
+                        user.Last5Logins = last5Logins;
                     }
                     else
                     {
