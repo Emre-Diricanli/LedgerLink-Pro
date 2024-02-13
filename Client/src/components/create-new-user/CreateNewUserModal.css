@@ -22,4 +22,21 @@
     font-size: 2rem;
     font-weight: 500;
   }
+
+  .icon-spinning {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .icon-green {
+    color: green;
+  }
+  
+  .icon-red {
+    color: red;
+  }
   

@@ -3,12 +3,15 @@ using LedgerLink_Pro_Backend.Models.Users;
 using LedgerLink_Pro_Backend.Services;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.DTO;
+using LedgerLinkPro.Models.Auth;
 using LedgerLinkPro.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Web;
 
 namespace LedgerLink_Pro_Backend.Controlllers
 {
@@ -222,7 +225,203 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
         //delete user
 
+        //validate username
+        [HttpGet("validate-username")]
+        [Authorize]
+        public async Task<IActionResult> ValidateUsername([FromQuery] string username)
+        {
+            try
+            {
+                // verify a username is present in the query
+                if (string.IsNullOrEmpty(username))
+                {
+                    return BadRequest("No username was provided");
+                }
 
+                //check if username is already taken
+                var user = await _userManager.FindByNameAsync(username);
+
+                if (user != null)
+                {
+                    return Ok(new {valid = false});
+                }
+                else
+                {
+                    return Ok(new {valid = true});
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("validate-email")]
+        [Authorize]
+        public async Task<IActionResult> ValidateEmail([FromQuery] string email)
+        {
+            try
+            {
+                // verify a username is present in the query
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest("No username was provided");
+                }
+
+                //regex on email
+                if (!Regex.IsMatch(email, @"^[\w\.-]+@[\w\-]+\.[\w\.-]+$"))
+                {
+                    return BadRequest("Invalid email format");
+                }
+
+                //check if username is already taken
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user != null)
+                {
+                    return Ok(new { valid = false });
+                }
+                else
+                {
+                    return Ok(new { valid = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("admin/create-user")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminCreateNewUser([FromBody] AdminNewUserModel newUser)
+        {
+            try
+            {
+                // Verify the model is valid
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Create a new user
+                var identuser = new IdentityUser
+                {
+                    UserName = newUser.username,
+                    Email = newUser.email,
+                    EmailConfirmed = false
+                };
+
+                // Register the user
+                var identRegistrationResult = await _userManager.CreateAsync(identuser, newUser.password);
+
+                if (!identRegistrationResult.Succeeded)
+                {
+                    return BadRequest(identRegistrationResult.Errors);
+                }
+
+                // Add user to role
+                switch (newUser.role)
+                {
+                    case 1:
+                        var role = await _userManager.AddToRolesAsync(identuser, new string[] { "User" });
+                        break;
+                    case 2:
+                        var role2 = await _userManager.AddToRolesAsync(identuser, new string[] { "Manager" });
+                        break;
+                    case 3:
+                        var role3 = await _userManager.AddToRolesAsync(identuser, new string[] { "Admin" });
+                        break;
+                    default:
+                        return BadRequest("Invalid role");
+                }
+
+                var user = new User
+                {
+                    id = identuser.Id,
+                    Username = identuser.UserName,
+                    FirstName = newUser.firstName,
+                    LastName = newUser.lastName,
+                    UserRole = newUser.role,
+                    IsActive = true
+                };
+
+                using var db = _contextFactory.CreateDbContext();
+                db.Users.Add(user);
+
+                //if password equals initial password (Password123$), create new entry in NeedsCreateNewPassword table to signal user to change password on signin otherwise , create new entry in PasswordExpirations table and add to previous password history
+                if (newUser.password.Equals("Password123$"))
+                {
+                    var needsCreateNewPassword = new NeedsCreateNewPassword
+                    {
+                        Email = newUser.email,
+                        InitialPassword = true
+                    };
+
+                    db.NeedsCreateNewPasswords.Add(needsCreateNewPassword);
+                }
+                else
+                {
+                    var passwordExpiration = new PasswordExpirationInfo
+                    {
+                        UserId = identuser.Id,
+                        PasswordExpiration = DateTime.Now.AddDays(90)
+                    };
+
+                    db.PasswordExpirations.Add(passwordExpiration);
+
+                   var passwordHash = _userManager.PasswordHasher.HashPassword(identuser, newUser.password);
+
+                    var passwordHistory = new PreviousUsedPasswords
+                    {
+                        UserId = identuser.Id,
+                        PasswordHash = passwordHash
+                    };
+
+                    db.PreviousUsedPasswords.Add(passwordHistory);
+                }
+
+                await db.SaveChangesAsync();
+
+
+                //Send email to user
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(identuser);
+                var codeEncoded = HttpUtility.UrlEncode(token);
+                var username = identuser.UserName; // Extract the username from the IdentityUser object
+                var confirmationLink = $"http://localhost:5173/admin-confirm-email?email={HttpUtility.UrlEncode(newUser.email)}&token={codeEncoded}";
+
+                var htmlContent = $@"
+                <html>
+                <body>
+                    <h1>Welcome to LedgerLinkPro!</h1>
+                    <p>Hello {user.FirstName},</p>
+                    <p>Welcome to LedgerLinkPro. We're excited to have you on board. Your account has been successfully created, and you're almost ready to start using your new account.</p>
+                    <p>To begin using your account please confirm your email by following the link below:</p>
+                    <p><a href='{confirmationLink}'>Confirm Email</a></p> 
+                    <h2>Your account details are as follows:</h2>
+                    <ul>
+                        <li><strong>Username:</strong> {newUser.username}</li>
+                        <li><strong>Password:</strong> {newUser.password}</li>
+                    </ul>
+                    <p><strong>Please change your password after logging in.</strong></p>
+                    <p>To log in to your account, please visit the <a href='http://localhost:5173/login'>login page</a>.</p>
+                    <p>If you have any questions or need further assistance, please do not hesitate to contact our support team.</p>
+                    <p>Best regards,<br/>The LedgerLinkPro Team</p>
+                </body>
+                </html>";
+
+                await _emailService.SendEmailAsync(newUser.email, "Welcome to LedgerLink Pro", htmlContent);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
 
     }
 }

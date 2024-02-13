@@ -53,3 +53,81 @@ export const fetch_users = async (pageSize, pageIndex, userType, activeStatus) =
         throw error;
     }
 }
+
+export const validate_username = async (username) => {
+    try {
+        const response = await http_context(`${API_URL}/user/validate-username?username=${username}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const data = await response.json();
+
+        //if username is valid
+        if (data.valid) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+    }
+}
+
+export const validate_email = async (email) => {
+    try {
+        const response = await http_context(`${API_URL}/user/validate-email?email=${email}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const data = await response.json();
+
+        //if email is valid
+        if (data.valid) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+    }
+}
+
+export const admin_create_new_user = async (user) => {
+    try {
+        const response = await http_context(`${API_URL}/user/admin/create-user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(user)
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+       return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+    }
+}
