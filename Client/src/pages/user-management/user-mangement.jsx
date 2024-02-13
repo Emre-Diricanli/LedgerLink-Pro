@@ -4,6 +4,7 @@ import './user-management.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { fetch_users as fetchUsersFromService } from '../../services/user_info_service';
+import UserTable from '../../components/user-table/user-table';
 
 const UserManagement = () => {
     const [userFilterOptions, setUserFilterOptions] = useState(['All', 'User', 'Manager', 'Admin']);
@@ -149,6 +150,13 @@ const UserManagement = () => {
                 </div>
                
             </div>
+            <div className='flex flex-row justify-between w-full p-8'>
+                <UserTable users={fetchedUsers} className='w-fit'/>
+                <div className=''>
+
+                </div>
+            </div>
+
        </div>
     );
 };

@@ -193,11 +193,11 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     //null check
                     if (PasswordExpiration != null)
                     {
-                        user.PasswordExpieration = PasswordExpiration.PasswordExpiration; //<= Date
+                        user.PasswordExpiration = PasswordExpiration.PasswordExpiration; //<= Date
                     }
                     else
                     {
-                        user.PasswordExpieration = null;
+                        user.PasswordExpiration = null;
                     }
                 }
 

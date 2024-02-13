@@ -1,0 +1,17 @@
+/* UserTable.css */
+.user-table-container {
+    overflow-x: auto; /* Ensures the table is scrollable on small screens */
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th, .user-table td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #ddd; /* Adds a line between rows */
+}
+
+/* Add more styles here as needed */

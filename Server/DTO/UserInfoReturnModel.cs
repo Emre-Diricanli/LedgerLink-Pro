@@ -11,7 +11,7 @@ public class UserInfoReturnModel
     public bool NeedsPasswordReset { get; set; }
     public bool ConfirmedEmail { get; set; }
     public DateTime? LastLogin { get; set; }
-    public DateTime? PasswordExpieration { get; set; }
+    public DateTime? PasswordExpiration { get; set; }
 
     public string? StreetAddress { get; set; }
     public string? City { get; set; }

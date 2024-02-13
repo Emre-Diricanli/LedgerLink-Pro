@@ -76,6 +76,15 @@ namespace Team_Tactics_Backend.Controllers
                 using (var db = _contextFactory.CreateDbContext())
                 {
                     db.Users.Add(user);
+
+                    //Add Password Expiration record
+                    DateTime utcNow = DateTime.UtcNow;
+                    var passwordExpiration = new PasswordExpirationInfo
+                    {
+                        UserId = identuser.Id,
+                        PasswordExpiration = utcNow.AddMonths(3)
+                    };
+
                     await db.SaveChangesAsync();
                 }
 
@@ -209,7 +218,6 @@ namespace Team_Tactics_Backend.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
 
         [HttpGet("role")]
         public async Task<IActionResult> GetRole()
