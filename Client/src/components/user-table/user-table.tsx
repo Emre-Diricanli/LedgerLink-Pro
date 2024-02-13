@@ -60,7 +60,11 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
                 </thead>
                 <tbody>
                     {users.map((user) => (
-                        <tr key={user.userId} onClick={() => handleRowClick(user.userId)}>
+                            <tr 
+                                key={user.userId} 
+                                onClick={() => handleRowClick(user.userId)}
+                                className={activeUser === user.userId ? 'active-user-row' : ''}
+                            >
                             <td>
                                 <input
                                     type="checkbox"

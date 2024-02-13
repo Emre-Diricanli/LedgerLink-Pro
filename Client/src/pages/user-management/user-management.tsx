@@ -8,6 +8,7 @@ import UserTable from '../../components/user-table/user-table';
 import SelectedUserInfo from '../../components/selected-user-information/selected-user-info';
 import CircularProgress from '@mui/material/CircularProgress';
 import { User } from '../../components/interfaces/user-management';
+import CreateNewUserModal from '../../components/create-new-user/CreateNewUserModal'
 
   
 const UserManagement: React.FC = () => {
@@ -23,10 +24,12 @@ const UserManagement: React.FC = () => {
     const [selectedActiveFilter, setSelectedActiveFilter] = useState('All');
     const [selectedRowCount, setSelectedRowCount] = useState(5);
 
+    const [isCreateNewUserModalOpen, setCreateNewUserModalOpen] = useState(false);
+
 
     const [hasFetchedUsers, setHasFetchedUsers] = useState(false) // New state for storing fetched users
     const [fetchedUsers, setFetchedUsers] = useState<User[]>([]);
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [activeUser, setActiveUser] = useState<User | null>(null);
 
     const [isLoading, setIsLoading] = useState(false); // New state for tracking loading status
 
@@ -61,11 +64,10 @@ const UserManagement: React.FC = () => {
 
     const handleActiveUserChange = (userId: string) => {
         const user = fetchedUsers.find(user => user.userId === userId);
-        setSelectedUser(user || null);
+        setActiveUser(user || null);
       };
 
       const handleSelectedUsersChange = (selectedUserIds: string[]) => {
-        console.log('Selected Users:', selectedUserIds);
       };
 
     // Fetch users when the component mounts
@@ -116,7 +118,7 @@ const UserManagement: React.FC = () => {
                 console.log(response);
                 setFetchedUsers(response);
                 setHasFetchedUsers(true);
-                setSelectedUser(response[0]);
+                setActiveUser(response[0]);
             }
 
             setIsLoading(false); // Set loading to false
@@ -128,6 +130,7 @@ const UserManagement: React.FC = () => {
 
     return (
        <div className='page-container'>
+            <CreateNewUserModal isOpen={isCreateNewUserModalOpen} onClose={() => setCreateNewUserModalOpen(false)} />
             <div className='user-management-hotbar'>
                 <div className='flex flex-col items-start w-fit'>
                     <p>Search</p>
@@ -148,6 +151,11 @@ const UserManagement: React.FC = () => {
                             return <option key={index} value={option}>{option}</option>
                         })}
                     </select>
+                </div>
+                <div className='flex flex-col items-start w-fit'>
+                    <h3>Create User</h3>
+                    <button onClick={() => setCreateNewUserModalOpen(true)}>Create</button>
+                    
                 </div>
                 <div className='flex flex-col items-start w-fit ml-auto'>
                     <button className="icon-button secondary">
@@ -189,7 +197,7 @@ const UserManagement: React.FC = () => {
                         onSelectedUsersChange={handleSelectedUsersChange} // Ensure this is correctly passed
                         />
 
-                    {selectedUser && <SelectedUserInfo selectedUser={selectedUser} />}
+                    {activeUser && <SelectedUserInfo selectedUser={activeUser} />}
                 </div>
             )}
 

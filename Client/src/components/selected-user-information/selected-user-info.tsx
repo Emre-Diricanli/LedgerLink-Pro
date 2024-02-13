@@ -7,8 +7,8 @@ import { User, UserTableProps, SelectedUserInformationProps } from '../../compon
 const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser }) => {
     const [user, setUser] = useState(selectedUser);
     useEffect(() => {
-        console.log('Selected User:', user);
-    }, []);
+       setUser(selectedUser);
+    }, [selectedUser]);
 
         
     const formatDate = (dateString) => {

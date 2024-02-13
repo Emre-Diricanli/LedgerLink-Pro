@@ -53,12 +53,12 @@ const NewUserResetPassword = () => {
                 
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>New Password<strong>*</strong></p>
-                    <input type="password" placeholder="New Password" className="signin-input" onChange={(e) => setNewPassword(e.target.value)} />
+                    <input type="password" placeholder="New Password" className="modal-content-input" onChange={(e) => setNewPassword(e.target.value)} />
                 </div>
 
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Confirm Password<strong>*</strong></p>
-                    <input type="password" placeholder="Confirm New Password" className="signin-input" onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <input type="password" placeholder="Confirm New Password" className="modal-content-input" onChange={(e) => setConfirmPassword(e.target.value)} />
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">

@@ -36,7 +36,7 @@ const AdminSignin = () => {
 
     return (
         <div className='admin-signin-page'>
-            <div className="signin-modal">
+            <div className="modal-content">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
@@ -47,11 +47,11 @@ const AdminSignin = () => {
                 </div>  
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
                     <p>Username<strong>*</strong></p>
-                    <input type="text" placeholder="Username" className="signin-input" onChange={(e) => setUsername(e.target.value)}/>
+                    <input type="text" placeholder="Username" className="modal-content-input" onChange={(e) => setUsername(e.target.value)}/>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Password<strong>*</strong></p>
-                    <input type="password" placeholder="Password" className="signin-input" onChange={(e) => setPassword(e.target.value)} />
+                    <input type="password" placeholder="Password" className="modal-content-input" onChange={(e) => setPassword(e.target.value)} />
                 </div>
 
                 <div className="flex flex-row content-center justify-start gap-2 w-full pt-2">

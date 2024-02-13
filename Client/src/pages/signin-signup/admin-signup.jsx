@@ -54,7 +54,7 @@ const AdminSignup = () => {
     }
     return (
         <div className='admin-signin-page'>
-            <div className="signin-modal">
+            <div className="modal-content">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
@@ -66,24 +66,24 @@ const AdminSignup = () => {
                 <div className="flex flex-row gap-2 content-center justify-start w-full pt-8">
                     <div className="flex flex-col content-center justify-start gap-0 w-full ">
                         <p>First Name<strong>*</strong></p>
-                        <input type="text" placeholder="First Name" className="signin-input" onChange={(e) => setFirstName(e.target.value)} maxLength={30}/>
+                        <input type="text" placeholder="First Name" className="modal-content-input" onChange={(e) => setFirstName(e.target.value)} maxLength={30}/>
                     </div>
                     <div className="flex flex-col content-center justify-start gap-0 w-full ">
                         <p>Last Name<strong>*</strong></p>
-                        <input type="text" placeholder="Last Name" className="signin-input" onChange={(e) => setLastName(e.target.value)} maxLength={30}/>
+                        <input type="text" placeholder="Last Name" className="modal-content-input" onChange={(e) => setLastName(e.target.value)} maxLength={30}/>
                     </div>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
                     <p>Email<strong>*</strong></p>
-                    <input type="text" placeholder="Email" className="signin-input" onChange={(e) => setEmail(e.target.value)}/>
+                    <input type="text" placeholder="Email" className="modal-content-input" onChange={(e) => setEmail(e.target.value)}/>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Password<strong>*</strong></p>
-                    <input type="password" placeholder="Password" className="signin-input" onChange={(e) => setPassword(e.target.value)} />
+                    <input type="password" placeholder="Password" className="modal-content-input" onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Confirm Password<strong>*</strong></p>
-                    <input type="password" placeholder="Confirm Password" className="signin-input" onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <input type="password" placeholder="Confirm Password" className="modal-content-input" onChange={(e) => setConfirmPassword(e.target.value)} />
                 </div>
 
             

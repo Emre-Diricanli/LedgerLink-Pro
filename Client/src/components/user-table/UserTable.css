@@ -21,4 +21,10 @@
     border-bottom: 1px solid #ddd; /* Adds a line between rows */
 }
 
-/* Add more styles here as needed */
+.active-user-row {
+    background-color: lightgray;
+    /*Border shadow*/
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.25s ease;
+}
+
