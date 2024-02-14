@@ -17,6 +17,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 
+builder.Services.AddHostedService<TimedHostedService>();
+
 builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseNpgsql(
         configuration.GetConnectionString("DefaultConnection"),
