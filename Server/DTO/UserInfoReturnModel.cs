@@ -13,6 +13,9 @@ public class UserInfoReturnModel
     public bool IsActive { get; set; }
     public bool NeedsPasswordReset { get; set; }
     public bool ConfirmedEmail { get; set; }
+    public bool LockedOut { get; set; }
+    public int AccessFailedCount { get; set; }  
+    public DateTime? LockoutEnd { get; set; }
     public DateTime? LastLogin { get; set; }
     public List<DateTime> Last5Logins { get; set; }
     public List<ReturnUserExpireAccessModel> UserExpireAccess { get; set; }

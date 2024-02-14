@@ -6,6 +6,7 @@ import '../../pages/user-management/user-management.css';
 import { User, UserTableProps } from '../../components/interfaces/user-management';
 import { admin_activate_user, admin_deactivate_user, admin_delete_user } from '../../services/user_info_service';
 import AdminResetUsetPasswordModal from '../admin-reset-user-password/admin-reset-user-password-modal';
+import { admin_unlock_account } from '../../services/auth_service';
 
 const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSelectedUsersChange, usersNeedRefresh }) => {
     const [actionOptions] = useState<string[]>(['Edit', 'Deactivate', 'Delete', 'Reset Password']);
@@ -120,6 +121,19 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
         usersNeedRefresh(selectedUsers);
     };
 
+    const handleUnlockAccount = async (userId: string) => {
+        const response = await admin_unlock_account(userId);
+
+        if (response === true) {
+            console.log('User account unlocked successfully');
+
+            // Refresh the user list
+            usersNeedRefresh([userId]);
+        } else {
+            alert('Failed to unlock user account');
+        }
+    };
+
 
 
     //map action handlers to action names
@@ -128,16 +142,22 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
         'Deactivate': handleDeactivate,
         'Activate': handleActivate,
         'Delete': handleDelete,
-        'Reset Password': handleResetPassword
+        'Reset Password': handleResetPassword,
+        'Unlock Account': handleUnlockAccount
     };
 
-    const getActionOptions = (userIsActive: boolean) => {
+    const getActionOptions = (userIsActive: boolean, userIsLockedOut: boolean) => {
         let actions = ['Edit', 'Delete', 'Reset Password'];
         if (userIsActive) {
             actions.push('Deactivate');
         } else {
             actions.push('Activate');
         }
+
+        if (userIsLockedOut) {
+            actions.push('Unlock Account');
+        }
+
         return actions;
     };
 
@@ -154,6 +174,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
                             <th>Last Name</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Locked Out</th>
                             <th>Active</th>
                             <th>Last Login</th>
                             <th>Email Confirmed</th>
@@ -183,6 +204,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
                                 <td>{user.lastName}</td>
                                 <td>{user.email}</td>
                                 <td>{user.role}</td>
+                                <td style={{ color: user.lockedOut ? 'red' : 'green' }}>{user.lockedOut ? 'Yes' : 'No'}</td>
                                 <td>{user.isActive ? 'Yes' : 'No'}</td>
                                 <td>{new Date(user.lastLogin).toLocaleString()}</td>
                                 <td>{user.confirmedEmail ? 'Yes' : 'No'}</td>
@@ -193,7 +215,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
                                     </button>
                                     {visibleDropdownUserId === user.userId && (
                                         <div className='action-dropdown-user' ref={dropdownRef}>
-                                            {getActionOptions(user.isActive).map((option, index) => (
+                                            {getActionOptions(user.isActive, user.lockedOut).map((option, index) => (
                                                 <button 
                                                     key={index} 
                                                     className='dropdown-action-button'

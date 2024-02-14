@@ -33,6 +33,16 @@ builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
 //     options.UseSqlServer(
 //         configuration.GetConnectionString("AzureSQLConnection")));
 
+/* 
+ builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 3;
+    options.Lockout.AllowedForNewUsers = true;
+});
+
+ */
+
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedEmail = true;

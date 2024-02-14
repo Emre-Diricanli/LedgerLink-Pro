@@ -8,6 +8,9 @@ export interface User {
     isActive: boolean;
     needsPasswordReset: boolean;
     confirmedEmail: boolean;
+    lockedOut: boolean;
+    accessFailedCount: number;
+    lockoutEnd: string;
     lastLogin: string;
     last5Logins: string[];
     userExpireAccess: ReturnUserExpireAccessModel[];

@@ -358,3 +358,23 @@ export const get_auth_level = async () => {
     }
     
 };
+
+
+export const admin_unlock_account = async (userId) => {  
+    try {
+        const response = await http_context(`${API_URL}/auth/admin/unlock-account?userId=${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+    }
+}

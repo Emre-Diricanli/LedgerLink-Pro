@@ -43,9 +43,33 @@ namespace Team_Tactics_Backend.Controllers
             {
                 return BadRequest(ex.Message);
             }
-        }       
+        }
 
-        
+        [HttpPost("dev-unlock-accounts")]
+        public async Task<IActionResult> UnlockAccounts()
+        {
+            try
+            {
+                //foreach account in the database, unlock the account
+                var _context = _contextFactory.CreateDbContext();
+
+                var users = _userManager.Users.ToList();
+
+                foreach (var user in users)
+                {
+                    await _userManager.SetLockoutEnabledAsync(user, false);
+                    //reset lockiout end date
+                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.Now);
+                    await _userManager.ResetAccessFailedCountAsync(user);
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 
 }

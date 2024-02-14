@@ -37,7 +37,7 @@ const UserSignin = () => {
                 alert('signin failed:' + response.errorMsg);
             }
             else {
-                alert('signin failed:22', response);
+                alert('signin failed:', response);
             }
         } catch (error) {
             //print error to console

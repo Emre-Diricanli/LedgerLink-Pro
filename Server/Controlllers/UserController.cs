@@ -240,6 +240,36 @@ namespace LedgerLink_Pro_Backend.Controlllers
                         user.UserExpireAccess = null;
                     }
 
+                    //check if user is locked out
+                    user.LockedOut = await _userManager.IsLockedOutAsync(identUser);
+
+                    if (user.LockedOut)
+                    {
+                        // Get lockout end date as DateTimeOffset?
+                        var lockoutEndDateOffset = await _userManager.GetLockoutEndDateAsync(identUser);
+
+                        if (lockoutEndDateOffset.HasValue)
+                        {
+                            // Convert DateTimeOffset to DateTime (local time)
+                            var lockoutEndDateTime = lockoutEndDateOffset.Value.LocalDateTime;
+
+                            // Assuming user.LockoutEnd is of type DateTime or DateTime?
+                            user.LockoutEnd = lockoutEndDateTime;
+                        }
+                        else
+                        {
+                            // Handle the case where there is no lockout end date set
+                            user.LockoutEnd = null;
+                        }
+                    }
+
+                    else
+                    {
+                        user.LockoutEnd = DateTime.MinValue;
+                    }
+
+                    //get access failed count
+                    user.AccessFailedCount = await _userManager.GetAccessFailedCountAsync(identUser);
                 }
 
                 return Ok(usersList);
@@ -444,7 +474,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 </body>
                 </html>";
 
-                await _emailService.SendEmailAsync(newUser.email, "Welcome to LedgerLink Pro", htmlContent);
+                await _emailService.SendEmailAsync(newUser.email, "Welcome to LedgerLink Pro22", htmlContent);
 
                 return Ok();
             }
