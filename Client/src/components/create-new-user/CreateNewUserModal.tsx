@@ -10,7 +10,7 @@ import { validate_email } from '../../services/user_info_service';
 
 interface UserModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (boolean) => void;
 }
 
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
@@ -43,7 +43,15 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
     const [email, setEmail] = React.useState('');
 
     const [roleOptions, setRoleOptions] = React.useState<{[key: string]: number}>({});
-    const [selectedRole, setSelectedRole] = React.useState(1);
+    const [selectedRole, setSelectedRole] = React.useState('User');
+
+
+    const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        // Find the key by its value
+        const selectedKey = Object.keys(roleOptions).find(key => roleOptions[key] === parseInt(event.target.value));
+        setSelectedRole(selectedKey || '');
+    };
+    
 
     const [creatingNewUser, setCreatingNewUser] = React.useState(false);
 
@@ -153,9 +161,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
     }, [password, isntCustomPassword, confirmPassword]);
     
 
-    const handleRoleChange = (event) => {
-        setSelectedRole(event.target.value);
-    };
 
     const handleCreateNewUser = async () => {
         //set creating new user to true
@@ -163,11 +168,11 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
 
         //validate fields
         //validate role
-        if (selectedRole === 0) {
-            setCreatingNewUser(false);
-            alert('Role is not valid');
-            return;
-        }
+        // if (selectedRole === 0) {
+        //     setCreatingNewUser(false);
+        //     alert('Role is not valid');
+        //     return;
+        // }
 
         //validate email
         if (email === '') {
@@ -256,8 +261,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
             return;
         } else {
             setCreatingNewUser(false);
-            alert('New user created');
-            onClose();
+            onClose(true);
         }
     };
 
@@ -268,7 +272,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={() => onClose(false)}>
       <div className="modal-content" onClick={handleModalClick}>
         {/* <button onClick={onClose}>Close</button> */}
         <div className="flex flex-row items-center justify-start gap-2 w-full pb-2">
@@ -277,14 +281,15 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
 
         <div className="flex flex-col content-center justify-start gap-0 w-full pt-4">
             <p>Role<strong>*</strong></p>
-            <select value={selectedRole} onChange={handleRoleChange} className='filter-dropdown'>
-            {Object.keys(roleOptions).map((role) => (
-                <option key={roleOptions[role]} value={role}>
-                    {role}
-                </option>
-            ))}
-        </select>
+            <select value={roleOptions[selectedRole]} onChange={handleRoleChange} className='filter-dropdown'>
+                {Object.keys(roleOptions).map((role) => (
+                    <option key={role} value={roleOptions[role]}>
+                        {role}
+                    </option>
+                ))}
+            </select>
         </div>
+
         <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
             <p>Email<strong>*</strong></p>
             <input type="text" placeholder="Email" className="modal-content-input" onChange={(e) => setEmail(e.target.value)} maxLength={40}/>

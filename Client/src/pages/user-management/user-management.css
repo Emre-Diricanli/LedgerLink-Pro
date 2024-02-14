@@ -73,6 +73,11 @@
     font-weight: 500;
   }
 
+  .selected-user-info-container h2{
+    font-size: 1.2rem;
+    font-weight: 400;
+  }
+
   .selected-user-info-container h3{
     font-size: 1.2rem;
     font-weight: 400;
@@ -116,7 +121,6 @@
     height: 100px;
     background-color: var(--page-container-bg);
     border-bottom: 1px solid #e0e0e0;
-    border-left: 1px solid #e0e0e0;
 
     display: flex;
     flex-direction: column;

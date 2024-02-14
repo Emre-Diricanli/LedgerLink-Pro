@@ -62,6 +62,14 @@ const UserManagement: React.FC = () => {
         };
     }, [dropdownRef]);
 
+    //used for deleting a user and telling the user table to refresh
+    const handleRefreshUsers = (selectedUserIds: string[]) => {
+        setHasFetchedUsers(false);
+        setTimeout(() => {
+            setHasFetchedUsers(true);
+        }, 0);
+    };
+
     const handleActiveUserChange = (userId: string) => {
         const user = fetchedUsers.find(user => user.userId === userId);
         setActiveUser(user || null);
@@ -128,9 +136,21 @@ const UserManagement: React.FC = () => {
         fetchUsers();
     }, [selectedUserFilter, selectedActiveFilter, selectedRowCount, hasFetchedUsers]);
 
+    //method to handle the modal close event
+    const handleModalClose = (wasSuccessful) => {
+        setCreateNewUserModalOpen(false);
+        if (wasSuccessful) {
+            setHasFetchedUsers(false);
+
+            setTimeout(() => {
+                setHasFetchedUsers(true);
+            }, 0);
+        } 
+    };
+
     return (
        <div className='page-container'>
-            <CreateNewUserModal isOpen={isCreateNewUserModalOpen} onClose={() => setCreateNewUserModalOpen(false)} />
+            <CreateNewUserModal isOpen={isCreateNewUserModalOpen} onClose={handleModalClose} />
             <div className='user-management-hotbar'>
                 <div className='flex flex-col items-start w-fit'>
                     <p>Search</p>
@@ -195,6 +215,7 @@ const UserManagement: React.FC = () => {
                         users={fetchedUsers}
                         onActiveUserChange={handleActiveUserChange}
                         onSelectedUsersChange={handleSelectedUsersChange} // Ensure this is correctly passed
+                        usersNeedRefresh={handleRefreshUsers}
                         />
 
                     {activeUser && <SelectedUserInfo selectedUser={activeUser} />}

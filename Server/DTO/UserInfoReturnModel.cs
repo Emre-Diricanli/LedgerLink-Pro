@@ -1,3 +1,5 @@
+using LedgerLink_Pro_Backend.Models.Users;
+
 namespace LedgerLink_Pro_Backend.DTO;
 
 public class UserInfoReturnModel
@@ -6,12 +8,14 @@ public class UserInfoReturnModel
     public string Username { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
+    public string? Email { get; set; }
     public string Role { get; set; }
     public bool IsActive { get; set; }
     public bool NeedsPasswordReset { get; set; }
     public bool ConfirmedEmail { get; set; }
     public DateTime? LastLogin { get; set; }
     public List<DateTime> Last5Logins { get; set; }
+    public List<ReturnUserExpireAccessModel> UserExpireAccess { get; set; }
     public DateTime? PasswordExpiration { get; set; }
 
     public string? StreetAddress { get; set; }

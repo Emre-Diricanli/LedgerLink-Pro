@@ -180,6 +180,8 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
                     var lastLogin = await db.UserLoginHistories.Where(u => u.userId == user.UserId).OrderByDescending(u => u.loginTime).FirstOrDefaultAsync();
 
+                    user.Email = identUser.Email;
+
                     //null check
                     if (lastLogin != null)
                     {
@@ -207,6 +209,29 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     {
                         user.PasswordExpiration = null;
                     }
+
+                    //get top 3 user access expiration info 
+                    var userExpireAccess = await db.UserExpireAccesses.Where(u => u.userId == user.UserId).OrderByDescending(u => u.expireEndDate).Take(3).Select(u => new ReturnUserExpireAccessModel
+                    {
+                        expireStartDate = u.expireStartDate.LocalDateTime.ToString(),
+                        expireEndDate = u.expireEndDate.LocalDateTime.ToString(),
+                        reason = u.reason,
+                        AssigneeName = u.assignedByUserId
+                    }).ToListAsync();
+
+                    if(userExpireAccess.Count > 0)
+                    {
+                        foreach (var expireAccess in userExpireAccess)
+                        {
+                            expireAccess.AssigneeName = await ReturnUserFullName(expireAccess.AssigneeName);
+                        }
+                        user.UserExpireAccess = userExpireAccess;
+                    }
+                    else
+                    {
+                        user.UserExpireAccess = null;
+                    }
+
                 }
 
                 return Ok(usersList);
@@ -218,12 +243,6 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 return BadRequest(ex.Message);
             }
         }
-
-        //Get specific user
-
-        //Update user
-
-        //delete user
 
         //validate username
         [HttpGet("validate-username")]
@@ -325,18 +344,22 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 // Add user to role
                 switch (newUser.role)
                 {
-                    case 1:
+                    case "User":
                         var role = await _userManager.AddToRolesAsync(identuser, new string[] { "User" });
                         break;
-                    case 2:
+                    case "Manager":
                         var role2 = await _userManager.AddToRolesAsync(identuser, new string[] { "Manager" });
                         break;
-                    case 3:
+                    case "Admin":
                         var role3 = await _userManager.AddToRolesAsync(identuser, new string[] { "Admin" });
                         break;
                     default:
                         return BadRequest("Invalid role");
                 }
+
+                var roleNum = newUser.role == "User" ? 1 :
+                              newUser.role == "Manager" ? 2 :
+                              newUser.role == "Admin" ? 3 : 0;
 
                 var user = new User
                 {
@@ -344,7 +367,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     Username = identuser.UserName,
                     FirstName = newUser.firstName,
                     LastName = newUser.lastName,
-                    UserRole = newUser.role,
+                    UserRole = roleNum,
                     IsActive = true
                 };
 
@@ -392,6 +415,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 var username = identuser.UserName; // Extract the username from the IdentityUser object
                 var confirmationLink = $"http://localhost:5173/admin-confirm-email?email={HttpUtility.UrlEncode(newUser.email)}&token={codeEncoded}";
 
+                //TODO change link based if they are admin or not
                 var htmlContent = $@"
                 <html>
                 <body>
@@ -406,7 +430,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                         <li><strong>Password:</strong> {newUser.password}</li>
                     </ul>
                     <p><strong>Please change your password after logging in.</strong></p>
-                    <p>To log in to your account, please visit the <a href='http://localhost:5173/login'>login page</a>.</p>
+                    <p>To log in to your account, please visit the <a href='http://localhost:5173/user-signin'>login page</a>.</p>
                     <p>If you have any questions or need further assistance, please do not hesitate to contact our support team.</p>
                     <p>Best regards,<br/>The LedgerLinkPro Team</p>
                 </body>
@@ -423,5 +447,358 @@ namespace LedgerLink_Pro_Backend.Controlllers
             }
         }
 
+        [HttpPut("admin/deactivate-user")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminDeactivateUser([FromQuery] string userId)
+        {
+            try
+            {
+                // Find the user
+                var _context = _contextFactory.CreateDbContext();
+                var user = await _context.Users.Where(u => u.id == userId).FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Deactivate the user
+                user.IsActive = false;
+
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("admin/delete-user")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminDeleteUser([FromQuery] string userId)
+        {
+            try
+            {
+                // Find the user
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                //gather  from users, needsCreateNewPassword, passwordExpirations, previousUsedPasswords, and userLoginHistories
+                using var db = _contextFactory.CreateDbContext();
+
+                var userToDelete = await db.Users.Where(u => u.id == userId).FirstOrDefaultAsync();
+                var needsCreateNewPassword = await db.NeedsCreateNewPasswords.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
+                var passwordExpiration = await db.PasswordExpirations.Where(u => u.UserId == userId).FirstOrDefaultAsync();
+                var previousUsedPasswords = await db.PreviousUsedPasswords.Where(u => u.UserId == userId).ToListAsync();
+                var userLoginHistories = await db.UserLoginHistories.Where(u => u.userId == userId).ToListAsync();
+
+                db.Users.Remove(userToDelete);
+                db.NeedsCreateNewPasswords.Remove(needsCreateNewPassword);
+                //null check for passwordExpiration
+                if (passwordExpiration != null)
+                {
+                    db.PasswordExpirations.Remove(passwordExpiration);
+                }
+                db.PreviousUsedPasswords.RemoveRange(previousUsedPasswords);
+                db.UserLoginHistories.RemoveRange(userLoginHistories);
+                    
+                await db.SaveChangesAsync();
+
+                //remove user from roles
+                var roles = await _userManager.GetRolesAsync(user);
+
+                var removeRoles = await _userManager.RemoveFromRolesAsync(user, roles);
+
+                // Delete the user
+                var result = await _userManager.DeleteAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest(result.Errors);
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("admin/activate-user")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminActivateUser([FromQuery] string userId)
+        {
+            try
+            {
+                // Find the user
+                var _context = _contextFactory.CreateDbContext();
+                var user = await _context.Users.Where(u => u.id == userId).FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Activate the user
+                user.IsActive = true;
+
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("admin/reset-user-password")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminResetUserPassword([FromBody] AdminResetUserPassword newUserResetPassword)
+        {
+            try
+            {
+                // Verify the model is valid
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Find the user
+                var user = await _userManager.FindByEmailAsync(newUserResetPassword.email);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // update the user's password
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, newUserResetPassword.password);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest(result.Errors);
+                }
+
+                //if expirePassword is true, then ensure user is required to change password on signin
+                if (newUserResetPassword.expirePassword)
+                {
+                    using var db = _contextFactory.CreateDbContext();
+                    var needsCreateNewPassword = new NeedsCreateNewPassword
+                    {
+                        Email = newUserResetPassword.email,
+                        InitialPassword = true
+                    };
+
+                    db.NeedsCreateNewPasswords.Add(needsCreateNewPassword);
+                    await db.SaveChangesAsync();
+                }
+                else
+                {
+                    using var db = _contextFactory.CreateDbContext();
+                    DateTime utcNow = DateTime.UtcNow;
+                    var passwordExpiration = new PasswordExpirationInfo
+                    {
+                        UserId = user.Id,
+                        PasswordExpiration = utcNow.AddDays(90)
+                    };
+
+                    //remove password expiration if it exists
+                    var existingPasswordExpiration = await db.PasswordExpirations.Where(u => u.UserId == user.Id).FirstOrDefaultAsync();
+
+                    if (existingPasswordExpiration != null)
+                    {
+                        db.PasswordExpirations.Remove(existingPasswordExpiration);
+                    }
+
+                    db.PasswordExpirations.Add(passwordExpiration);
+                    await db.SaveChangesAsync();
+
+                    var passwordHash = _userManager.PasswordHasher.HashPassword(user, newUserResetPassword.password);
+
+                    var passwordHistory = new PreviousUsedPasswords
+                    {
+                        UserId = user.Id,
+                        PasswordHash = passwordHash
+                    };
+
+                    db.PreviousUsedPasswords.Add(passwordHistory);
+                    await db.SaveChangesAsync();
+                }
+
+                /* 
+                 //if password equals initial password (Password123$), create new entry in NeedsCreateNewPassword table to signal user to change password on signin otherwise , create new entry in PasswordExpirations table and add to previous password history
+                if (newUserResetPassword.password.Equals("Password123$"))
+                {
+                    using var db = _contextFactory.CreateDbContext();
+                    var needsCreateNewPassword = new NeedsCreateNewPassword
+                    {
+                        Email = newUserResetPassword.email,
+                        InitialPassword = true
+                    };
+
+                    db.NeedsCreateNewPasswords.Add(needsCreateNewPassword);
+                    await db.SaveChangesAsync();
+                }
+                else
+                {
+                    using var db = _contextFactory.CreateDbContext();
+                    DateTime utcNow = DateTime.UtcNow;
+                    var passwordExpiration = new PasswordExpirationInfo
+                    {
+                        UserId = user.Id,
+                        PasswordExpiration = utcNow.AddDays(90)
+                    };
+
+                    db.PasswordExpirations.Add(passwordExpiration);
+                    await db.SaveChangesAsync();
+
+                    var passwordHash = _userManager.PasswordHasher.HashPassword(user, newUserResetPassword.password);
+
+                    var passwordHistory = new PreviousUsedPasswords
+                    {
+                        UserId = user.Id,
+                        PasswordHash = passwordHash
+                    };
+
+                    db.PreviousUsedPasswords.Add(passwordHistory);
+                    await db.SaveChangesAsync();
+                }
+                 */
+
+                var identUser = await _userManager.GetUserAsync(User);
+
+                var adminsName = await _contextFactory.CreateDbContext().Users.Where(u => u.id == identUser.Id).Select(u => u.FirstName + u.LastName).FirstOrDefaultAsync();
+
+                var htmlContent = $@"
+                <!DOCTYPE html>
+                <html lang=""en"">
+                <head>
+                    <meta charset=""UTF-8"">
+                    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                    <title>Password Reset Notification</title>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                        .container {{ width: 80%; margin: auto; padding: 20px; }}
+                        .button {{ background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; text-decoration: none; }}
+                    </style>
+                </head>
+                <body>
+                    <div class=""container"">
+                        <h2>Password Reset Successful</h2>
+                        <p>Hello,</p>
+                        <p>Your password has been successfully reset by an admin. Below is your new and update password</p>
+                        <p><strong>New Password:</strong> {newUserResetPassword.password}</p>
+                        <p>The sytstem may prompt you to change your password upon loggin in.</p>
+                        <a href=""http://localhost:5173/user-signin"" class=""button"">Log In Now</a>
+                        <p>Best regards,<br>{adminsName}</p>
+                    </div>
+                </body>
+                </html>
+                ";
+
+                //email user informing them of the password reset and provide them their new password
+                await _emailService.SendEmailAsync(newUserResetPassword.email, "Your Password has Been Reset", htmlContent);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("admin/create-user-access-expiration")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> CreateUserAccessExpiration([FromBody] NewUserAccessExpirationModel newUserExpirationModel)
+        {
+            try
+            {
+                // Verify the model is valid
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Find the user
+                var user = await _userManager.FindByIdAsync(newUserExpirationModel.userId);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                var identUser = await _userManager.GetUserAsync(User);
+
+                string assigneeId = "";
+
+                if(identUser != null)
+                {
+                    assigneeId = identUser.Id;
+                }
+
+                var startDate = DateTime.Parse(newUserExpirationModel.expireStartDate); 
+                var endDate = DateTime.Parse(newUserExpirationModel.expireEndDate);
+
+                var startDateUtc = startDate.ToUniversalTime();
+                var endDateUtc = endDate.ToUniversalTime();
+
+                // Create a new entry in UserExpireAccess
+                var userAccessExpiration = new UserExpireAccess
+                {
+                    userId = newUserExpirationModel.userId,
+                    expireStartDate = startDateUtc,
+                    expireEndDate = endDateUtc,
+                    reason = newUserExpirationModel.reason,
+                    assignedByUserId = assigneeId
+                };
+
+                using var db = _contextFactory.CreateDbContext();
+
+                db.UserExpireAccesses.Add(userAccessExpiration);
+
+                await db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+    
+        private async Task<string> ReturnUserFullName(string id)
+        {
+            try
+            {
+                var _context = _contextFactory.CreateDbContext();
+                var user = await _context.Users.Where(u => u.id == id).FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return "UNKNOWN";
+                }
+
+                return user.FirstName + " " + user.LastName;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+            }
+        }
     }
 }

@@ -161,10 +161,11 @@ namespace Team_Tactics_Backend.Controllers
 
                     //if passed all checks then report login
                     var user = await _userManager.FindByNameAsync(model.Email);
+                    DateTime utcNow = DateTime.UtcNow;
                     var lastLogin = new UserLoginHistory
                     {
                         userId = user.Id,
-                        loginTime = DateTime.Now
+                        loginTime = utcNow
                     };
 
                     db.UserLoginHistories.Add(lastLogin);

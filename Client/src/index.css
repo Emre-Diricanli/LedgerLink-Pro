@@ -363,3 +363,13 @@ color: red;
   font-family: inherit;
   transition: border-color 0.25s;
 }
+
+.modal-content-btn-sm{
+  max-width: 150px;
+}
+
+.subinfo-text p{
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--soft-gray-text);
+}

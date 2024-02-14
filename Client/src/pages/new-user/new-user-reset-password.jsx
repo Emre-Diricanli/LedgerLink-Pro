@@ -41,7 +41,7 @@ const NewUserResetPassword = () => {
 
     return (
         <div className='signin-page'>
-            <div className="signin-modal">
+            <div className="modal-content">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
@@ -62,7 +62,7 @@ const NewUserResetPassword = () => {
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <button className="signin-btn" onClick={handlePasswordChange}>Reset Password</button>
+                    <button className="modal-content-btn" onClick={handlePasswordChange}>Reset Password</button>
                 </div>
 
             </div>
