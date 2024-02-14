@@ -49,24 +49,6 @@ function Navbar() {
         <div className='navbar-item'>
           <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
         </div>
-        <div className='navbar-item'>
-          <NavLink to="/contact" className={({ isActive }) => isActive ? "selected" : ""}>Other</NavLink>
-        </div>
-        <div className='navbar-item'>
-          <NavLink to="/user-signin" className={({ isActive }) => isActive ? "selected" : ""}>User Signin</NavLink>
-        </div>
-        <div className='navbar-item'>
-          <NavLink to="/admin-signin" className={({ isActive }) => isActive ? "selected" : ""}>Admin Signin</NavLink>
-        </div>
-        <div className='navbar-item'>
-          <NavLink to="/user-registration" className={({ isActive }) => isActive ? "selected" : ""}>User Signup</NavLink>
-        </div>
-        <div className='navbar-item'>
-          <NavLink to="/signup" className={({ isActive }) => isActive ? "selected" : ""}>Signup</NavLink>
-        </div>
-        <div className='navbar-item'>
-          <button onClick={testAuth}>Test Auth</button>
-        </div>
       </div>
       <div className='navbar-profile-container'>
         <p>ajohnson0224</p>

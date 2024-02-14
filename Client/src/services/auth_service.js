@@ -12,6 +12,7 @@ export const user_signin_service = async (email, password) => {
             body: JSON.stringify({ email, password })
         });
 
+
         //check if response was 428, if so redirect to new user new password page
         if (response.ok) {
             // Get encoded token from response
@@ -36,6 +37,11 @@ export const user_signin_service = async (email, password) => {
         }
 
         if (!response.ok) {
+            if (response.status === 403) {
+                const data = await response.json();
+                const errorMsg = data.message;
+                return { code: response.status, errorMsg };
+            }
             return false;
         }
        

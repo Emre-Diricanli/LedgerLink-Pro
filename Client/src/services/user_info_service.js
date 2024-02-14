@@ -245,3 +245,25 @@ export const admin_create_user_access_expiration = async (userId, expireStartDat
         return false;
     }
 }
+
+export const admin_delete_user_access_expiration = async (expireId) => {
+    try {
+        const response = await http_context(`${API_URL}/user/admin/delete-user-access-expiration?expireId=${expireId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        return true;
+       
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+    }
+}

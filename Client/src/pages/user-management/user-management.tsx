@@ -210,7 +210,7 @@ const UserManagement: React.FC = () => {
                     <CircularProgress size={80}/>
                 </div>
             ): (
-                <div className='flex flex-row justify-between w-full pl-8'>
+                <div className='flex flex-row justify-between w-full h-full pl-8'>
                     <UserTable
                         users={fetchedUsers}
                         onActiveUserChange={handleActiveUserChange}

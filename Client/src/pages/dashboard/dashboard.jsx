@@ -26,9 +26,10 @@ const Dashboard = () => {
     }, []);
 
     return (
-        <>
-            <h2>Hello World!</h2>
-        </>
+        <div className='flex flex-col justify-center items-center w-full h-full'>
+            <h1>Welcome to the Dashboard</h1>
+            <h2>Work in progress!</h2>
+        </div>
     );
 };
 

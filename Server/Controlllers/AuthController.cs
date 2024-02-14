@@ -123,6 +123,24 @@ namespace Team_Tactics_Backend.Controllers
             {
                 if (model == null) return BadRequest("No information was provided");
 
+                //ensure that user doesnt have a access expiration
+                var _context = _contextFactory.CreateDbContext();
+                var identUser = await _userManager.FindByNameAsync(model.Email);
+
+                var userExpireAccess = await _context.UserExpireAccesses.Where(u => u.userId == identUser.Id).ToListAsync();
+
+                if(userExpireAccess != null)
+                {
+                    foreach (var userExpire in userExpireAccess)
+                    {
+                        //Check if user has expired access where start date is equal today or before, and associated end date has not passed yet
+                        if (userExpire.expireStartDate <= DateTime.Now && userExpire.expireEndDate >= DateTime.Now)
+                        {
+                            return StatusCode(403, new { message = "User has expired access. Reason: " + userExpire.reason });
+                        }
+                    }
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
 
                 if (!result.Succeeded)

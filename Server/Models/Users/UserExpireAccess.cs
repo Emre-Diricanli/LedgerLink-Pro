@@ -5,8 +5,8 @@ namespace LedgerLink_Pro_Backend.Models.Users
 {
     public class UserExpireAccess
     {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int index { get; set; }
+        [Key]
+        public Guid expireId { get; set; }
         public string userId { get; set; }
         public DateTimeOffset expireStartDate { get; set; }
         public DateTimeOffset expireEndDate { get; set; }

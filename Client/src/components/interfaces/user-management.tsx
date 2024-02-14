@@ -20,6 +20,7 @@ export interface User {
   }
   
   export interface ReturnUserExpireAccessModel {
+    expireId: string;
     expireStartDate: Date;
     expireEndDate: Date;
     reason?: string; // The '?' makes it optional, similar to the C# nullable string

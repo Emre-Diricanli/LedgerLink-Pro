@@ -3,7 +3,7 @@ export const http_context = async (url, options) => {
         const response = await fetch(url, options);
 
         if(response.status === 401){
-            // window.location.href = '/usrer-signin';
+            window.location.href = '/user-signin';
             console.log('401');
         }
 

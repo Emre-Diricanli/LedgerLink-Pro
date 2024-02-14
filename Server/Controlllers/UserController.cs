@@ -122,6 +122,13 @@ namespace LedgerLink_Pro_Backend.Controlllers
         {
             try
             {
+                var validUser = await ValidateUser(User);
+
+                if (!validUser)
+                {
+                    return Unauthorized("You are not authorized to perform this action");
+                }
+
                 // Verify pageSize and pageIndex are positive, else set to default values
                 pageSize = pageSize > 0 ? pageSize : 10;
                 pageIndex = pageIndex > 0 ? pageIndex : 1;
@@ -213,6 +220,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     //get top 3 user access expiration info 
                     var userExpireAccess = await db.UserExpireAccesses.Where(u => u.userId == user.UserId).OrderByDescending(u => u.expireEndDate).Take(3).Select(u => new ReturnUserExpireAccessModel
                     {
+                        expireId = u.expireId,
                         expireStartDate = u.expireStartDate.LocalDateTime.ToString(),
                         expireEndDate = u.expireEndDate.LocalDateTime.ToString(),
                         reason = u.reason,
@@ -498,6 +506,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 var passwordExpiration = await db.PasswordExpirations.Where(u => u.UserId == userId).FirstOrDefaultAsync();
                 var previousUsedPasswords = await db.PreviousUsedPasswords.Where(u => u.UserId == userId).ToListAsync();
                 var userLoginHistories = await db.UserLoginHistories.Where(u => u.userId == userId).ToListAsync();
+                var userExpireAccess = await db.UserExpireAccesses.Where(u => u.userId == userId).ToListAsync();
 
                 db.Users.Remove(userToDelete);
                 db.NeedsCreateNewPasswords.Remove(needsCreateNewPassword);
@@ -506,6 +515,12 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 {
                     db.PasswordExpirations.Remove(passwordExpiration);
                 }
+
+                if (userExpireAccess.Count > 0)
+                {
+                    db.UserExpireAccesses.RemoveRange(userExpireAccess);
+                }
+
                 db.PreviousUsedPasswords.RemoveRange(previousUsedPasswords);
                 db.UserLoginHistories.RemoveRange(userLoginHistories);
                     
@@ -758,6 +773,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 // Create a new entry in UserExpireAccess
                 var userAccessExpiration = new UserExpireAccess
                 {
+                    expireId = Guid.NewGuid(),
                     userId = newUserExpirationModel.userId,
                     expireStartDate = startDateUtc,
                     expireEndDate = endDateUtc,
@@ -779,7 +795,36 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 return BadRequest(ex.Message);
             }
         }
-    
+
+        [HttpDelete("admin/delete-user-access-expiration")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> DeleteUserAccessExpiration([FromQuery] Guid expireId)
+        {
+            try
+            {
+                // Find the user
+                var userAccess = await _contextFactory.CreateDbContext().UserExpireAccesses.Where(u => u.expireId == expireId).FirstOrDefaultAsync();
+
+                if (userAccess == null)
+                {
+                    return BadRequest("User access expiration not found");
+                }
+
+                using var db = _contextFactory.CreateDbContext();
+
+                db.UserExpireAccesses.Remove(userAccess);
+
+                await db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         private async Task<string> ReturnUserFullName(string id)
         {
             try
@@ -798,6 +843,26 @@ namespace LedgerLink_Pro_Backend.Controlllers
             {
                 Debug.WriteLine(ex.Message);
                 return null;
+            }
+        }
+    
+        private async Task<bool> ValidateUser(System.Security.Claims.ClaimsPrincipal user)
+        {
+            try
+            {
+                var result = await _userManager.GetUserAsync(user);
+
+                if (result == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
             }
         }
     }
