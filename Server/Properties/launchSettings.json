@@ -21,8 +21,8 @@
       },
       "publishAllPorts": true,
       "useSSL": true
-    }
-  },
+    },
+  
   "Docker": {
     "commandName": "Docker",
     "launchBrowser": true,

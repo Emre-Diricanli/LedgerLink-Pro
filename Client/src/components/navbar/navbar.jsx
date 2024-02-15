@@ -50,9 +50,6 @@ function Navbar() {
           <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
         </div>
         <div className='navbar-item'>
-          <NavLink to="/contact" className={({ isActive }) => isActive ? "selected" : ""}>Other</NavLink>
-        </div>
-        <div className='navbar-item'>
           <NavLink to="/user-signin" className={({ isActive }) => isActive ? "selected" : ""}>User Signin</NavLink>
         </div>
         <div className='navbar-item'>
@@ -63,6 +60,9 @@ function Navbar() {
         </div>
         <div className='navbar-item'>
           <NavLink to="/signup" className={({ isActive }) => isActive ? "selected" : ""}>Signup</NavLink>
+        </div>
+        <div className='navbar-item'>
+          <NavLink to="/contact" className={({ isActive }) => isActive ? "selected" : ""}>Contact Us</NavLink>
         </div>
         <div className='navbar-item'>
           <button onClick={testAuth}>Test Auth</button>

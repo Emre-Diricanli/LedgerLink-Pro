@@ -269,6 +269,9 @@ input:disabled {
   width: 420px;
   height: fit-content;
 
+  max-height: auto;
+  margin: auto;
+  
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

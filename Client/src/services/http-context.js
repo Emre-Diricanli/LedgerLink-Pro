@@ -1,5 +1,5 @@
 export const http_context = async (url, options) => {
-    try {
+   /*  try {
         const response = await fetch(url, options);
 
         if(response.status === 401){
@@ -21,4 +21,5 @@ export const http_context = async (url, options) => {
 
         throw error;
     }
+    */
 };
