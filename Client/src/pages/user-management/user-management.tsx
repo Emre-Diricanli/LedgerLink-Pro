@@ -9,9 +9,11 @@ import SelectedUserInfo from '../../components/selected-user-information/selecte
 import CircularProgress from '@mui/material/CircularProgress';
 import { User } from '../../components/interfaces/user-management';
 import CreateNewUserModal from '../../components/create-new-user/CreateNewUserModal'
+import { UserProvider, useUser } from '../../util/UserProvider';
 
   
 const UserManagement: React.FC = () => {
+
     const [userFilterOptions, setUserFilterOptions] = useState(['All', 'User', 'Manager', 'Admin']);
     const [activeFilterOptions, setActiveFilterOptions] = useState(['All', 'Active', 'Inactive']);
     const [rowCountOptions, setRowCountOptions] = useState([5, 10, 25 ]);

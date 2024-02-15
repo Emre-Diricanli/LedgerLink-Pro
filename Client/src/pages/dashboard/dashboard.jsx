@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { get_auth_level } from '../../services/auth_service';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../util/UserProvider';
 
 const Dashboard = () => {
+    const {user, fetchUser } = useUser();
     // Component logic goes here
     const navigate = useNavigate();
 
@@ -27,8 +29,8 @@ const Dashboard = () => {
 
     return (
         <div className='flex flex-col justify-center items-center w-full h-full'>
-            <h1>Welcome to the Dashboard</h1>
-            <h2>Work in progress!</h2>
+            <h1>Welcome{user ? `, ${user.firstName}!` : '...'} </h1>
+            <h2 className='mt-8'>This Dashboard is a work in progress.</h2>
         </div>
     );
 };

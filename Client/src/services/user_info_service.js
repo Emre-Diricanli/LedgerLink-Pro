@@ -1,9 +1,9 @@
 const API_URL = import.meta.env.VITE_LedgerLinkPro_Server_API;
 import { http_context } from './http-context.js';
 
-export const get_user_info = async () => {
+export const get_my_info = async () => {
     try {
-        const response = await http_context(`${API_URL}/get-my-info`, {
+        const response = await http_context(`${API_URL}/user/get-my-info`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -11,11 +11,16 @@ export const get_user_info = async () => {
             credentials: 'include'
         });
 
+        if (!response.ok) {
+            return false;
+        };
+
         //get and store data in local storage
         const data = await response.json();
-        
 
-       
+        return data;
+
+        
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         throw error;

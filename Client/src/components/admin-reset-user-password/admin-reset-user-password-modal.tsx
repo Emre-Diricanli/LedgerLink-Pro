@@ -167,7 +167,7 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
 
         </div>
             <div className="flex flex-row justify-center items-center gap-4 w-full pt-4">
-              <button className='modal-content-btn modal-content-btn-sm' onClick={() => handleResetPassword()}>Update</button>
+              <button className='modal-content-btn modal-content-btn sm' onClick={() => handleResetPassword()}>Update</button>
             </div>
           </>
         )}

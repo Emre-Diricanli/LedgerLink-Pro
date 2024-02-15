@@ -372,8 +372,13 @@ color: red;
   transition: border-color 0.25s;
 }
 
-.modal-content-btn-sm{
+
+.modal-content-btn.sm{
   max-width: 150px;
+}
+
+.modal-content-btn.orange{
+  background-color: orange;
 }
 
 .subinfo-text p{
