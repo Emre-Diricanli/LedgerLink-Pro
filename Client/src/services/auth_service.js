@@ -11,6 +11,7 @@ export const check_auth = async () => {
             credentials: 'include'
         });
         if (!response.ok) {
+            localStorage.setItem('isLoggedIn', false);
             return false;
         }
         var data = await response.json();

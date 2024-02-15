@@ -26,6 +26,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   
 
   const fetchUser = async () => {
+    if (!isAuthenticated) {
+      return;
+    }
     const userData: User = await get_my_info();
     setUser(userData);
   };
@@ -39,7 +42,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setIsAuthenticated(true);
       }
-      
     }
 
     checkAuthentication();

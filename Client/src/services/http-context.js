@@ -2,7 +2,7 @@ export const http_context = async (url, options) => {
     try {
         const response = await fetch(url, options);
 
-        if(response.status === 401){
+        if(response.status === 401 && window.location.pathname !== '/server-offline' && window.location.pathname !== '/user-signin' && window.location.pathname !== '/admin-signin' && window.location.pathname !== '/user-registration' && window.location.pathname !== '/admin-signup') {
             window.location.href = '/user-signin';
             console.log('401');
         }
@@ -14,8 +14,8 @@ export const http_context = async (url, options) => {
         
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
         // Redirect to a different page when the server is offline
-        if (window.location.pathname !== '/server-offline') {
-            // window.location.href = '/server-offline';
+        if (window.location.pathname !== '/server-offline' && window.location.pathname !== '/user-signin' && window.location.pathname !== '/admin-signin' && window.location.pathname !== '/user-registration' && window.location.pathname !== '/admin-signup') {
+            window.location.href = '/server-offline';
         }
 }
 

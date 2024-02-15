@@ -13,6 +13,7 @@ import ConfirmUser from './pages/confirm-user/confirm-user';
 import NewUserResetPassword from './pages/new-user/new-user-reset-password';
 import AdminSignup from './pages/signin-signup/admin-signup';
 import ServerOfflinePage from './pages/server-offline/server-offline';
+import { AuthProvider } from './util/AuthenticationManagement';
 
 function App() {
   // This component will determine whether to show the Navbar
@@ -35,22 +36,24 @@ function App() {
   };
 
   return (
-    <UserProvider> {/* Wrap Router with UserProvider */}
-      <Router>
-        <Routes>
-          <Route path="/" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/user-signin" element={<Layout><UserSignin /></Layout>} />
-          <Route path="/admin-signin" element={<Layout><AdminSignin /></Layout>} />
-          <Route path="/admin-signup" element={<Layout><AdminSignup /></Layout>} />
-          <Route path="/user-registration" element={<Layout><UserRegistration /></Layout>} />
-          <Route path="/admin-confirm-email" element={<Layout><AdminConfirmEmail /></Layout>} />
-          <Route path="/confirm-user" element={<Layout><ConfirmUser /></Layout>} />
-          <Route path="/new-user/reset-password" element={<Layout><NewUserResetPassword /></Layout>} />
-          <Route path="/user-management" element={<Layout><UserManagement /></Layout>} />
-          <Route path="/server-offline" element={<Layout><ServerOfflinePage /></Layout>} />
-        </Routes>
-      </Router>
-    </UserProvider>
+    <AuthProvider>
+      <UserProvider> {/* Wrap Router with UserProvider */}
+        <Router>
+          <Routes>
+            <Route path="/" element={<Layout><Dashboard /></Layout>} />
+            <Route path="/user-signin" element={<Layout><UserSignin /></Layout>} />
+            <Route path="/admin-signin" element={<Layout><AdminSignin /></Layout>} />
+            <Route path="/admin-signup" element={<Layout><AdminSignup /></Layout>} />
+            <Route path="/user-registration" element={<Layout><UserRegistration /></Layout>} />
+            <Route path="/admin-confirm-email" element={<Layout><AdminConfirmEmail /></Layout>} />
+            <Route path="/confirm-user" element={<Layout><ConfirmUser /></Layout>} />
+            <Route path="/new-user/reset-password" element={<Layout><NewUserResetPassword /></Layout>} />
+            <Route path="/user-management" element={<Layout><UserManagement /></Layout>} />
+            <Route path="/server-offline" element={<Layout><ServerOfflinePage /></Layout>} />
+          </Routes>
+        </Router>
+      </UserProvider>
+    </AuthProvider>
   );
 }
 

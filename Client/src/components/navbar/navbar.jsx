@@ -1,37 +1,45 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom'; // Import NavLink
-import { get_auth_level, test_auth, user_signout_service, remove_user_info } from '../../services/auth_service';
 import './navbar.css'
 import UserProfilePictureModal from '../user-profile-picture-modal/UserProfilePictureModal';
-import { getProfilePictureUrl } from '../../services/profile-picture-service';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../../util/UserProvider';
+import { useProfilePicture } from '../FetchUserProfilePciture/FetchUserProfilePciture';
+import { redirectBasedOnValue } from '../DeterminRedirectPath/DeterminRedirectPath';
+import { useAuth } from '../../util/AuthenticationManagement';
 
 function Navbar() {
-  const {user, fetchUser } = useUser();
+  const {user } = useUser();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
-  const [profilePictureUrl, setProfilePictureUrl] = useState('');
-  const [noUrl, setNoUrl] = useState(false);
+  const { profilePictureUrl, noUrl } = useProfilePicture();
+  const { signOut, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    // Function to fetch the profile picture URL
-    const fetchProfilePictureUrl = async () => {
-      const response = await getProfilePictureUrl();
+  // useEffect(() => {
+  //   // Function to fetch the profile picture URL
+  //   const fetchProfilePictureUrl = async () => {
+  //     const isLoggedIn = localStorage.getItem('isLoggedIn') ? false : true;
+  //     console.log('isLoggedIn: ', isLoggedIn);
 
-      if (response === false) {
-        console.log('Failed to fetch profile picture URL');
-        setNoUrl(true);
-        return;
-      } else {
-        setNoUrl(false);
-        setProfilePictureUrl(response);
-      }
-    };
+  //     if (!isLoggedIn) {
+  //       return;
+  //     };
 
-    fetchProfilePictureUrl();
-  }, []);
+  //     const response = await getProfilePictureUrl();
+
+  //     if (response === false) {
+  //       console.log('Failed to fetch profile picture URL');
+  //       setNoUrl(true);
+  //       return;
+  //     } else {
+  //       setNoUrl(false);
+  //       setProfilePictureUrl(response);
+  //     }
+  //   };
+
+  //   fetchProfilePictureUrl();
+  // }, []);
   
 
   const handleProfilePictureClick = async () => {
@@ -41,40 +49,19 @@ function Navbar() {
 
   const handleModalClose = () => {
     setIsProfilePictureModalOpen(false);
-};
+  };
 
   const handleSignout = async () => {
-    //remove token from local storage
-    localStorage.removeItem('token');
-    
-    //Check user role and redirect to appropriate page
-    var role = await get_auth_level();
-
-    var response = await user_signout_service();
-
-    if (response === false) {
-      console.log('signout failed');
-    }
-
-    //remove user info
-    await remove_user_info();
-    
-    //redirect to appropriate page
-    switch (role) {
-      case 1:
-        window.location.href = '/user-signin';
-        break;
-      case 2:
-        window.location.href = '/user-signin';
-        break;
-      case 3:
-        window.location.href = '/admin-signin';
-        break;
-      default:
-        window.location.href = '/user-signin';
-        break;
+    try {
+      await signOut(); // Call the signOut method from AuthContext
+      // navigate('/signin'); // Redirect user to the sign-in page or another appropriate page
+    } catch (error) {
+      console.error('Sign-out failed:', error);
+      alert('Sign-out failed');
     }
   };
+
+
   return (
     <nav className="navbar-container">
       <UserProfilePictureModal currentImageUrl={noUrl ? '' : profilePictureUrl} isOpen={isProfilePictureModalOpen} onClose={handleModalClose} />

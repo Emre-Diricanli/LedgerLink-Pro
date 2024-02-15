@@ -320,6 +320,21 @@ namespace Team_Tactics_Backend.Controllers
             }
         }
 
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                await _signInManager.SignOutAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("role")]
         public async Task<IActionResult> GetRole()
         {
