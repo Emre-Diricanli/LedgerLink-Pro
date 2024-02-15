@@ -30,6 +30,11 @@ builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
                 errorCodesToAdd: null);
         }));
 
+//change cookie name
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "LedgerLinkProCookie";
+});
 
 // builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
 //     options.UseSqlServer(

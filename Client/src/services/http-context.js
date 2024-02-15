@@ -15,7 +15,7 @@ export const http_context = async (url, options) => {
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
         // Redirect to a different page when the server is offline
         if (window.location.pathname !== '/server-offline') {
-            window.location.href = '/server-offline';
+            // window.location.href = '/server-offline';
         }
 }
 

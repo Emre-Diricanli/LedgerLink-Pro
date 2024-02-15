@@ -1,6 +1,32 @@
 const API_URL = import.meta.env.VITE_LedgerLinkPro_Server_API;
 import { http_context } from './http-context.js';
 
+export const check_auth = async () => {
+    try {
+        const response = await http_context(`${API_URL}/auth/check-auth`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        var data = await response.json();
+        var role = data.role;
+
+        //store in local storage
+        localStorage.setItem('role', role);
+        localStorage.setItem('isLoggedIn', true);
+
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+};
+
 export const user_signin_service = async (email, password) => {
     try {
         const response = await http_context(`${API_URL}/auth/user/login`, {

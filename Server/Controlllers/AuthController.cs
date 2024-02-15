@@ -32,6 +32,36 @@ namespace Team_Tactics_Backend.Controllers
             _emailService = emailService;
         }
 
+        [HttpPost("check-auth")]
+        public async Task<IActionResult> CheckAuth()
+        {
+            try
+            {
+                //find user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                //get role
+                var role = await _userManager.GetRolesAsync(user);
+
+                if (role == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                return Ok(new { role = ReturnRole(role[0]) });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpPost("admin/register")]
         public async Task<IActionResult> Register([FromBody] AdminRegisterModel model)
         {
@@ -127,14 +157,14 @@ namespace Team_Tactics_Backend.Controllers
                 var _context = _contextFactory.CreateDbContext();
                 var identUser = await _userManager.FindByNameAsync(model.Email);
 
-                if(identUser == null)
+                if (identUser == null)
                 {
                     return BadRequest("User not found");
                 }
 
                 var userExpireAccess = await _context.UserExpireAccesses.Where(u => u.userId == identUser.Id).ToListAsync();
 
-                if(userExpireAccess != null)
+                if (userExpireAccess != null)
                 {
                     foreach (var userExpire in userExpireAccess)
                     {
@@ -156,7 +186,7 @@ namespace Team_Tactics_Backend.Controllers
                         //
                         // //check access failed count if 3 then lockout user
                         var accessFailedCount = await _userManager.GetAccessFailedCountAsync(identUser);
-                        
+
                         if (accessFailedCount >= 3)
                         {
                             await _userManager.SetLockoutEnabledAsync(identUser, true);
@@ -170,7 +200,7 @@ namespace Team_Tactics_Backend.Controllers
                     else if (result.IsLockedOut)
                     {
                         return StatusCode(429, "User account is locked out after failed attempt.");
-                    }   
+                    }
 
                     return BadRequest("Invalid email or password");
                 }
@@ -197,7 +227,7 @@ namespace Team_Tactics_Backend.Controllers
                             }
                         }
                     }
-                    
+
                 }
 
                 //check if user needs to change password
@@ -866,7 +896,7 @@ namespace Team_Tactics_Backend.Controllers
         }
 
         [HttpPost("admin/unlock-account")]
-        [Authorize (Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AdminUnlockAccount([FromQuery] string userId)
         {
             try
