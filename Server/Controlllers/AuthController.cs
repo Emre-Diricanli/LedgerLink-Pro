@@ -32,6 +32,36 @@ namespace Team_Tactics_Backend.Controllers
             _emailService = emailService;
         }
 
+        [HttpPost("check-auth")]
+        public async Task<IActionResult> CheckAuth()
+        {
+            try
+            {
+                //find user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                //get role
+                var role = await _userManager.GetRolesAsync(user);
+
+                if (role == null)
+                {
+                    return Unauthorized("User not found");
+                }
+
+                return Ok(new { role = ReturnRole(role[0]) });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpPost("admin/register")]
         public async Task<IActionResult> Register([FromBody] AdminRegisterModel model)
         {
@@ -123,11 +153,81 @@ namespace Team_Tactics_Backend.Controllers
             {
                 if (model == null) return BadRequest("No information was provided");
 
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+                //ensure that user doesnt have a access expiration
+                var _context = _contextFactory.CreateDbContext();
+                var identUser = await _userManager.FindByNameAsync(model.Email);
+
+                if (identUser == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                var userExpireAccess = await _context.UserExpireAccesses.Where(u => u.userId == identUser.Id).ToListAsync();
+
+                if (userExpireAccess != null)
+                {
+                    foreach (var userExpire in userExpireAccess)
+                    {
+                        //Check if user has expired access where start date is equal today or before, and associated end date has not passed yet
+                        if (userExpire.expireStartDate <= DateTime.Now && userExpire.expireEndDate >= DateTime.Now)
+                        {
+                            return StatusCode(403, new { message = "User has expired access. Reason: " + userExpire.reason });
+                        }
+                    }
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, true);
 
                 if (!result.Succeeded)
                 {
+                    // Check if the failure is due to an incorrect password or username and not because the user is already locked out
+                    if (!result.IsLockedOut)
+                    {
+                        //
+                        // //check access failed count if 3 then lockout user
+                        var accessFailedCount = await _userManager.GetAccessFailedCountAsync(identUser);
+
+                        if (accessFailedCount >= 3)
+                        {
+                            await _userManager.SetLockoutEnabledAsync(identUser, true);
+
+                            //lockout user for 30 minutes
+                            DateTimeOffset utcnow = DateTimeOffset.UtcNow;
+                            await _userManager.SetLockoutEndDateAsync(identUser, utcnow.AddMinutes(30));
+                            return StatusCode(429, "User account is locked out after too many failed attempts.");
+                        }
+                    }
+                    else if (result.IsLockedOut)
+                    {
+                        return StatusCode(429, "User account is locked out after failed attempt.");
+                    }
+
                     return BadRequest("Invalid email or password");
+                }
+                else
+                {
+                    var lockoutEnabled = await _userManager.GetLockoutEnabledAsync(identUser);
+
+                    if (lockoutEnabled)
+                    {
+                        //check lockout end date
+                        var lockoutEndDate = await _userManager.GetLockoutEndDateAsync(identUser);
+
+                        if (lockoutEndDate != null)
+                        {
+                            if (lockoutEndDate > DateTimeOffset.Now)
+                            {
+                                return StatusCode(429, "User account is locked out after too many failed attempts.");
+                            }
+                            else
+                            {
+                                //reset lockout
+                                await _userManager.ResetAccessFailedCountAsync(identUser);
+                                await _userManager.SetLockoutEnabledAsync(identUser, false);
+                            }
+                        }
+                    }
+
                 }
 
                 //check if user needs to change password
@@ -161,10 +261,11 @@ namespace Team_Tactics_Backend.Controllers
 
                     //if passed all checks then report login
                     var user = await _userManager.FindByNameAsync(model.Email);
+                    DateTime utcNow = DateTime.UtcNow;
                     var lastLogin = new UserLoginHistory
                     {
                         userId = user.Id,
-                        loginTime = DateTime.Now
+                        loginTime = utcNow
                     };
 
                     db.UserLoginHistories.Add(lastLogin);
@@ -211,6 +312,21 @@ namespace Team_Tactics_Backend.Controllers
 
                 return Ok();
 
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                await _signInManager.SignOutAsync();
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -794,7 +910,66 @@ namespace Team_Tactics_Backend.Controllers
             }
         }
 
+        [HttpPost("admin/unlock-account")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminUnlockAccount([FromQuery] string userId)
+        {
+            try
+            {
+                //verify information is present
+                if (userId == null)
+                {
+                    return BadRequest("No information was provided");
+                }
 
+                //validate user
+                if (!await ValidateUser(User))
+                {
+                    return Unauthorized("User not found");
+                }
+
+                //get user by id
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                //unlock account
+                await _userManager.SetLockoutEnabledAsync(user, false);
+                await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.Now);
+                await _userManager.ResetAccessFailedCountAsync(user);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        private async Task<bool> ValidateUser(System.Security.Claims.ClaimsPrincipal user)
+        {
+            try
+            {
+                var result = await _userManager.GetUserAsync(user);
+
+                if (result == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+        }
         private bool IsPasswordReused(string userId, string newPassword)
         {
             var user = _userManager.FindByIdAsync(userId).Result;

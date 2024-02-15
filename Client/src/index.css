@@ -70,6 +70,11 @@ h1 {
   line-height: 1.1;
 }
 
+h2 {
+  font-size: 2.8em;
+  line-height: 1.1;
+}
+
 
 button {
   border-radius: 6px;
@@ -112,7 +117,6 @@ button:hover {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-   gap: 5px;
    padding: 11px;
 
    transition: all 0.25s ease;
@@ -123,6 +127,10 @@ button:hover {
 }
 .icon-button.secondary:hover{
   background-color: var(--soft-gray-hover);
+}
+
+.icon-button.danger{
+  background-color: red;
 }
 
 .icon-button-link{
@@ -365,4 +373,19 @@ color: red;
   font-weight: bold;
   font-family: inherit;
   transition: border-color 0.25s;
+}
+
+
+.modal-content-btn.sm{
+  max-width: 150px;
+}
+
+.modal-content-btn.orange{
+  background-color: orange;
+}
+
+.subinfo-text p{
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--soft-gray-text);
 }

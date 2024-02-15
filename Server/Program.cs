@@ -17,6 +17,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 
+builder.Services.AddHostedService<TimedHostedService>();
+
 builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseNpgsql(
         configuration.GetConnectionString("DefaultConnection"),
@@ -28,10 +30,25 @@ builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
                 errorCodesToAdd: null);
         }));
 
+//change cookie name
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "LedgerLinkProCookie";
+});
 
 // builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
 //     options.UseSqlServer(
 //         configuration.GetConnectionString("AzureSQLConnection")));
+
+/* 
+ builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 3;
+    options.Lockout.AllowedForNewUsers = true;
+});
+
+ */
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {

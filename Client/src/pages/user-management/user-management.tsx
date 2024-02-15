@@ -9,9 +9,11 @@ import SelectedUserInfo from '../../components/selected-user-information/selecte
 import CircularProgress from '@mui/material/CircularProgress';
 import { User } from '../../components/interfaces/user-management';
 import CreateNewUserModal from '../../components/create-new-user/CreateNewUserModal'
+import { UserProvider, useUser } from '../../util/UserProvider';
 
   
 const UserManagement: React.FC = () => {
+
     const [userFilterOptions, setUserFilterOptions] = useState(['All', 'User', 'Manager', 'Admin']);
     const [activeFilterOptions, setActiveFilterOptions] = useState(['All', 'Active', 'Inactive']);
     const [rowCountOptions, setRowCountOptions] = useState([5, 10, 25 ]);
@@ -61,6 +63,14 @@ const UserManagement: React.FC = () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [dropdownRef]);
+
+    //used for deleting a user and telling the user table to refresh
+    const handleRefreshUsers = (selectedUserIds: string[]) => {
+        setHasFetchedUsers(false);
+        setTimeout(() => {
+            setHasFetchedUsers(true);
+        }, 0);
+    };
 
     const handleActiveUserChange = (userId: string) => {
         const user = fetchedUsers.find(user => user.userId === userId);
@@ -128,9 +138,21 @@ const UserManagement: React.FC = () => {
         fetchUsers();
     }, [selectedUserFilter, selectedActiveFilter, selectedRowCount, hasFetchedUsers]);
 
+    //method to handle the modal close event
+    const handleModalClose = (wasSuccessful) => {
+        setCreateNewUserModalOpen(false);
+        if (wasSuccessful) {
+            setHasFetchedUsers(false);
+
+            setTimeout(() => {
+                setHasFetchedUsers(true);
+            }, 0);
+        } 
+    };
+
     return (
        <div className='page-container'>
-            <CreateNewUserModal isOpen={isCreateNewUserModalOpen} onClose={() => setCreateNewUserModalOpen(false)} />
+            <CreateNewUserModal isOpen={isCreateNewUserModalOpen} onClose={handleModalClose} />
             <div className='user-management-hotbar'>
                 <div className='flex flex-col items-start w-fit'>
                     <p>Search</p>
@@ -190,11 +212,12 @@ const UserManagement: React.FC = () => {
                     <CircularProgress size={80}/>
                 </div>
             ): (
-                <div className='flex flex-row justify-between w-full pl-8'>
+                <div className='flex flex-row justify-between w-full h-full pl-8'>
                     <UserTable
                         users={fetchedUsers}
                         onActiveUserChange={handleActiveUserChange}
                         onSelectedUsersChange={handleSelectedUsersChange} // Ensure this is correctly passed
+                        usersNeedRefresh={handleRefreshUsers}
                         />
 
                     {activeUser && <SelectedUserInfo selectedUser={activeUser} />}

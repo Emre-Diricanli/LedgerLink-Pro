@@ -52,16 +52,43 @@
     justify-content: flex-start;
 }
 
-.profile-circle{
-    width: 43px; /* Adjust size as needed */
-    height: 43px; /* Adjust size as needed */
+.profile-circle {
+    width: 43px; 
+    height: 43px; 
     background-color: var(--accent-color); /* The blue background color */
     border-radius: 50%; /* Makes it circular */
-    color: white; /* The text color */
     display: flex; /* Enables flexbox */
     justify-content: center; /* Centers horizontally */
     align-items: center; /* Centers vertically */
-    font-size: 24px; /* Adjust font size as needed */
+    overflow: hidden; /* Ensures the image does not overflow the circular shape */
+    cursor: pointer;
+}
 
-    cursor: pointer; /* Changes cursor to pointer */
+.profile-circle-empty {
+    width: 43px; 
+    height: 43px; 
+    border-radius: 50%; /* Makes it circular */
+    border: 1px solid var(--accent-color); /* The blue border color */
+    display: flex; /* Enables flexbox */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    overflow: hidden; /* Ensures the image does not overflow the circular shape */
+    cursor: pointer; 
+}
+
+.profile-circle-large {
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%; /* Makes it circular */
+    display: flex; /* Enables flexbox */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    overflow: hidden; /* Ensures the image does not overflow the circular shape */
+    cursor: pointer; 
+}
+
+.profile-circle img {
+    width: 100%; /* Ensures the image covers the full width of the container */
+    height: 100%; /* Ensures the image covers the full height of the container */
+    object-fit: cover; /* Ensures the image covers the area without distorting aspect ratio */
 }
