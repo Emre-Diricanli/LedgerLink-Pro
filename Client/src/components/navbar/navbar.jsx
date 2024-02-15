@@ -2,45 +2,20 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom'; // Import NavLink
 import './navbar.css'
-import UserProfilePictureModal from '../user-profile-picture-modal/UserProfilePictureModal';
+import UserProfilePictureModal from '../UserProfilePcitures/UserProfilePictureModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../../util/UserProvider';
-import { useProfilePicture } from '../FetchUserProfilePciture/FetchUserProfilePciture';
+import { useProfilePicture } from '../UserProfilePcitures/FetchUserProfilePciture';
 import { redirectBasedOnValue } from '../DeterminRedirectPath/DeterminRedirectPath';
 import { useAuth } from '../../util/AuthenticationManagement';
 
 function Navbar() {
   const {user } = useUser();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
-  const { profilePictureUrl, noUrl } = useProfilePicture();
   const { signOut, isAuthenticated } = useAuth();
+  const { profilePictureUrl, noUrl } = useProfilePicture(isAuthenticated);
 
-  // useEffect(() => {
-  //   // Function to fetch the profile picture URL
-  //   const fetchProfilePictureUrl = async () => {
-  //     const isLoggedIn = localStorage.getItem('isLoggedIn') ? false : true;
-  //     console.log('isLoggedIn: ', isLoggedIn);
-
-  //     if (!isLoggedIn) {
-  //       return;
-  //     };
-
-  //     const response = await getProfilePictureUrl();
-
-  //     if (response === false) {
-  //       console.log('Failed to fetch profile picture URL');
-  //       setNoUrl(true);
-  //       return;
-  //     } else {
-  //       setNoUrl(false);
-  //       setProfilePictureUrl(response);
-  //     }
-  //   };
-
-  //   fetchProfilePictureUrl();
-  // }, []);
-  
 
   const handleProfilePictureClick = async () => {
     //show UserProfilePictureModal

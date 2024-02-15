@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import '../../pages/user-management/user-management.css'
-import { User, UserTableProps, SelectedUserInformationProps } from '../../components/interfaces/user-management';
+import { SelectedUserInformationProps } from '../interfaces/user-management';
 import CreateUserAccecssExpirationModal from '../create-user-access-expiration/CreateUserAccessExpiration';
 import { admin_delete_user_access_expiration } from '../../services/user_info_service';
 
@@ -32,9 +32,6 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
     };
     
 
-    const handleCreateNewAccessExpiration = () => {
-        
-    };
 
     const handleDeleteAccessExpiration = async (expireId) => {
         // delete access expiration
@@ -56,13 +53,6 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
 
     const handleModalClose = (wasSuccessful) => {
         setIsCreateNewAccessExpirationModelOpen(false);
-        // if (wasSuccessful) {
-        //     setHasFetchedUsers(false);
-
-        //     setTimeout(() => {
-        //         setHasFetchedUsers(true);
-        //     }, 0);
-        // } 
     };
 
     return (
@@ -70,13 +60,13 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
             <CreateUserAccecssExpirationModal userId={user.userId} isOpen={isCreateNewAccessExpirationModelOpen} onClose={handleModalClose} />
             <div className="selected-user-info-container">
                 <div className="selected-user-info-profile-image">
-                    <img src="https://via.placeholder.com/150" alt="profile" />
+                    <img src={user.profilePictureUrl ?? 'llp-logo.png'} alt="profile" />
                 </div>
                 <h1 id="userFullName">
                     {user.firstName} {user.lastName}
-                    <span className="pencil-icon">
+                    {/* <span className="pencil-icon">
                         <FontAwesomeIcon icon={faPencil} size="xs" className='icon-button-link' />
-                    </span>
+                    </span> */}
                 </h1>
                 <div className='w-full text-center'>
                     <h3 id="userRole">{user.role}</h3>

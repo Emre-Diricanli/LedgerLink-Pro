@@ -55,7 +55,7 @@
 .profile-circle {
     width: 43px; 
     height: 43px; 
-    background-color: var(--accent-color); /* The blue background color */
+    background-color: transparent; /* Ensures the background is transparent */
     border-radius: 50%; /* Makes it circular */
     display: flex; /* Enables flexbox */
     justify-content: center; /* Centers horizontally */

@@ -23,13 +23,17 @@ namespace LedgerLink_Pro_Backend.Controlllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailService _emailService;
         private readonly IDbContextFactory<LedgerLinkProDBContext> _contextFactory;
+        private readonly IConfiguration _configuration; // IConfiguration dependency
+        private readonly ErrorReportingService _errorReportingService;
 
-        public UserController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IDbContextFactory<LedgerLinkProDBContext> contextFactory, IEmailService emailService)
+        public UserController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IDbContextFactory<LedgerLinkProDBContext> contextFactory, IEmailService emailService, IConfiguration configuration, ErrorReportingService errorReportingService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _contextFactory = contextFactory;
             _emailService = emailService;
+            _configuration=configuration;
+            _errorReportingService = errorReportingService;
         }
 
         [HttpGet("get-my-info")]
@@ -165,19 +169,47 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 }
 
                 using var db = _contextFactory.CreateDbContext();
-                //var usersQuery = db.Users
-                //.Where(u => u.UserRole == userType && (u.Username.Contains(searchString) || u.FirstName.Contains(searchString) || u.LastName.Contains(searchString)));
                 IQueryable<User> usersQuery = db.Users;
-                //var usersTest = await usersQuery.ToListAsync();
+
+                if (!string.IsNullOrWhiteSpace(searchString))
+                {
+                    // Normalize the searchString to ensure consistent comparison (e.g., trimming and converting to lowercase).
+                    var normalizedSearchString = searchString.Trim().ToLower();
+
+                    usersQuery = usersQuery.Where(u =>
+                        (u.LastName.ToLower() + " " + u.FirstName.ToLower()).Contains(normalizedSearchString) ||
+                        (u.FirstName.ToLower() + " " + u.LastName.ToLower()).Contains(normalizedSearchString));
+                }
+
 
                 // Apply active status filter
                 switch (activeStatus)
                 {
+                    case 0:
+                        usersQuery = usersQuery.Where(u => !u.IsActive);
+                        break;
                     case 1:
                         usersQuery = usersQuery.Where(u => u.IsActive);
                         break;
+                    default:
+                        //if 2 then return all users (do nothing)
+                        break;
+                }
+
+                //apply user type filter
+                switch (userType)
+                {
+                    case 1:
+                        usersQuery = usersQuery.Where(u => u.UserRole == 1);
+                        break;
                     case 2:
-                        usersQuery = usersQuery.Where(u => !u.IsActive);
+                        usersQuery = usersQuery.Where(u => u.UserRole == 2);
+                        break;
+                    case 3:
+                        usersQuery = usersQuery.Where(u => u.UserRole == 3);
+                        break;
+                    default:
+                        //if 0 then return all users (do nothing)
                         break;
                 }
 
@@ -408,6 +440,97 @@ namespace LedgerLink_Pro_Backend.Controlllers
             }
         }
 
+        [HttpPut("admin/update-user-information")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminUpdateUserInformation([FromBody] UserInfoReturnModel model)
+        {
+            try
+            {
+                //Update user table, identuser info, role info, ident user locked status,
+                //verify model is not null
+                if (model == null)
+                {
+                    return BadRequest("No user information was provided");
+                }
+
+                //verify model is valid
+                
+
+                var thisUser = await _userManager.GetUserAsync(User);
+
+                if (thisUser == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Find the user
+                var _context = _contextFactory.CreateDbContext();
+
+                var user = await _context.Users.Where(u => u.id == model.userId).FirstOrDefaultAsync();
+                var identUser = await _userManager.FindByIdAsync(model.userId);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Update the username on user and identuser
+                user.Username = model.username;
+                
+                identUser.UserName = model.username;
+
+                //compare email to see if it has changed
+                if (identUser.Email != model.email)
+                {
+                    //update email
+                    identUser.Email = model.email;
+
+                    //update email in needsCreateNewPassword table
+                    var needsCreateNewPassword = await _context.NeedsCreateNewPasswords.Where(u => u.Email == identUser.Email).FirstOrDefaultAsync();
+
+                    if (needsCreateNewPassword != null)
+                    {
+                        needsCreateNewPassword.Email = model.email;
+                    }
+                }
+
+                //update user info
+                user.FirstName = model.firstName;
+                user.LastName = model.lastName;
+
+                //update user role
+                var roles = await _userManager.GetRolesAsync(identUser);
+
+                //compare role to see if it has changed
+                if (roles[0] != model.role)
+                {
+                    //remove user from old role
+                    var removeRoles = await _userManager.RemoveFromRolesAsync(identUser, roles);
+
+                    //add user to new role
+                    var role = await _userManager.AddToRolesAsync(identUser, new string[] { model.role });
+
+                    //update user role in user table
+                    user.UserRole = model.role == "User" ? 1 :
+                                   model.role == "Manager" ? 2 :
+                                   model.role == "Admin" ? 3 : 1;
+                }
+
+                //update user active status
+                user.IsActive = model.isActive;
+
+                //save changes
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPut("admin/deactivate-user")]
         [Authorize (Roles = "Admin")]
         public async Task<IActionResult> AdminDeactivateUser([FromQuery] string userId)
@@ -427,6 +550,44 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 user.IsActive = false;
 
                 await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("admin/deactivate-multiple-users")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminDeactivateMultipleUsers([FromBody] MultipleUserActionsModel users)
+        {
+            try
+            {
+                //verify userIds is not null
+                if (users == null)
+                {
+                    return BadRequest("No user ids were provided");
+                }
+
+                var db = _contextFactory.CreateDbContext();
+
+                foreach(var userToDeactivateId in users.userIds)
+                {
+                    var userToDeactivate = await db.Users.Where(u => u.id == userToDeactivateId).FirstOrDefaultAsync();
+
+                    if (userToDeactivate == null)
+                    {
+                        return BadRequest("User not found");
+                    }
+
+                    // Deactivate the user
+                    userToDeactivate.IsActive = false;
+                }
+
+                await db.SaveChangesAsync();
 
                 return Ok();
             }
@@ -479,6 +640,33 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     
                 await db.SaveChangesAsync();
 
+                //check if user has a profile picture url
+                var userProfilePictureLocation = await db.UserProfilePictureLocations.Where(u => u.UserId == userId).FirstOrDefaultAsync();
+
+                if (userProfilePictureLocation != null)
+                {
+                    //Create the DTO to delete the old photo
+                    NewProfilePictureURLModel UserProfilePictureLocation = new NewProfilePictureURLModel
+                    {
+                        url = userProfilePictureLocation.ProfilePictureLocation
+                    };
+
+                    //Remove the old profile picture from Azure Blob Storage
+                    var response = await DeleteUserProfilePicture(UserProfilePictureLocation);
+
+                    //if the response is not an OkObjectResult, return BadRequest
+                    if (response! is OkObjectResult okResult)
+                    {
+                        //report error
+                        await _errorReportingService.ReportError("Error deleting profile picture", "UserController.cs", userId, "AdminDeleteUser", "Error deleting profile picture from Azure blob when attempting to delete user");
+                    }
+                    else
+                    {
+                        //remove the user's profile picture location
+                        db.UserProfilePictureLocations.Remove(userProfilePictureLocation);
+                    }
+                }
+
                 //remove user from roles
                 var roles = await _userManager.GetRolesAsync(user);
 
@@ -490,6 +678,106 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 if (!result.Succeeded)
                 {
                     return BadRequest(result.Errors);
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("admin/delete-multiple-users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminDeleteMultipleUsers([FromBody] MultipleUserActionsModel users)
+        {
+            try
+            {
+                //verify userIds is not null
+                if (users == null)
+                {
+                    return BadRequest("No user ids were provided");
+                }
+
+                //verify user 
+                var thisUser = await _userManager.GetUserAsync(User);
+
+                if (thisUser == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                var db = _contextFactory.CreateDbContext();
+
+                foreach(var userToDeleteId in users.userIds)
+                {
+                    var identUser = await _userManager.FindByIdAsync(userToDeleteId);
+                    var userToDelete = await db.Users.Where(u => u.id == userToDeleteId).FirstOrDefaultAsync();
+                    var needsCreateNewPassword = await db.NeedsCreateNewPasswords.Where(u => u.Email == identUser.Email).FirstOrDefaultAsync();
+                    var passwordExpiration = await db.PasswordExpirations.Where(u => u.UserId == userToDeleteId).FirstOrDefaultAsync();
+                    var previousUsedPasswords = await db.PreviousUsedPasswords.Where(u => u.UserId == userToDeleteId).ToListAsync();
+                    var userLoginHistories = await db.UserLoginHistories.Where(u => u.userId == userToDeleteId).ToListAsync();
+                    var userExpireAccess = await db.UserExpireAccesses.Where(u => u.userId == userToDeleteId).ToListAsync();
+
+                    db.Users.Remove(userToDelete);
+                    db.NeedsCreateNewPasswords.Remove(needsCreateNewPassword);
+                    //null check for passwordExpiration
+                    if (passwordExpiration != null)
+                    {
+                        db.PasswordExpirations.Remove(passwordExpiration);
+                    }
+
+                    if (userExpireAccess.Count > 0)
+                    {
+                        db.UserExpireAccesses.RemoveRange(userExpireAccess);
+                    }
+
+                    db.PreviousUsedPasswords.RemoveRange(previousUsedPasswords);
+                    db.UserLoginHistories.RemoveRange(userLoginHistories);
+
+                    await db.SaveChangesAsync();
+
+                    //check if user has a profile picture url
+                    var userProfilePictureLocation = await db.UserProfilePictureLocations.Where(u => u.UserId == userToDeleteId).FirstOrDefaultAsync();
+
+                    if (userProfilePictureLocation != null)
+                    {
+                        //Create the DTO to delete the old photo
+                        NewProfilePictureURLModel UserProfilePictureLocation = new NewProfilePictureURLModel
+                        {
+                            url = userProfilePictureLocation.ProfilePictureLocation
+                        };
+
+                        //Remove the old profile picture from Azure Blob Storage
+                        var response = await DeleteUserProfilePicture(UserProfilePictureLocation);
+
+                        //if the response is not an OkObjectResult, return BadRequest
+                        if (response! is OkObjectResult okResult)
+                        {
+                            //report error
+                            await _errorReportingService.ReportError("Error deleting profile picture", "UserController.cs", userToDeleteId, "AdminDeleteUser", $"Error deleting profile picture from Azure blob when attempting to delete user. User id is the person attempting to be deleted. Requesting user is {thisUser.Id}");
+                        }
+                        else
+                        {
+                            //remove the user's profile picture location
+                            db.UserProfilePictureLocations.Remove(userProfilePictureLocation);
+                        }
+                    }
+
+                    //remove user from roles
+                    var roles = await _userManager.GetRolesAsync(identUser);
+
+                    var removeRoles = await _userManager.RemoveFromRolesAsync(identUser, roles);
+
+                    // Delete the user
+                    var result = await _userManager.DeleteAsync(identUser);
+
+                    if (!result.Succeeded)
+                    {
+                        return BadRequest(result.Errors);
+                    }
                 }
 
                 return Ok();
@@ -530,6 +818,44 @@ namespace LedgerLink_Pro_Backend.Controlllers
             }
         }
 
+        [HttpPut("admin/activate-multiple-users")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> AdminActivateMultipleUsers([FromBody] MultipleUserActionsModel users)
+        {
+            try
+            {
+                //verify userIds is not null
+                if (users == null)
+                {
+                    return BadRequest("No user ids were provided");
+                }
+
+                var db = _contextFactory.CreateDbContext();
+
+                foreach(var userToActivateId in users.userIds)
+                {
+                    var userToActivate = await db.Users.Where(u => u.id == userToActivateId).FirstOrDefaultAsync();
+
+                    if (userToActivate == null)
+                    {
+                        return BadRequest("User not found");
+                    }
+
+                    // Activate the user
+                    userToActivate.IsActive = true;
+                }
+
+                await db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPut("admin/reset-user-password")]
         [Authorize (Roles = "Admin")]
         public async Task<IActionResult> AdminResetUserPassword([FromBody] AdminResetUserPassword newUserResetPassword)
@@ -543,7 +869,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 }
 
                 // Find the user
-                var user = await _userManager.FindByEmailAsync(newUserResetPassword.email);
+                var user = await _userManager.FindByIdAsync(newUserResetPassword.userId);
 
                 if (user == null)
                 {
@@ -565,7 +891,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     using var db = _contextFactory.CreateDbContext();
                     var needsCreateNewPassword = new NeedsCreateNewPassword
                     {
-                        Email = newUserResetPassword.email,
+                        Email = user.Email,
                         InitialPassword = true
                     };
 
@@ -677,7 +1003,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 ";
 
                 //email user informing them of the password reset and provide them their new password
-                await _emailService.SendEmailAsync(newUserResetPassword.email, "Your Password has Been Reset", htmlContent);
+                await _emailService.SendEmailAsync(user.Email, "Your Password has Been Reset", htmlContent);
 
                 return Ok();
             }
@@ -802,32 +1128,83 @@ namespace LedgerLink_Pro_Backend.Controlllers
             }
         }
 
-        [HttpPost("add-user-profile-picture-url")]
+        [HttpGet("get-user-profile-picture-url")]
         [Authorize]
-        public async Task<IActionResult> UploadProfilePicture([FromBody] NewProfilePictureURLModel url)
+        public async Task<IActionResult> GetUserProfilePictureURL([FromQuery] string userId)
         {
             try
             {
                 var _context = _contextFactory.CreateDbContext();
+                var user = await _context.UserProfilePictureLocations.Where(u => u.UserId == userId).FirstOrDefaultAsync();
 
+                if (user == null)
+                {
+                    return Ok(new { profilePictureLocation = "UNKNOWN" });
+                }
+
+                return Ok(new { url = user.ProfilePictureLocation });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("add-user-profile-picture-url")]
+        [Authorize]
+        public async Task<IActionResult> UploadProfilePictureUrl([FromBody] NewProfilePictureURLModel url)
+        {
+            try
+            {
+
+                //find the user
                 var identUser = await _userManager.GetUserAsync(User);
 
-                var UserProfilePictureLocation = new UserProfilePictureLocations
+                //if the user is not found, return BadRequest
+                if (identUser == null)
                 {
-                    UserId = identUser.Id,
-                    ProfilePictureLocation = url.url
-                };
+                    return BadRequest("User not found");
+                }
+
+                var _context = _contextFactory.CreateDbContext();
 
                 //check if user already has a profile picture
                 var userProfilePictureLocation = await _context.UserProfilePictureLocations.Where(u => u.UserId == identUser.Id).FirstOrDefaultAsync();
 
                 if (userProfilePictureLocation != null)
                 {
-                    userProfilePictureLocation.ProfilePictureLocation = url.url;
+                    //Create the DTO to delete the old photo
+                    NewProfilePictureURLModel UserProfilePictureLocation = new NewProfilePictureURLModel
+                    {
+                        url = userProfilePictureLocation.ProfilePictureLocation
+                    };
+
+                    //Remove the old profile picture from Azure Blob Storage
+                    var response = await DeleteUserProfilePicture(UserProfilePictureLocation);
+
+                    //if the response is not an OkObjectResult, return BadRequest
+                    if (response! is OkObjectResult okResult)
+                    {
+                        return BadRequest("Error deleting profile picture");
+                    }
+                    else
+                    {
+                        //update the user's profile picture location
+                        userProfilePictureLocation.ProfilePictureLocation = url.url;
+                    }
                 }
                 else
                 {
-                    _context.UserProfilePictureLocations.Add(UserProfilePictureLocation);
+                    //create a new entry in the UserProfilePictureLocations table
+                    UserProfilePictureLocations newlocation = new UserProfilePictureLocations
+                    {
+                        UserId = identUser.Id,
+                        ProfilePictureLocation = url.url
+                    };
+
+                    //add the new location
+                    _context.UserProfilePictureLocations.Add(newlocation);
                 }
 
                 await _context.SaveChangesAsync();
@@ -838,6 +1215,44 @@ namespace LedgerLink_Pro_Backend.Controlllers
             {
                 Debug.WriteLine(ex.Message);
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("delete-user-profile-picture")]
+        [Authorize]
+        public async Task<IActionResult> DeleteUserProfilePicture([FromBody] NewProfilePictureURLModel url)
+        {
+            try
+            {
+                //find the user
+                var identUser = await _userManager.GetUserAsync(User);
+
+                if (identUser == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                
+                //remove the user's profile picture from Azure Blob Storage
+                //create a new instance of AzureBlobService
+                AzureBlobService azureBlobService = new AzureBlobService(_userManager, _signInManager, _contextFactory, _emailService, _configuration);
+
+                //delete using the url
+                IActionResult response = await azureBlobService.DeleteProfilePictureByUrl(url.url);
+
+                if (response is OkObjectResult okResult)
+                {
+                    return Ok();
+                } 
+                else
+                {
+                    return BadRequest("Error deleting profile picture");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -894,16 +1309,16 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
             var userModel = new UserInfoReturnModel
             {
-                UserId = identUser.Id,
-                Username = identUser.UserName,
-                Email = identUser.Email,
-                ConfirmedEmail = identUser.EmailConfirmed,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Role = user.UserRole == 1 ? "User" :
+                userId = identUser.Id,
+                username = identUser.UserName,
+                email = identUser.Email,
+                confirmedEmail = identUser.EmailConfirmed,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                role = user.UserRole == 1 ? "User" :
                        user.UserRole == 2 ? "Manager" :
                        user.UserRole == 3 ? "Admin" : "UNKNOWN",
-                IsActive = user.IsActive,
+                isActive = user.IsActive,
             };
 
             // Last login and last 5 logins
@@ -914,7 +1329,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
             if (lastLogin != null)
             {
-                userModel.LastLogin = lastLogin.loginTime;
+                userModel.lastLogin = lastLogin.loginTime;
                 var last5Logins = await _context.UserLoginHistories
                     .Where(u => u.userId == userId)
                     .OrderByDescending(u => u.loginTime)
@@ -922,7 +1337,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     .Select(u => u.loginTime)
                     .ToListAsync();
 
-                userModel.Last5Logins = last5Logins;
+                userModel.last5Logins = last5Logins;
             }
 
             // Password expiration logic
@@ -931,21 +1346,26 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
             if (passwordExpiration != null)
             {
-                userModel.PasswordExpiration = passwordExpiration.PasswordExpiration;
+                userModel.passwordExpiration = passwordExpiration.PasswordExpiration;
             }
 
             // User access expiration info logic
             // Similar to the provided code
 
             // Locked out and access failed count logic
-            userModel.LockedOut = await _userManager.IsLockedOutAsync(identUser);
-            if (userModel.LockedOut)
+            userModel.lockedOut = await _userManager.IsLockedOutAsync(identUser);
+            if (userModel.lockedOut)
             {
                 var lockoutEndDate = await _userManager.GetLockoutEndDateAsync(identUser);
-                userModel.LockoutEnd = lockoutEndDate?.LocalDateTime;
+                userModel.lockoutEnd = lockoutEndDate?.LocalDateTime;
             }
 
-            userModel.AccessFailedCount = await _userManager.GetAccessFailedCountAsync(identUser);
+            userModel.accessFailedCount = await _userManager.GetAccessFailedCountAsync(identUser);
+
+            userModel.profilePictureUrl = await _context.UserProfilePictureLocations
+                .Where(u => u.UserId == userId)
+                .Select(u => u.ProfilePictureLocation)
+                .FirstOrDefaultAsync();
 
             return userModel;
         }

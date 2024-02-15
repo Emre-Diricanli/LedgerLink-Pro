@@ -15,6 +15,7 @@ export interface User {
     last5Logins: string[];
     userExpireAccess: ReturnUserExpireAccessModel[];
     passwordExpiration: string | null;
+    profilePictureUrl: string | null;
     streetAddress: string | null;
     city: string | null;
     state: string | null;
@@ -31,12 +32,6 @@ export interface User {
   }
   
   
-  export interface UserTableProps {
-    users: User[];
-    onActiveUserChange: (userId: string) => void;
-    onSelectedUsersChange: (userIds: string[]) => void;
-    usersNeedRefresh: (userIds: string[]) => void;
-  }
 
   export interface SelectedUserInformationProps {
     selectedUser: User;
