@@ -13,6 +13,7 @@ export function useProfilePicture(isAuthenticated?: boolean) {
     // }, [isAuthenticated]); // Depend on isAuthenticated
   
     useEffect(() => {
+      console.log('useProfilePicture: isAuthenticated:', isAuthenticated);
       if (!isAuthenticated) return; // Exit if not authenticated
 
       const fetchProfilePictureUrl = async () => {

@@ -3,17 +3,17 @@ import '../create-new-user/CreateNewUserModal.css';
 import { admin_reset_user_password } from '../../services/user_info_service';
 
 interface AdminUserResetPasswordModalProps {
-  email: string;
+  userId: string;
   isOpen: boolean;
   onClose: (boolean) => void;
 }
 
-const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = ({ email, isOpen, onClose }) => {
+const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = ({ userId, isOpen, onClose }) => {
   const [yesToReset, setYesToReset] = useState(false);
 
     const [expirePassword, setExpirePassword] = useState<boolean>(true);
 
-  const [password, setPassword] = React.useState('');
+    const [password, setPassword] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
     const [defaultPassword, setDefaultPassword] = React.useState('Password123$'); // This is the default password for the user, which is generated when the user is created
     const [isntCustomPassword, setIsntCustomPassword] = React.useState(true);
@@ -73,7 +73,7 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
 
     const newPassword = isntCustomPassword ? defaultPassword : password;
 
-    const response = await admin_reset_user_password(email, newPassword, expirePassword);
+    const response = await admin_reset_user_password(userId, newPassword, expirePassword);
 
     if (response === true) {
       console.log('Password reset successfully');
@@ -93,8 +93,7 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
           <>
             <h2>Reset User Password</h2>
             <p>Are you sure you want to reset the password for this user?</p>
-            <p>This user will be notified via email that there password has been reset. They will be provided with the up to date password. Please confirm that this is the correct email</p>
-            <p>Email: {email}</p>
+            <p>This user will be notified via email that there password has been reset. They will be provided with the up to date password. </p>
             <div className="w-1/2 ml-auto mr-auto flex flex-row justify-center items-center gap-4 pt-8">
                 <button className='admin-signin-btn' onClick={() => handleResetConfirmation(false)}>No</button>
                 <button className='modal-content-btn' onClick={() => handleResetConfirmation(true)}>Yes</button>

@@ -4,26 +4,27 @@ namespace LedgerLink_Pro_Backend.DTO;
 
 public class UserInfoReturnModel
 {
-    public string UserId { get; set; }
-    public string Username { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string? Email { get; set; }
-    public string Role { get; set; }
-    public bool IsActive { get; set; }
-    public bool NeedsPasswordReset { get; set; }
-    public bool ConfirmedEmail { get; set; }
-    public bool LockedOut { get; set; }
-    public int AccessFailedCount { get; set; }  
-    public DateTime? LockoutEnd { get; set; }
-    public DateTime? LastLogin { get; set; }
-    public List<DateTime> Last5Logins { get; set; }
-    public List<ReturnUserExpireAccessModel> UserExpireAccess { get; set; }
-    public DateTime? PasswordExpiration { get; set; }
+    public string userId { get; set; }
+    public string username { get; set; }
+    public string firstName { get; set; }
+    public string lastName { get; set; }
+    public string? email { get; set; }
+    public string role { get; set; }
+    public bool isActive { get; set; }
+    public bool needsPasswordReset { get; set; }
+    public bool confirmedEmail { get; set; }
+    public bool lockedOut { get; set; }
+    public int accessFailedCount { get; set; }  
+    public DateTime? lockoutEnd { get; set; }
+    public DateTime? lastLogin { get; set; }
+    public List<DateTime>? last5Logins { get; set; }
+    public List<ReturnUserExpireAccessModel>? userExpireAccess { get; set; }
+    public DateTime? passwordExpiration { get; set; }
+    public string? profilePictureUrl { get; set; }
 
-    public string? StreetAddress { get; set; }
-    public string? City { get; set; }
-    public string? State { get; set; }
-    public string? ZipCode { get; set; }
-    public string? PhoneNumber { get; set; }
+    public string? streetAddress { get; set; }
+    public string? city { get; set; }
+    public string? state { get; set; }
+    public string? zipCode { get; set; }
+    public string? phoneNumber { get; set; }
 }

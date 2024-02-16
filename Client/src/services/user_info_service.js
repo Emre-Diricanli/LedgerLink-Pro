@@ -27,14 +27,15 @@ export const get_my_info = async () => {
     }
 };
 
-export const fetch_users = async (pageSize, pageIndex, userType, activeStatus) => {
+export const fetch_users = async (pageSize, pageIndex, userType, activeStatus, searchString) => {
     try {
         // Construct query string
         const queryParams = new URLSearchParams({
             pageSize,
             pageIndex,
             userType,
-            activeStatus
+            activeStatus,
+            searchString
         }).toString();
 
         const url = `${API_URL}/user/admin/get-users?${queryParams}`;
@@ -200,7 +201,7 @@ export const admin_activate_user = async (userId) => {
     }
 }
 
-export const admin_reset_user_password = async (email, password, expirePassword) => {
+export const admin_reset_user_password = async (userId, password, expirePassword) => {
     try {
         const response = await http_context(`${API_URL}/user/admin/reset-user-password`, {
             method: 'PUT',
@@ -208,7 +209,7 @@ export const admin_reset_user_password = async (email, password, expirePassword)
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({ email, password, expirePassword })
+            body: JSON.stringify({ userId, password, expirePassword })
         });
 
         if (!response.ok) {

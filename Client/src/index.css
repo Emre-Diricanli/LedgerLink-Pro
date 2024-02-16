@@ -92,6 +92,10 @@ button {
   transition: all 0.25s ease;
 }
 
+button.danger{
+  background-color: red;
+}
+
 button:hover {
   background-color: var(--accent-hover-color);
 }
@@ -101,7 +105,7 @@ button:hover {
   width: 100px;
   height: 30px;
   margin: 20px auto 0;
-  background-color: var(--accent-color); /* Green */
+  background-color: var(--accent-color);
   border: none;
   color: white;
   text-align: center;
@@ -110,6 +114,23 @@ button:hover {
   font-size: 16px;
   transition-duration: 0.4s;
   cursor: pointer;
+}
+
+.locked-button {
+  display: block;
+  background-color: var(--soft-gray);
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.locked-button:hover {
+  background-color: var(--soft-gray); 
 }
 
 .icon-button{
@@ -205,7 +226,6 @@ input[type="checkbox"]:focus {
 }
 
 .filter-dropdown:hover {
-  background-color: var(--soft-gray);
   border-color: var(--accent-color);
 }
 

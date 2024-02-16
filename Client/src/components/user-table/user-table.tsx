@@ -3,36 +3,44 @@ import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import './UserTable.css'; // Make sure to create a corresponding CSS file for styling
 import '../../pages/user-management/user-management.css';
-import { User, UserTableProps } from '../../components/interfaces/user-management';
+import { User } from '../../components/interfaces/user-management';
 import { admin_activate_user, admin_deactivate_user, admin_delete_user } from '../../services/user_info_service';
 import AdminResetUsetPasswordModal from '../admin-reset-user-password/admin-reset-user-password-modal';
 import { admin_unlock_account } from '../../services/auth_service';
+import ActionDropdown from '../user-management/UserActionsDropdown';
+
+export interface UserTableProps {
+    users: User[];
+    onActiveUserChange: (userId: string) => void;
+    onSelectedUsersChange: (userIds: string[]) => void;
+    usersNeedRefresh: (userIds: string[]) => void;
+  }
 
 const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSelectedUsersChange, usersNeedRefresh }) => {
-    const [actionOptions] = useState<string[]>(['Edit', 'Deactivate', 'Delete', 'Reset Password']);
-    const [visibleDropdownUserId, setVisibleDropdownUserId] = useState<string | null>(null);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [activeUser, setActiveUser] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
     const [isAdminUserResetPasswordModalOpen, setAdminUserResetPasswordModalOpen] = useState(false);
 
-    const [actionSelectedUser, setActionSelectedUser] = useState<User | null>(null);
+    const actionConfig = (isActive: boolean, isLocked: boolean) => {
+        // Define the action options based on the user's active and locked status.
+        const actions: string[] = [];
+        if (isActive) {
+            actions.push('Deactivate');
+        } else {
+            actions.push('Activate');
+        }
 
+        if (isLocked) {
+            actions.push('Unlock Account');
+        }
 
-    const toggleActionDropdown = (userId: string) => {
-        setVisibleDropdownUserId(prevUserId => prevUserId === userId ? null : userId);
+        actions.push('Reset Password');
+        actions.push('Delete');
+        actions.push('Edit');
+        return { include: actions };
     };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setVisibleDropdownUserId(null);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     const handleCheckboxChange = (userId: string) => {
         setSelectedUsers(prevSelected => {
@@ -49,126 +57,50 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
         onActiveUserChange(userId);
     };
 
-    // Define your action handlers
-    const handleEdit = (userId: string) => {
-        console.log(`Edit user with id: ${userId}`);
-        // Add your edit logic here
-    };
+    const onActionComplete = (result?: boolean) => {
+        //null check
+        if (activeUser === null) {
+            return;
+        }
 
-    const handleDeactivate = async (userId: string) => {
-        console.log(`Deactivate user with id: ${userId}`);
-
-        const response = await admin_deactivate_user(userId);
-
-        if (response === true) {
-            console.log('User deactivated successfully');
-
+        if (result) {
             // Refresh the user list
-            usersNeedRefresh([userId]);
+            usersNeedRefresh(selectedUsers);
         } else {
-            alert('Failed to deactivate user');
+            alert('Failed to perform action');
         }
     };
 
-    const handleActivate = async (userId: string) => {
-        console.log(`Deactivate user with id: ${userId}`);
+    const [selectAll, setSelectAll] = useState(false);
 
-        const response = await admin_activate_user(userId);
+    // Define a function to handle the select all checkbox change
+    const handleSelectAllChange = () => {
+        setSelectAll(!selectAll);
+        if (!selectAll) {
+            // If currently not all users are selected, select all
+            setSelectedUsers(users.map(user => user.userId));
 
-        if (response === true) {
-            console.log('User deactivated successfully');
-
-            // Refresh the user list
-            usersNeedRefresh([userId]);
+            onSelectedUsersChange(users.map(user => user.userId));
         } else {
-            alert('Failed to deactivate user');
+            // If currently all users are selected, deselect all
+            setSelectedUsers([]);
         }
-    };
-
-    const handleDelete = async (userId: string) => {
-        console.log(`Delete user with id: ${userId}`);
-        
-        const response = await admin_delete_user(userId);
-
-        if (response === true) {
-            console.log('User deleted successfully');
-
-            // Refresh the user list
-            usersNeedRefresh([userId]);
-        } else {
-            alert('Failed to delete user');
-        }
-    };
-
-    const handleResetPassword = (userId: string) => {
-        console.log(`Reset password for user with id: ${userId}`);
-        // Add your reset password logic here
-
-        //find email in user list
-        const user = users.find(user => user.userId === userId);
-
-        if (user) {
-            setAdminUserResetPasswordModalOpen(true);
-
-            setActionSelectedUser(user);
-        }
-    };
-
-    const handleResetPasswordModalClose = () => {
-        setAdminUserResetPasswordModalOpen(false);
-
-        // Refresh the user list
-        usersNeedRefresh(selectedUsers);
-    };
-
-    const handleUnlockAccount = async (userId: string) => {
-        const response = await admin_unlock_account(userId);
-
-        if (response === true) {
-            console.log('User account unlocked successfully');
-
-            // Refresh the user list
-            usersNeedRefresh([userId]);
-        } else {
-            alert('Failed to unlock user account');
-        }
-    };
-
-
-
-    //map action handlers to action names
-    const actionHandlers = {
-        'Edit': handleEdit,
-        'Deactivate': handleDeactivate,
-        'Activate': handleActivate,
-        'Delete': handleDelete,
-        'Reset Password': handleResetPassword,
-        'Unlock Account': handleUnlockAccount
-    };
-
-    const getActionOptions = (userIsActive: boolean, userIsLockedOut: boolean) => {
-        let actions = ['Edit', 'Delete', 'Reset Password'];
-        if (userIsActive) {
-            actions.push('Deactivate');
-        } else {
-            actions.push('Activate');
-        }
-
-        if (userIsLockedOut) {
-            actions.push('Unlock Account');
-        }
-
-        return actions;
     };
 
     return (
         <div>
-            <AdminResetUsetPasswordModal email={actionSelectedUser?.email || ''} isOpen={isAdminUserResetPasswordModalOpen} onClose={handleResetPasswordModalClose} />
+            
             <div className="user-table-container">
                 <table className="user-table">
                     <thead>
                         <tr>
-                            <th>Select</th>
+                            <th>
+                                <input
+                                    type="checkbox"
+                                    checked={selectAll}
+                                    onChange={handleSelectAllChange}
+                                />
+                            </th>
                             <th>Username</th>
                             <th>First Name</th>
                             <th>Last Name</th>
@@ -210,25 +142,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
                                 <td>{user.confirmedEmail ? 'Yes' : 'No'}</td>
                                 <td>{user.passwordExpiration ? new Date(user.passwordExpiration).toLocaleString() : ''}</td>
                                 <td>
-                                    <button onClick={() => toggleActionDropdown(user.userId)} className='actions-button'>
-                                        Actions
-                                    </button>
-                                    {visibleDropdownUserId === user.userId && (
-                                        <div className='action-dropdown-user' ref={dropdownRef}>
-                                            {getActionOptions(user.isActive, user.lockedOut).map((option, index) => (
-                                                <button 
-                                                    key={index} 
-                                                    className='dropdown-action-button'
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // Prevent row click when interacting with the button
-                                                        actionHandlers[option](user.userId);
-                                                    }}
-                                                >
-                                                    {option}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <ActionDropdown ref={dropdownRef} user={user} userIds={[activeUser || '']} onActionComplete={(result: boolean | undefined) => onActionComplete(result)} actionConfig={actionConfig(user.isActive, user.lockedOut)}/>
                                 </td>
                             </tr>
                         ))}

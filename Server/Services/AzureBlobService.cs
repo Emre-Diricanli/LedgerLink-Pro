@@ -71,5 +71,38 @@ namespace LedgerLink_Pro_Backend.Services
             return Ok(new { sasToken = sasToken });
         }
 
+        [HttpDelete("delete-user-profile-picture/blob-name")]
+        [Authorize]
+        public async Task<IActionResult> DeleteProfilePictureByBlobName(string blobName)
+        {
+            var connectionString = _configuration.GetValue<string>("AzureStorageConfig:ConnectionString");
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient("user-profile-pictures");
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+            await blobClient.DeleteIfExistsAsync();
+
+            return Ok(new { message = "Delete successful" });
+        }
+
+        [HttpDelete("delete-user-profile-picture/url")]
+        [Authorize]
+        public async Task<IActionResult> DeleteProfilePictureByUrl(string blobUrl)
+        {
+            // Assuming blobUrl is the full URL to the blob, we need to extract the blob name from it.
+            // This code assumes the URL structure is as mentioned above and that 'user-profile-pictures' is your container name.
+            var uri = new Uri(blobUrl);
+            var blobName = uri.AbsolutePath.Substring(uri.AbsolutePath.LastIndexOf('/') + 1);
+
+            var connectionString = _configuration.GetValue<string>("AzureStorageConfig:ConnectionString");
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient("user-profile-pictures");
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+            await blobClient.DeleteIfExistsAsync();
+
+            return Ok(new { message = "Delete successful" });
+        }
+
     }
 }

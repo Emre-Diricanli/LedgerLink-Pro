@@ -16,6 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<ErrorReportingService>();
 
 builder.Services.AddHostedService<TimedHostedService>();
 
