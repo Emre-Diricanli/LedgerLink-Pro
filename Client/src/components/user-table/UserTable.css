@@ -1,0 +1,30 @@
+/* UserTable.css */
+.user-table-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 20px 20px;
+    min-width: 70vw;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th, .user-table td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #ddd; /* Adds a line between rows */
+}
+
+.active-user-row {
+    background-color: lightgray;
+    /*Border shadow*/
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.25s ease;
+}
+

@@ -1,15 +1,19 @@
 import React, { useEffect } from 'react';
 import { get_auth_level } from '../../services/auth_service';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../util/UserProvider';
 
 const Dashboard = () => {
+    const {user, fetchUser } = useUser();
     // Component logic goes here
+    const navigate = useNavigate();
 
     useEffect(() => {
         //verify role status
         const verifyRoleStatus = async () => {
             try {
                 // Call the auth_service API to get the auth level
-                const authLevel = await get_auth_level();
+                const authLevel = await get_auth_level(navigate);
 
                 // Print the auth level to the console
                 console.log('Auth Level:', authLevel);
@@ -24,9 +28,10 @@ const Dashboard = () => {
     }, []);
 
     return (
-        <>
-            <h2>Hello World!</h2>
-        </>
+        <div className='flex flex-col justify-center items-center w-full h-full'>
+            <h1>Welcome{user ? `, ${user.firstName}!` : '...'} </h1>
+            <h2 className='mt-8'>This Dashboard is a work in progress.</h2>
+        </div>
     );
 };
 

@@ -46,7 +46,7 @@ const UserRegistration = () => {
 
     return (
         <div className='signin-page'>
-            <div className="signin-modal">
+            <div className="modal-content">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
@@ -57,34 +57,34 @@ const UserRegistration = () => {
                 </div>  
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
                     <p>Email<strong>*</strong></p>
-                    <input type="text" placeholder="Email" className="signin-input" onChange={(e) => setUsername(e.target.value)} maxLength={40}/>
+                    <input type="text" placeholder="Email" className="modal-content-input" onChange={(e) => setUsername(e.target.value)} maxLength={40}/>
                 </div>
                 <div className="flex flex-row gap-2 content-center justify-start w-full pt-8">
                     <div className="flex flex-col content-center justify-start gap-0 w-full ">
                         <p>First Name<strong>*</strong></p>
-                        <input type="text" placeholder="First Name" className="signin-input" onChange={(e) => setFirstName(e.target.value)} maxLength={30}/>
+                        <input type="text" placeholder="First Name" className="modal-content-input" onChange={(e) => setFirstName(e.target.value)} maxLength={30}/>
                     </div>
                     <div className="flex flex-col content-center justify-start gap-0 w-full ">
                         <p>Last Name<strong>*</strong></p>
-                        <input type="text" placeholder="Last Name" className="signin-input" onChange={(e) => setLastName(e.target.value)} maxLength={30}/>
+                        <input type="text" placeholder="Last Name" className="modal-content-input" onChange={(e) => setLastName(e.target.value)} maxLength={30}/>
                     </div>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
                     <p>Date of Birth<strong>*</strong></p>
-                    <input type="date" placeholder="DOB" className="signin-input" value={dob} onChange={(e) => setDob(e.target.value)}/>
+                    <input type="date" placeholder="DOB" className="modal-content-input" value={dob} onChange={(e) => setDob(e.target.value)}/>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
                     <p>Street Address<strong>*</strong></p>
-                    <input type="text" placeholder="Street Address" className="signin-input" onChange={(e) => setStreetAddress(e.target.value)} maxLength={75}/>
+                    <input type="text" placeholder="Street Address" className="modal-content-input" onChange={(e) => setStreetAddress(e.target.value)} maxLength={75}/>
                 </div>
                 <div className="flex flex-row gap-2 content-center justify-start w-full pt-2">
                     <div className="flex flex-col content-center justify-start gap-0 w-full">
                         <p>City<strong>*</strong></p>
-                        <input type="text" placeholder="City" className="signin-input" onChange={(e) => setCity(e.target.value)} maxLength={50}/>
+                        <input type="text" placeholder="City" className="modal-content-input" onChange={(e) => setCity(e.target.value)} maxLength={50}/>
                     </div>
                     <div className="flex flex-col content-center justify-start gap-0 w-full ">
                         <p>State<strong>*</strong></p>
-                        <input type="text" placeholder="State" className="signin-input" onChange={(e) => setState(e.target.value)} maxLength={20}/>
+                        <input type="text" placeholder="State" className="modal-content-input" onChange={(e) => setState(e.target.value)} maxLength={20}/>
                     </div>
                 </div>
                 <div className="flex flex-row gap-2 content-center justify-start w-full pt-2">
@@ -93,7 +93,7 @@ const UserRegistration = () => {
                         <input 
                             type="text" 
                             placeholder="Zip Code" 
-                            className="signin-input" 
+                            className="modal-content-input" 
                             onChange={(e) => setZipCode(e.target.value)}
                             pattern="^\d{5}(-\d{4})?$" 
                             title="Enter a 5-digit zip code"
@@ -102,13 +102,13 @@ const UserRegistration = () => {
 
                     <div className="flex flex-col content-center justify-start gap-0 w-full ">
                         <p>Appt Number<strong>*</strong></p>
-                        <input type="text" placeholder="State" className="signin-input" onChange={(e) => setApptNumber(e.target.value)} maxLength={20}/>
+                        <input type="text" placeholder="State" className="modal-content-input" onChange={(e) => setApptNumber(e.target.value)} maxLength={20}/>
                     </div>
                 </div>
                 
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <button className="signin-btn" onClick={handleSignup}>Request Access</button>
+                    <button className="modal-content-btn" onClick={handleSignup}>Request Access</button>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">

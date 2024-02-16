@@ -1,6 +1,33 @@
 const API_URL = import.meta.env.VITE_LedgerLinkPro_Server_API;
 import { http_context } from './http-context.js';
 
+export const check_auth = async () => {
+    try {
+        const response = await http_context(`${API_URL}/auth/check-auth`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            localStorage.setItem('isLoggedIn', false);
+            return false;
+        }
+        var data = await response.json();
+        var role = data.role;
+
+        //store in local storage
+        localStorage.setItem('role', role);
+        localStorage.setItem('isLoggedIn', true);
+
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+};
+
 export const user_signin_service = async (email, password) => {
     try {
         const response = await http_context(`${API_URL}/auth/user/login`, {
@@ -11,6 +38,7 @@ export const user_signin_service = async (email, password) => {
             credentials: 'include',
             body: JSON.stringify({ email, password })
         });
+
 
         //check if response was 428, if so redirect to new user new password page
         if (response.ok) {
@@ -36,6 +64,11 @@ export const user_signin_service = async (email, password) => {
         }
 
         if (!response.ok) {
+            if (response.status === 403) {
+                const data = await response.json();
+                const errorMsg = data.message;
+                return { code: response.status, errorMsg };
+            }
             return false;
         }
        
@@ -69,6 +102,41 @@ export const admin_signin_service = async (email, password) => {
         // //store in local storage
         // localStorage.setItem('role', role);
 
+        //return role
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+};
+
+export const admin_signup_service = async (email, password, firstName, lastName) => {
+    try {
+        const body = {
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName
+        };
+        console.log(body);
+        const response = await http_context(`${API_URL}/auth/admin/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(body)
+        });
+
+        // //check if response was 428, if so redirect to new user new password page
+        // if (response.ok) {
+        //    return true
+        // }
+
+        if (!response.ok) {
+            return false;
+        }
+       
         //return role
         return true;
     } catch (error) {
@@ -238,7 +306,24 @@ export const new_user_reset_password = async (newPassword, userid) => {
     }
 }
 
-
+export const check_online_status = async () => {
+    try {
+        const response = await http_context(`${API_URL}/auth/online-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+}
 
 export const test_auth = async () => {
     try {
@@ -274,7 +359,10 @@ export const get_auth_level = async () => {
 
         //grab role from response
         const data = await response.json();
+        console.log('Data:', data);
         const role = data.role;
+
+        console.log('Role:', role);
 
         //store in local storage
         localStorage.setItem('role', role);
@@ -297,3 +385,23 @@ export const get_auth_level = async () => {
     }
     
 };
+
+
+export const admin_unlock_account = async (userId) => {  
+    try {
+        const response = await http_context(`${API_URL}/auth/admin/unlock-account?userId=${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+    }
+}

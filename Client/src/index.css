@@ -22,6 +22,9 @@
   --secondary-color: #ffffff; /* 30% of the usage */
   --accent-color: #006eff;     /* 10% of the usage */
 
+  --page-container-bg: #f5f5f5;
+  --soft-gray-text: #b1b1b1;
+
   --soft-border: #cbcbcb;
   --secondary-bg-offset: rgb(250, 251, 252);
 
@@ -59,11 +62,16 @@ body {
   justify-content: flex-start;
   height: 100vh;
   width: 100%;
-  background-color: #f5f5f5;
+  background-color: var(--page-container-bg);
 }
 
 h1 {
   font-size: 3.2em;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 2.8em;
   line-height: 1.1;
 }
 
@@ -84,6 +92,10 @@ button {
   transition: all 0.25s ease;
 }
 
+button.danger{
+  background-color: red;
+}
+
 button:hover {
   background-color: var(--accent-hover-color);
 }
@@ -93,7 +105,7 @@ button:hover {
   width: 100px;
   height: 30px;
   margin: 20px auto 0;
-  background-color: var(--accent-color); /* Green */
+  background-color: var(--accent-color);
   border: none;
   color: white;
   text-align: center;
@@ -104,12 +116,28 @@ button:hover {
   cursor: pointer;
 }
 
+.locked-button {
+  display: block;
+  background-color: var(--soft-gray);
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.locked-button:hover {
+  background-color: var(--soft-gray); 
+}
+
 .icon-button{
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-   gap: 5px;
    padding: 11px;
 
    transition: all 0.25s ease;
@@ -120,6 +148,20 @@ button:hover {
 }
 .icon-button.secondary:hover{
   background-color: var(--soft-gray-hover);
+}
+
+.icon-button.danger{
+  background-color: red;
+}
+
+.icon-button-link{
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.icon-button-link:hover{
+  color: var(--accent-color);
+  scale: 1.1;
 }
 
 input {
@@ -184,7 +226,6 @@ input[type="checkbox"]:focus {
 }
 
 .filter-dropdown:hover {
-  background-color: var(--soft-gray);
   border-color: var(--accent-color);
 }
 
@@ -239,10 +280,129 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+input:disabled {
+  background-color: var(--soft-gray);
+  color: #888888;
+}
+
 .slider.round {
   border-radius: 34px;
 }
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+.modal-content{
+  width: 420px;
+  height: fit-content;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  background-color: var(--secondary-color);
+  border-radius: 12px;
+
+  padding: 24px;
+
+  color: var(--primary-color);
+
+  z-index: 1;
+
+  opacity: 0;
+
+  animation: fadeInModal 0.5s ease forwards;
+
+  box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeInModal{
+  0%{
+      opacity: 0;
+  }
+  100%{
+      opacity: 1;
+  }
+
+}
+
+.modal-content strong{
+color: red;
+}
+
+.modal-content h1 {
+  font-size: 2.125rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.modal-content h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.modal-content h3 {
+  font-size: 20px;
+  font-weight: 550;
+  color: var(--primary-color);
+}
+
+.modal-content p {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.modal-content a{
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+  .modal-content a:hover{
+      color: var(--primary-color);
+  }
+
+.modal-content-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 6px;
+  color: var(--primary-color);
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: inherit;
+  transition: border-color 0.25s;
+}
+
+.modal-content-btn     {
+  width: 100%;
+  height: 48px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background-color: var(--accent-color);
+  color: var(--secondary-color);
+  font-size: 20px;
+  font-weight: bold;
+  font-family: inherit;
+  transition: border-color 0.25s;
+}
+
+
+.modal-content-btn.sm{
+  max-width: 150px;
+}
+
+.modal-content-btn.orange{
+  background-color: orange;
+}
+
+.subinfo-text p{
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--soft-gray-text);
 }

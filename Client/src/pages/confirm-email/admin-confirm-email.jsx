@@ -50,7 +50,7 @@ const AdminConfirmEmail = () => {
 
     return (
         <div className='admin-signin-page'>
-            <div className="signin-modal">
+            <div className="modal-content">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>

@@ -14,6 +14,8 @@ const UserSignin = () => {
         try {
             const response = await user_signin_service(username, password);
 
+            console.log(response);
+
             //print value of response to console
             
 
@@ -31,6 +33,9 @@ const UserSignin = () => {
                 const id = response.id;
                 navigate(`/new-user/reset-password?id=${id}`);
             }
+            else if (response.code === 403) {
+                alert('signin failed:' + response.errorMsg);
+            }
             else {
                 alert('signin failed:', response);
             }
@@ -44,7 +49,7 @@ const UserSignin = () => {
 
     return (
         <div className='signin-page'>
-            <div className="signin-modal">
+            <div className="modal-content">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
@@ -54,12 +59,12 @@ const UserSignin = () => {
                     <h2>User Sign In</h2>
                 </div>  
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
-                    <p>Email<strong>*</strong></p>
-                    <input type="text" placeholder="Email" className="signin-input" onChange={(e) => setUsername(e.target.value)}/>
+                    <p>Username<strong>*</strong></p>
+                    <input type="text" placeholder="Username" className="modal-content-input" onChange={(e) => setUsername(e.target.value)}/>
                 </div>
                 <div className="flex flex-col content-center justify-start gap-0 w-full pt-6">
                     <p>Password<strong>*</strong></p>
-                    <input type="password" placeholder="Password" className="signin-input" onChange={(e) => setPassword(e.target.value)} />
+                    <input type="password" placeholder="Password" className="modal-content-input" onChange={(e) => setPassword(e.target.value)} />
                 </div>
 
                 <div className="flex flex-row content-center justify-start gap-2 w-full pt-2">
@@ -73,7 +78,7 @@ const UserSignin = () => {
 
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <button className="signin-btn" onClick={handlesignin}>Sign In</button>
+                    <button className="modal-content-btn" onClick={handlesignin}>Sign In</button>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">

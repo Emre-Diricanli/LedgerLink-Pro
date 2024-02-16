@@ -16,30 +16,40 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<ErrorReportingService>();
 
-<<<<<<< Updated upstream
-// builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-//     options.UseNpgsql(
-//         configuration.GetConnectionString("DefaultConnection"),
-//         npgsqlOptionsAction: npgsqlOptions =>
-//         {
-//             npgsqlOptions.EnableRetryOnFailure(
-//                 maxRetryCount: 5,
-//                 maxRetryDelay: TimeSpan.FromSeconds(30),
-//                 errorCodesToAdd: null);
-//         }));
-
+builder.Services.AddHostedService<TimedHostedService>();
 
 builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-    options.UseSqlServer(
-        configuration.GetConnectionString("AzureSQLConnection")));
-=======
+    options.UseNpgsql(
+        configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptionsAction: npgsqlOptions =>
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+        }));
 
-       builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-    options.UseSqlServer(
-        configuration.GetConnectionString("DefaultConnection")));
- 
->>>>>>> Stashed changes
+//change cookie name
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "LedgerLinkProCookie";
+});
+
+// builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+//     options.UseSqlServer(
+//         configuration.GetConnectionString("AzureSQLConnection")));
+
+/* 
+ builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 3;
+    options.Lockout.AllowedForNewUsers = true;
+});
+
+ */
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
