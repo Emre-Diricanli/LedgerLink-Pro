@@ -11,7 +11,7 @@ import { redirectBasedOnValue } from '../DeterminRedirectPath/DeterminRedirectPa
 import { useAuth } from '../../util/AuthenticationManagement';
 
 function Navbar() {
-  const {user } = useUser();
+  const { user } = useUser();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const { signOut, isAuthenticated } = useAuth();
   const { profilePictureUrl, noUrl } = useProfilePicture(isAuthenticated);
@@ -44,6 +44,11 @@ function Navbar() {
         <div className='navbar-item'>
           <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
         </div>
+        {/* { user.role === 'admin' ? 
+        <div className='navbar-item'>
+          <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+        </div> : <></>
+        } */}
         <div className='navbar-item'>
           <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
         </div>

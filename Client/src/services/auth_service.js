@@ -64,7 +64,7 @@ export const user_signin_service = async (email, password) => {
         }
 
         if (!response.ok) {
-if (response.status === 403) {
+            if (response.status === 403) {
                 const data = await response.json();
                 const errorMsg = data.message;
                 return { code: response.status, errorMsg };
@@ -354,7 +354,6 @@ export const get_auth_level = async () => {
             credentials: 'include',
         });
         if (!response.ok) {
-            localStorage.setItem('isLoggedIn', false);
             return false;
         }
 

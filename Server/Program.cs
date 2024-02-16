@@ -96,10 +96,13 @@ if (app.Environment.IsDevelopment())
     {
         var services = scope.ServiceProvider;
         var context = services.GetRequiredService<LedgerLinkProDBContext>();
+        try{
         context.Database.EnsureCreated();
-
         //Create roles
         await CreateRoles(services);
+        }catch(Exception e){
+            Console.WriteLine("Database error " + e);
+        }
     }
     app.UseSwagger();
     app.UseSwaggerUI();
