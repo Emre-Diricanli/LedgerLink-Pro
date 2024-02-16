@@ -20,7 +20,9 @@ builder.Services.AddTransient<ErrorReportingService>();
 
 builder.Services.AddHostedService<TimedHostedService>();
 
-builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+/* 
+ 
+ builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseNpgsql(
         configuration.GetConnectionString("DefaultConnection"),
         npgsqlOptionsAction: npgsqlOptions =>
@@ -30,6 +32,7 @@ builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorCodesToAdd: null);
         }));
+ */
 
 //change cookie name
 builder.Services.ConfigureApplicationCookie(options =>
@@ -37,9 +40,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "LedgerLinkProCookie";
 });
 
-// builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
-//     options.UseSqlServer(
-//         configuration.GetConnectionString("AzureSQLConnection")));
+ builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+     options.UseSqlServer(
+         configuration.GetConnectionString("AzureSQLConnection")));
 
 /* 
  builder.Services.Configure<IdentityOptions>(options =>
