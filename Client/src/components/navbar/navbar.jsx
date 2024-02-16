@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom'; // Import NavLink
-import './navbar.css'
+import './navbar.css';
 import UserProfilePictureModal from '../user-profile-picture-modal/UserProfilePictureModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
@@ -15,17 +15,15 @@ function Navbar() {
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const { profilePictureUrl, noUrl } = useProfilePicture();
   const { signOut, isAuthenticated } = useAuth();
-
-  // useEffect(() => {
+   // useEffect(() => {
   //   // Function to fetch the profile picture URL
   //   const fetchProfilePictureUrl = async () => {
   //     const isLoggedIn = localStorage.getItem('isLoggedIn') ? false : true;
   //     console.log('isLoggedIn: ', isLoggedIn);
-
-  //     if (!isLoggedIn) {
+    //     if (!isLoggedIn) {
   //       return;
   //     };
-
+  
   //     const response = await getProfilePictureUrl();
 
   //     if (response === false) {
@@ -49,46 +47,45 @@ function Navbar() {
 
   const handleModalClose = () => {
     setIsProfilePictureModalOpen(false);
-  };
-
-  const handleSignout = async () => {
-    try {
-      await signOut(); // Call the signOut method from AuthContext
-      // navigate('/signin'); // Redirect user to the sign-in page or another appropriate page
-    } catch (error) {
-      console.error('Sign-out failed:', error);
-      alert('Sign-out failed');
+      };
+      const handleSignout = async () => {
+        try {
+          await signOut(); // Call the signOut method from AuthContext
+          // navigate('/signin'); // Redirect user to the sign-in page or another appropriate page
+        } catch (error) {
+          console.error('Sign-out failed:', error);
+          alert('Sign-out failed');
+        }
+      };
+    
+    
+      return (
+        <nav className="navbar-container">
+          <UserProfilePictureModal currentImageUrl={noUrl ? '' : profilePictureUrl} isOpen={isProfilePictureModalOpen} onClose={handleModalClose} />
+          <div className='navbar-navlinks-container'>
+            <div className='navbar-item'>
+              <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
+            </div>
+            <div className='navbar-item'>
+              <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+            </div>
+          </div>
+          <div className='navbar-profile-container'>
+            {user ? <p>{user.username}</p> : <p>Loading user...</p>}
+    
+            {noUrl ? (
+              <div className='profile-circle-empty' onClick={handleProfilePictureClick}>
+                <FontAwesomeIcon icon={faUser} />
+              </div>
+            ) : (
+              <div className='profile-circle' onClick={handleProfilePictureClick}>
+                <img src={profilePictureUrl} alt='Profile Picture' width={50} />
+              </div>
+            )}
+            <button onClick={handleSignout}>Sign Out</button>
+          </div>
+        </nav>
+      );
     }
-  };
-
-
-  return (
-    <nav className="navbar-container">
-      <UserProfilePictureModal currentImageUrl={noUrl ? '' : profilePictureUrl} isOpen={isProfilePictureModalOpen} onClose={handleModalClose} />
-      <div className='navbar-navlinks-container'>
-        <div className='navbar-item'>
-          <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
-        </div>
-        <div className='navbar-item'>
-          <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
-        </div>
-      </div>
-      <div className='navbar-profile-container'>
-        {user ? <p>{user.username}</p> : <p>Loading user...</p>}
-
-        {noUrl ? (
-          <div className='profile-circle-empty' onClick={handleProfilePictureClick}>
-            <FontAwesomeIcon icon={faUser} />
-          </div>
-        ) : (
-          <div className='profile-circle' onClick={handleProfilePictureClick}>
-            <img src={profilePictureUrl} alt='Profile Picture' width={50} />
-          </div>
-        )}
-        <button onClick={handleSignout}>Sign Out</button>
-      </div>
-    </nav>
-  );
-}
-
-export default Navbar;
+    
+    export default Navbar;    
