@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LedgerLink_Pro_Backend.Models.Users
+namespace LedgerLinkPro.Models.Users
 {
     public class NeedsCreateNewPassword
     {

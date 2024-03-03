@@ -1,5 +1,7 @@
-﻿using LedgerLink_Pro_Backend.Models.Users;
-using LedgerLink_Pro_Backend.Models.Util;
+﻿using LedgerLinkPro.Server.Models.Accounts;
+using LedgerLinkPro.Models.Users;
+using LedgerLinkProBackend.Models.Util;
+using LedgerLinkPro.Models.Accounts;
 using LedgerLinkPro.Models.Auth;
 using LedgerLinkPro.Models.Users;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -27,6 +29,8 @@ namespace LedgerLinkPro.Database
         public DbSet<UserExpireAccess> UserExpireAccesses { get; set; }
         public DbSet<UserProfilePictureLocations> UserProfilePictureLocations { get; set; }
         public DbSet<ReportedErrors> ReportedErrors { get; set; }
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<DeactivatedAccounts> DeactivatedAccounts { get; set; }
 
 
 

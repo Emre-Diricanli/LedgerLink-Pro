@@ -1,4 +1,4 @@
-﻿namespace LedgerLink_Pro_Backend.Services;
+﻿namespace LedgerLinkPro.Services;
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;

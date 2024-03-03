@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using LedgerLinkProBackend.Database;
 using LedgerLinkPro.Database;
-using LedgerLink_Pro_Backend.Services;
+using LedgerLinkPro.Services;
 
 
 
@@ -20,7 +20,7 @@ builder.Services.AddTransient<ErrorReportingService>();
 
 builder.Services.AddHostedService<TimedHostedService>();
 
-/* 
+
  
  builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseNpgsql(
@@ -32,7 +32,7 @@ builder.Services.AddHostedService<TimedHostedService>();
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorCodesToAdd: null);
         }));
- */
+ 
 
 //change cookie name
 builder.Services.ConfigureApplicationCookie(options =>
@@ -40,9 +40,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "LedgerLinkProCookie";
 });
 
- builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+/* 
+  builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
      options.UseSqlServer(
          configuration.GetConnectionString("AzureSQLConnection")));
+ */
 
 /* 
  builder.Services.Configure<IdentityOptions>(options =>

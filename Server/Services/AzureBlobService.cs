@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LedgerLink_Pro_Backend.Services
+namespace LedgerLinkPro.Services
 {
     [ApiController]
     [Route("[controller]")]

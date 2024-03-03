@@ -1,6 +1,6 @@
-using LedgerLink_Pro_Backend.Models.Users;
+using LedgerLinkPro.Models.Users;
 
-namespace LedgerLink_Pro_Backend.DTO;
+namespace LedgerLinkPro.DTO;
 
 public class UserInfoReturnModel
 {

@@ -1,6 +1,6 @@
-﻿using LedgerLink_Pro_Backend.DTO;
-using LedgerLink_Pro_Backend.Models.Users;
-using LedgerLink_Pro_Backend.Services;
+﻿using LedgerLinkPro.DTO;
+using LedgerLinkPro.Models.Users;
+using LedgerLinkPro.Services;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Auth;
@@ -13,7 +13,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace LedgerLink_Pro_Backend.Controlllers
+namespace LedgerLinkPro.Controlllers
 {
     [ApiController]
     [Route("[controller]")]

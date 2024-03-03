@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>LedgerLink_Pro_Backend</RootNamespace>
+    <RootNamespace>LedgerLinkPro</RootNamespace>
     <UserSecretsId>af6bc346-5d81-4d45-a529-d3da1a4222cf</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
@@ -22,9 +22,9 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.1" />
 
-		<!-- <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" /> -->
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
+		<!--<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />-->
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
 		<PackageReference Include="Moq" Version="4.20.70" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

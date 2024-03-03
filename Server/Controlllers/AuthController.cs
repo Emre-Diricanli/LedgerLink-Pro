@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.Models.Users;
-using LedgerLink_Pro_Backend.Services;
+using LedgerLinkPro.Services;
 using System.Web;
-using LedgerLink_Pro_Backend.DTO;
+using LedgerLinkPro.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Auth;
-using LedgerLink_Pro_Backend.Models.Users;
+using LedgerLinkPro.Models.Users;
 using LedgerLinkPro;
 
 namespace Team_Tactics_Backend.Controllers

@@ -1,10 +1,10 @@
-﻿using LedgerLink_Pro_Backend.Models.Util;
+﻿using LedgerLinkPro.Models.Util;
 using LedgerLinkPro.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
-namespace LedgerLink_Pro_Backend.Services
+namespace LedgerLinkPro.Services
 {
     public class ErrorReportingService
     {

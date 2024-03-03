@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.Models.Users;
-using LedgerLink_Pro_Backend.Services;
+using LedgerLinkPro.Services;
 
 namespace Team_Tactics_Backend.Controllers
 {

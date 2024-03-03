@@ -1,4 +1,4 @@
-﻿namespace LedgerLink_Pro_Backend.DTO
+﻿namespace LedgerLinkPro.DTO
 {
     public class MultipleUserActionsModel
     {
