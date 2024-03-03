@@ -1,0 +1,94 @@
+.navbar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--secondary-color); /* Ensure this variable is defined */
+    
+    padding-top: 12px;
+    padding-left: 32px;
+    padding-right: 32px;
+    width: 100%;
+    border-bottom: 1px solid var(--soft-gray); /* Ensure this variable is defined */
+}
+
+.navbar-navlinks-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+
+    flex-grow: 1; /* Allows it to grow as needed */
+    margin-right: auto; /* Ensures space is distributed before the profile container */
+}
+
+.navbar-item {
+    height: auto;
+    min-width: 24px;
+    white-space: nowrap;
+}
+
+.navbar-item a {
+    text-decoration: none;
+    font-size: 1.2em;
+}
+
+/* Adjusted for NavLink via className prop */
+.navbar-item .selected {
+    font-weight: bold;
+    color: var(--accent-color); /* Ensure this variable is defined */
+    border-bottom: 4px solid var(--accent-color); /* Adds visual accent */
+    display: block;
+    height: 100%;
+}
+
+.navbar-profile-container {
+    margin-left: auto;
+    flex-shrink: 0; /* Prevents the profile container from shrinking */
+    min-width: 10vw; /* Example minimum width to ensure visibility */
+
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.profile-circle {
+    width: 43px; 
+    height: 43px; 
+    background-color: transparent; /* Ensures the background is transparent */
+    border-radius: 50%; /* Makes it circular */
+    display: flex; /* Enables flexbox */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    overflow: hidden; /* Ensures the image does not overflow the circular shape */
+    cursor: pointer;
+}
+
+.profile-circle-empty {
+    width: 43px; 
+    height: 43px; 
+    border-radius: 50%; /* Makes it circular */
+    border: 1px solid var(--accent-color); /* The blue border color */
+    display: flex; /* Enables flexbox */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    overflow: hidden; /* Ensures the image does not overflow the circular shape */
+    cursor: pointer; 
+}
+
+.profile-circle-large {
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%; /* Makes it circular */
+    display: flex; /* Enables flexbox */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    overflow: hidden; /* Ensures the image does not overflow the circular shape */
+    cursor: pointer; 
+}
+
+.profile-circle img {
+    width: 100%; /* Ensures the image covers the full width of the container */
+    height: 100%; /* Ensures the image covers the full height of the container */
+    object-fit: cover; /* Ensures the image covers the area without distorting aspect ratio */
+}

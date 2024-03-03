@@ -1,0 +1,196 @@
+.user-management-hotbar{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-end;
+    gap: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    width: 100%;
+    height: 100px;
+
+    padding: 20px 20px  ;
+}
+
+  /* General style for the dropdown container */
+  .action-dropdown {
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+    z-index: 1;
+    border-radius: 4px;
+    margin-top: 70px; /* Adjust based on your layout */
+  }
+
+  .action-dropdown-user {
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+    z-index: 1;
+    border-radius: 4px;
+    
+  }
+  
+  /* Style for individual action buttons within the dropdown */
+  .dropdown-action-button {
+    background-color: #f9f9f9;
+    color: black;
+    padding: 12px 16px;
+    text-align: left;
+    border: none;
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px solid #ddd; /* subtle separator for options */
+  }
+  
+  .dropdown-action-button:hover {
+    background-color: #f1f1f1; /* Light grey background on hover */
+  }
+  
+  /* Optional: Last child to not have a bottom border */
+  .dropdown-action-button:last-child {
+    border-bottom: none;
+  }
+  
+  .selected-user-info-container{
+    width: auto;
+    min-width: 22vw;
+    height: 100%;
+    background-color: var(--page-container-bg);
+    border-bottom: 1px solid #e0e0e0;
+    border-left: 1px solid #e0e0e0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .selected-user-info-container h1{
+    font-size: 2.5rem;
+    font-weight: 500;
+  }
+
+  .selected-user-info-container h2{
+    font-size: 1.2rem;
+    font-weight: 400;
+  }
+
+  .selected-user-info-container h3{
+    font-size: 1.2rem;
+    font-weight: 400;
+    min-width: 375px;
+
+    color: var(--soft-gray-text);
+  }
+  .selected-user-info-profile-image img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+  .user-details p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+  }
+
+
+  .selected-user-info-profile-image{
+    width: 100%;
+    height: 200px;
+    
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .selected-user-info-profile-image img{
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+  }
+
+  .selected-user-info-last5logins{
+    width: 100%;
+    height: 100px;
+    background-color: var(--page-container-bg);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .selected-user-info-last5logins table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.selected-user-info-last5logins th,
+.selected-user-info-last5logins td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.selected-user-info-last5logins th {
+    background-color: #f2f2f2;
+}
+
+/* Zebra striping for rows */
+.selected-user-info-last5logins tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.selected-user-info-3expirations{
+  width: 100%;
+  height: 100px;
+  background-color: var(--page-container-bg);
+  border-bottom: 1px solid #e0e0e0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selected-user-info-3expirations table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.selected-user-info-3expirations th,
+.selected-user-info-3expirations td {
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.selected-user-info-3expirations th {
+    background-color: #f2f2f2;
+}
+
+/* Zebra striping for rows */
+.selected-user-info-3expirations tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+
+
+.selected-user-info-container h1 {
+  display: flex;
+  justify-content: center; /* Center the text */
+  position: relative; /* Relative positioning for the container */
+}
+
+.selected-user-info-container h1 .pencil-icon {
+  position: absolute; /* Absolute positioning for the icon */
+  right: -50px; /* Position it to the far right */
+  top: 50%; /* Align it to the vertical center */
+  transform: translateY(-50%); /* Center it correctly on the vertical axis */
+}
+
