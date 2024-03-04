@@ -62,7 +62,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose }) 
             </div>
             <div className="flex flex-col w-full">
                 <label htmlFor="role">Role</label>
-                <select id="role" name="role" value={newUser.role} className='filter-dropdown' onChange={(e) => setNewUser({ ...newUser, role: roleMapping[e.target.value] })}>
+                <select id="role" name="role" value={newUser.role}  onChange={(e) => setNewUser({ ...newUser, role: roleMapping[e.target.value] })}>
                     {Object.keys(roleMapping).map((role, index) => (
                         <option key={index} value={role}>{role}</option>
                     ))}

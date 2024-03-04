@@ -14,6 +14,7 @@ import NewUserResetPassword from './pages/new-user/new-user-reset-password';
 import AdminSignup from './pages/signin-signup/admin-signup';
 import ServerOfflinePage from './pages/server-offline/server-offline';
 import { AuthProvider } from './util/AuthenticationManagement';
+import Accounts from './pages/accounts/Accounts'; // Fixed the casing of the import statement
 
 function App() {
   // This component will determine whether to show the Navbar
@@ -49,6 +50,7 @@ function App() {
             <Route path="/confirm-user" element={<Layout><ConfirmUser /></Layout>} />
             <Route path="/new-user/reset-password" element={<Layout><NewUserResetPassword /></Layout>} />
             <Route path="/user-management" element={<Layout><UserManagement /></Layout>} />
+            <Route path="/accounts" element={<Layout><Accounts /></Layout>} /> // Fixed the component name
             <Route path="/server-offline" element={<Layout><ServerOfflinePage /></Layout>} />
           </Routes>
         </Router>

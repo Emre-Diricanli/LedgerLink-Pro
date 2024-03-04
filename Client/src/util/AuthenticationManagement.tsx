@@ -25,11 +25,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAuthentication = async () => {
     const response = await check_auth();
-    setIsAuthenticated(response.isLoggedIn !== false);
+    setIsAuthenticated(response !== false);
 
     //if response is not false, then grab role from storage
-    if (response.isLoggedIn !== false) {
-      let role = response.role;
+    if (response !== false) {
+      let role = localStorage.getItem('role');
       if (role === '3') {
         setIsAdmin(true);
       }

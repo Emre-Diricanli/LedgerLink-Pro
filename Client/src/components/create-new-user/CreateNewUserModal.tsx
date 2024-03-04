@@ -281,7 +281,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
 
         <div className="flex flex-col content-center justify-start gap-0 w-full pt-4">
             <p>Role<strong>*</strong></p>
-            <select value={roleOptions[selectedRole]} onChange={handleRoleChange} className='filter-dropdown'>
+            <select value={roleOptions[selectedRole]} onChange={handleRoleChange} >
                 {Object.keys(roleOptions).map((role) => (
                     <option key={role} value={roleOptions[role]}>
                         {role}

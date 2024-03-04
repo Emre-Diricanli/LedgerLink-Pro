@@ -57,7 +57,7 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
 
     // Hotbar content goes here, similar to what was inside UserManagement component
     return (
-        <div className='user-management-hotbar'>
+        <div className='hotbar justify-start '>
                 <div className='flex flex-col items-start w-fit'>
                     <p>Search</p>
                     <input
@@ -70,9 +70,9 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
                     />
                 </div>
                 <div className='flex flex-col items-start w-fit'>
-                    <h3>User Filter</h3>
+                    <p>User Filter</p>
                     <select
-                        className='filter-dropdown'
+                        
                         onChange={(e) => {
                             // Get the numeric value from the mapping based on the selected text
                             const selectedValue = userFilterMapping[e.target.value];
@@ -87,9 +87,9 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
 
                 </div>
                 <div className='flex flex-col items-start w-fit'>
-                    <h3>Active Filter</h3>
+                    <p>Active Filter</p>
                     <select
-                        className='filter-dropdown'
+                        
                         onChange={(e) => {
                             // Get the numeric value from the mapping based on the selected text
                             const selectedValue = activeFilterMapping[e.target.value];
@@ -104,7 +104,7 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
                     </select>
                 </div>
                 <div className='flex flex-col items-start w-fit'>
-                    <h3>Create User</h3>
+                    <p>Create User</p>
                     <button onClick={() => setCreateNewUserModalOpen(true)}>Create</button>
                     
                 </div>
@@ -117,7 +117,7 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
                     <ActionDropdown ref={dropdownRef} userIds={userIds} onActionComplete={actionComplete} actionConfig={actionConfig}/>
                 </div>
                 <div className='flex flex-col items-start w-fit'>
-                    <h3>Row Count</h3>
+                    <p>Row Count</p>
                     <select
                         className='filter-dropdown'
                         onChange={(e) => {

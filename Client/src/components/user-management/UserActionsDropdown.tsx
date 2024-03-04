@@ -108,7 +108,7 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
             {user && <EditUserModal user={user} isOpen={showEditModal} onClose={handleEditModalClose} />}
             <AdminResetUserPasswordModal userId={userIds[0] || ''} isOpen={showResetPasswordModal} onClose={handleResetPasswordModalClose} />
             <ConfirmUserDeleteModal isOpen={showConfirmDeleteModal} onClose={confirmDelete} />
-            <h3>Actions</h3>
+            <p>Actions</p>
             <button onClick={() => setShowActionDropdown(prev => !prev)} className='actions-button'>Actions</button>
             {showActionDropdown && (
                 <div className='action-dropdown'>

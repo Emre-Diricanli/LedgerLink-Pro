@@ -9,13 +9,14 @@ import { useUser } from '../../util/UserProvider';
 import { useProfilePicture } from '../UserProfilePcitures/FetchUserProfilePciture';
 import { redirectBasedOnValue } from '../DeterminRedirectPath/DeterminRedirectPath';
 import { useAuth } from '../../util/AuthenticationManagement';
+import ProfileImage from './profileImage';
 
 function Navbar() {
   const { user } = useUser();
+  const noUrl = !user?.profilePictureUrl;
   const auth = useAuth();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const { signOut, isAuthenticated } = useAuth();
-  const { profilePictureUrl, noUrl } = useProfilePicture(isAuthenticated);
 
 
   const handleProfilePictureClick = async () => {
@@ -37,23 +38,22 @@ function Navbar() {
     }
   };
 
+  useEffect(() => {
+    console.log('Navbar Mount')
+  }, []);
+
 
   return (
     <nav className="navbar-container">
-      <UserProfilePictureModal currentImageUrl={noUrl ? '' : profilePictureUrl} isOpen={isProfilePictureModalOpen} onClose={handleModalClose} />
+      <UserProfilePictureModal currentImageUrl={noUrl ? '' : user.profilePictureUrl || ''} isOpen={isProfilePictureModalOpen} onClose={handleModalClose} />
       <div className='navbar-navlinks-container'>
         <div className='navbar-item'>
           <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
         </div>
-        { user.role === 'admin' && (
-          <div className='navbar-item'>
-            <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
-          </div>
-        )}
         <div className='navbar-item'>
           <NavLink to="/accounts" className={({ isActive }) => isActive ? "selected" : ""}>Accounts</NavLink>
         </div>
-        { auth.isAdmin() && (
+        { auth.isAdmin && (
           <div className='navbar-item'>
             <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
           </div>
@@ -62,15 +62,7 @@ function Navbar() {
       <div className='navbar-profile-container'>
         {user ? <p>{user.username}</p> : <p>Loading user...</p>}
 
-        {noUrl ? (
-          <div className='profile-circle-empty' onClick={handleProfilePictureClick}>
-            <FontAwesomeIcon icon={faUser} />
-          </div>
-        ) : (
-          <div className='profile-circle' onClick={handleProfilePictureClick}>
-            <img src={profilePictureUrl} alt='Profile Picture' width={50} />
-          </div>
-        )}
+        <ProfileImage handleProfilePictureClick={handleProfilePictureClick} />
         <button onClick={handleSignout}>Sign Out</button>
       </div>
     </nav>

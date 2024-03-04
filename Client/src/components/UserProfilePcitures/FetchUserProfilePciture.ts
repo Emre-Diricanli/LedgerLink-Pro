@@ -2,20 +2,11 @@ import { useEffect, useState } from 'react';
 import { getProfilePictureUrl } from '../../services/profile-picture-service';
 
 
-export function useProfilePicture(isAuthenticated?: boolean) {
+export function useProfilePicture() {
     const [profilePictureUrl, setProfilePictureUrl] = useState('');
     const [noUrl, setNoUrl] = useState(false);
 
-    // useEffect(() => {
-    //   if (!isAuthenticated) return; // Exit if not authenticated
-  
-    //   // Your existing logic to fetch the profile picture
-    // }, [isAuthenticated]); // Depend on isAuthenticated
-  
     useEffect(() => {
-      console.log('useProfilePicture: isAuthenticated:', isAuthenticated);
-      if (!isAuthenticated) return; // Exit if not authenticated
-
       const fetchProfilePictureUrl = async () => {
         try {
           const response = await getProfilePictureUrl();
@@ -29,7 +20,7 @@ export function useProfilePicture(isAuthenticated?: boolean) {
       };
   
       fetchProfilePictureUrl();
-    }, [isAuthenticated]);
+    }, []);
   
     return { profilePictureUrl, noUrl };
   }
