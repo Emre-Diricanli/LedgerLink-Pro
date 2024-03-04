@@ -12,7 +12,7 @@ export const check_auth = async () => {
         });
         if (!response.ok) {
             localStorage.setItem('isLoggedIn', false);
-            return false;
+            return { isLoggedIn: false, role: null };
         }
         var data = await response.json();
         var role = data.role;
@@ -21,7 +21,7 @@ export const check_auth = async () => {
         localStorage.setItem('role', role);
         localStorage.setItem('isLoggedIn', true);
 
-        return true;
+        return { isLoggedIn: true, role: role };
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         throw error;

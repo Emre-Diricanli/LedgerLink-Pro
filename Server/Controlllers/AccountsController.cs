@@ -66,7 +66,8 @@ namespace Team_Tactics_Backend.Controllers
         {
             try
             {
-                //
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
 
                 // Validate the model
                 if (!ModelState.IsValid)
@@ -146,12 +147,67 @@ namespace Team_Tactics_Backend.Controllers
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                _errorReportingService.ReportError("Error creating new account. Exception Catched", "AccountsController.cs", "CreateNewAccount", ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                //null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error creating new account. Exception Catched",  "AccountsController.cs", "UNKNOWN", "CreateNewAccount", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error creating new account. Exception Catched",  "AccountsController.cs", identityUser.Id, "CreateNewAccount", ex.Message);
+
                 return StatusCode(500, "Error creating new account");
             }
         }
 
-        
+        [HttpPost("deactivate-account/{accountId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeactivateAccount(Guid accountId)
+        {
+            try
+            {
+                // Validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                // Get the account
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId == accountId);
+                    if (account == null)
+                    {
+                        return BadRequest("Account not found");
+                    }
+
+                    // Deactivate the account
+                    account.ActiveStatus = false;
+
+                    // Save changes to the database
+                    context.Accounts.Update(account);
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok("Account deactivated successfully");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error deactivating account. Exception Catched", "AccountsController.cs", "UNKNOWN", "DeactivateAccount", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error deactivating account. Exception Catched", "AccountsController.cs", identityUser.Id, "DeactivateAccount", ex.Message);
+
+                return StatusCode(500, "Error deactivating account");
+            }
+        }
+    
+    
+    
     }
 
 }

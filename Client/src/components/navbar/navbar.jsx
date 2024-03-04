@@ -12,6 +12,7 @@ import { useAuth } from '../../util/AuthenticationManagement';
 
 function Navbar() {
   const { user } = useUser();
+  const auth = useAuth();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const { signOut, isAuthenticated } = useAuth();
   const { profilePictureUrl, noUrl } = useProfilePicture(isAuthenticated);
@@ -44,14 +45,19 @@ function Navbar() {
         <div className='navbar-item'>
           <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
         </div>
-        {/* { user.role === 'admin' ? 
+        { user.role === 'admin' && (
+          <div className='navbar-item'>
+            <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+          </div>
+        )}
         <div className='navbar-item'>
-          <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
-        </div> : <></>
-        } */}
-        <div className='navbar-item'>
-          <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+          <NavLink to="/accounts" className={({ isActive }) => isActive ? "selected" : ""}>Accounts</NavLink>
         </div>
+        { auth.isAdmin() && (
+          <div className='navbar-item'>
+            <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+          </div>
+        )}
       </div>
       <div className='navbar-profile-container'>
         {user ? <p>{user.username}</p> : <p>Loading user...</p>}

@@ -1,6 +1,6 @@
 ﻿using LedgerLinkPro.Server.Models.Accounts;
 using LedgerLinkPro.Models.Users;
-using LedgerLinkProBackend.Models.Util;
+using LedgerLinkPro.Models.Util;
 using LedgerLinkPro.Models.Accounts;
 using LedgerLinkPro.Models.Auth;
 using LedgerLinkPro.Models.Users;

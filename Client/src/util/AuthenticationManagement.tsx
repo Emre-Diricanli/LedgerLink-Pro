@@ -4,6 +4,7 @@ import { user_signout_service } from '../services/auth_service';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isAdmin: boolean;
   fetchAuthentication: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -20,14 +21,19 @@ export const useAuth = (): AuthContextType => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  const getAuthentication = async () => {
-    return isAuthenticated;
-  }
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   const fetchAuthentication = async () => {
     const response = await check_auth();
-    setIsAuthenticated(response !== false);
+    setIsAuthenticated(response.isLoggedIn !== false);
+
+    //if response is not false, then grab role from storage
+    if (response.isLoggedIn !== false) {
+      let role = response.role;
+      if (role === '3') {
+        setIsAdmin(true);
+      }
+    }
   };
 
   const signOut = async () => {
@@ -46,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, fetchAuthentication, signOut }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, fetchAuthentication, signOut }}>
       {children}
     </AuthContext.Provider>
   );
