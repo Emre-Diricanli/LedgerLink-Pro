@@ -1,33 +1,37 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { confirm_user_access } from '../../services/auth_service';
+import { HandleConfirmUserAccess } from '../../services/AuthService';
 import logo from '../../assets/llp-logo.png';
 import '../signin-signup/signin-signup.css';
+import { useAuth } from '../../util/AuthProvider';
 
 //todo remove the navbar from the confirm user page
 
 const ConfirmUser = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const auth = useAuth();
     
     // Create a function to parse query parameters
     const query = new URLSearchParams(location.search);
     const email = query.get("email");
-    const username = query.get("username");
     const name = query.get("name"); // Make sure this matches the URL parameter key
 
     useEffect(() => {
         // You can now call the async function inside useEffect
         const confirmAccess = async () => {
-            if(email && username) {
-                console.log(email, username);
-                const response = await confirm_user_access(email, username);
-                console.log(response); // Handle the response appropriately
+            if(email) {
+                console.log(email);
+                const response = await auth.HandleConfirmUserAccess(email);
+
+                if (response === false) {
+                    alert('There was an error confirming the user. Please try again.');
+                }
             }
         };
 
         confirmAccess();
-    }, [email, username]); // Adding email and username as dependencies
+    }, [email]); // Adding email and username as dependencies
 
     return (
         <div className='admin-signin-page'>

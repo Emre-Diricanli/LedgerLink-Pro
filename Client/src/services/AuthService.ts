@@ -1,9 +1,8 @@
-const API_URL = import.meta.env.VITE_LedgerLinkPro_Server_API;
-import { http_context } from './http-context.js';
+import { UserSigninResult, UserSignupRequest } from "../components/interfaces/Users";
 
-export const check_auth = async () => {
+export const CheckAuth = async (apiUrl : String): Promise<Boolean> => {
     try {
-        const response = await http_context(`${API_URL}/auth/check-auth`, {
+        const response = await fetch(`${apiUrl}/auth/check-auth`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -11,7 +10,7 @@ export const check_auth = async () => {
             credentials: 'include'
         });
         if (!response.ok) {
-            localStorage.setItem('isLoggedIn', false);
+            localStorage.setItem('isLoggedIn', 'false');
             return false;
         }
         var data = await response.json();
@@ -19,7 +18,7 @@ export const check_auth = async () => {
 
         //store in local storage
         localStorage.setItem('role', role);
-        localStorage.setItem('isLoggedIn', true);
+        localStorage.setItem('isLoggedIn', 'true');
 
         return true;
     } catch (error) {
@@ -28,9 +27,9 @@ export const check_auth = async () => {
     }
 };
 
-export const user_signin_service = async (email, password) => {
+export const HandleUserSignin = async (email : String, password : String, apiUrl : String): Promise<UserSigninResult> => {
     try {
-        const response = await http_context(`${API_URL}/auth/user/login`, {
+        const response = await fetch(`${apiUrl}/auth/user/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -43,47 +42,26 @@ export const user_signin_service = async (email, password) => {
         //check if response was 428, if so redirect to new user new password page
         if (response.ok) {
             // Get encoded token from response
-            const data = await response.json();
-            const userNeedsPasswordReset = data.userNeedsPasswordReset;
-
-            // If status is 428, redirect to new user reset password page
-            if (userNeedsPasswordReset === false) {
-                console.log('Request Was Successful and user does not need to reset password');
-                return true;
+            const data = await response.json() as UserSigninResult;
+            return data;
+        } 
+        else {
+            return {
+                resultSuccess: false,
+                userNeedsPasswordReset: false,
+                token: '',
+                id: ''
             };
-            console.log('Request Was Successful and user needs to reset password');
-
-            const token = data.token;
-            const id = data.id;
-
-            // Store token in local storage
-            localStorage.setItem('ps-reset-tk', token);
-
-            // Return data with code and id
-            return { code: 428, id: id };
         }
-
-        if (!response.ok) {
-            if (response.status === 403) {
-                const data = await response.json();
-                const errorMsg = data.message;
-                return { code: response.status, errorMsg };
-            }
-            return false;
-        }
-       
-
-        //return role
-        return true;
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         throw error;
     }
 };
 
-export const admin_signin_service = async (email, password) => {
+export const HandleAdminSignin = async (email : String, password : String, apiUrl : String) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/auth/admin/login`, {
+        const response = await fetch(`${apiUrl}/auth/admin/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -95,13 +73,6 @@ export const admin_signin_service = async (email, password) => {
             return false;
         }
 
-        //grab role from response
-        // const data = await response.json();
-        // const role = data.role;
-
-        // //store in local storage
-        // localStorage.setItem('role', role);
-
         //return role
         return true;
     } catch (error) {
@@ -110,7 +81,7 @@ export const admin_signin_service = async (email, password) => {
     }
 };
 
-export const admin_signup_service = async (email, password, firstName, lastName) => {
+export const HandleAdminSignup = async (email: string, password: string, firstName: string, lastName: string, apiUrl : String): Promise<boolean> => {
     try {
         const body = {
             email: email,
@@ -118,8 +89,10 @@ export const admin_signup_service = async (email, password, firstName, lastName)
             firstName: firstName,
             lastName: lastName
         };
+
+
         console.log(body);
-        const response = await http_context(`${API_URL}/auth/admin/register`, {
+        const response = await fetch(`${apiUrl}/auth/admin/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -127,11 +100,6 @@ export const admin_signup_service = async (email, password, firstName, lastName)
             credentials: 'include',
             body: JSON.stringify(body)
         });
-
-        // //check if response was 428, if so redirect to new user new password page
-        // if (response.ok) {
-        //    return true
-        // }
 
         if (!response.ok) {
             return false;
@@ -146,15 +114,15 @@ export const admin_signup_service = async (email, password, firstName, lastName)
 };
 
 
-export const user_signup_service = async (email, firstName, lastName, dob, streetAddress, city, state, zipcode, apptnumber) => {
+export const HandleUserRequestAccess = async (newUser: UserSignupRequest, apiUrl: string): Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/auth/user/request-access`, {
+        const response = await fetch(`${apiUrl}/auth/user/request-access`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify({ email, firstName, lastName, dob, streetAddress, city, state, zipcode, apptnumber })
+            body: JSON.stringify(newUser)
         });
         if (!response.ok) {
             return false;
@@ -167,9 +135,9 @@ export const user_signup_service = async (email, firstName, lastName, dob, stree
     }
 };
 
-export const confirm_user_access = async (email) => {
+export const HandleConfirmUserAccess = async (email: string, apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/auth/confirm-user-access?email=${email}`, {
+        const response = await fetch(`${apiUrl}/auth/confirm-user-access?email=${email}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -186,9 +154,9 @@ export const confirm_user_access = async (email) => {
     }
 };
 
-export const user_signout_service = async () => {
+export const HandleUserSignout = async (apiUrl : string): Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/auth/logout`, {
+        const response = await fetch(`${apiUrl}/auth/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -205,21 +173,7 @@ export const user_signout_service = async () => {
     }
 };
 
-export const remove_user_info = async () => {
-    try {
-        //Remove user role token
-        localStorage.removeItem('role');
-
-
-        return;
-    }catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-        throw error;
-    }
-};
-
-
-export const confirm_email = async (email, token) => {
+export const HandleConfirmEmail = async (email: string, token: string, apiUrl : string) : Promise<boolean> => {
     try {
         const encodedToken = encodeURIComponent(token);
         const requestBody = {
@@ -227,7 +181,7 @@ export const confirm_email = async (email, token) => {
             token: encodedToken
         };
 
-        const response = await http_context(`${API_URL}/auth/confirm-email`, {
+        const response = await fetch(`${apiUrl}/auth/confirm-email`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -247,11 +201,11 @@ export const confirm_email = async (email, token) => {
     }
 };
 
-export const resend_confirmation_email = async (email) => {
+export const HandleResendConfirmationEmail = async (email: string, apiUrl : string) : Promise<boolean> => {
     try {
 
 
-        const response = await http_context(`${API_URL}/auth/resend-confirmation-email`, {
+        const response = await fetch(`${apiUrl}/auth/resend-confirmation-email`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -269,12 +223,17 @@ export const resend_confirmation_email = async (email) => {
     }
 };
 
-export const new_user_reset_password = async (newPassword, userid) => {
+export const HandleNewUserResetPassword = async (newPassword: string, userid: string, apiUrl: string) => {
     try {
         const token = localStorage.getItem('ps-reset-tk');
 
-        //encode token
-        const encodedToken = encodeURIComponent(token);
+        // encode token if it exists
+        const encodedToken = token ? encodeURIComponent(token) : null;
+
+        // if token is null, return false
+        if (encodedToken === null) {
+            return false;
+        }
 
         const requestBody = {
             token: encodedToken,
@@ -282,7 +241,7 @@ export const new_user_reset_password = async (newPassword, userid) => {
             userid: userid
         };
 
-        const response = await http_context(`${API_URL}/auth/new-user/reset-password`, {
+        const response = await fetch(`${apiUrl}/auth/new-user/reset-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -299,6 +258,7 @@ export const new_user_reset_password = async (newPassword, userid) => {
         if (!response.ok) {
             return false;
         }
+
         return true;
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
@@ -306,9 +266,9 @@ export const new_user_reset_password = async (newPassword, userid) => {
     }
 }
 
-export const check_online_status = async () => {
+export const CheckOnlineStatus = async (apiUrl: string) => {
     try {
-        const response = await http_context(`${API_URL}/auth/online-status`, {
+        const response = await fetch(`${apiUrl}/auth/online-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -325,28 +285,9 @@ export const check_online_status = async () => {
     }
 }
 
-export const test_auth = async () => {
+export const GetAuthLevel = async (apiUrl : string) => {    
     try {
-        const response = await http_context(`${API_URL}/dev/dev-test-auth`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-        throw error;
-    }
-};
-
-export const get_auth_level = async () => {    
-    try {
-        const response = await http_context(`${API_URL}/auth/role`, {
+        const response = await fetch(`${apiUrl}/auth/role`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -385,23 +326,3 @@ export const get_auth_level = async () => {
     }
     
 };
-
-
-export const admin_unlock_account = async (userId) => {  
-    try {
-        const response = await http_context(`${API_URL}/auth/admin/unlock-account?userId=${userId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-        return false;
-    }
-}

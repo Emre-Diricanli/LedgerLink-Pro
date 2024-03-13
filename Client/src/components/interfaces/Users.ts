@@ -31,8 +31,28 @@ export interface User {
     AssigneeName: string;
   }
   
-  
 
   export interface SelectedUserInformationProps {
     selectedUser: User;
   }
+
+  export interface UserSigninResult {
+    resultSuccess: boolean;
+    userNeedsPasswordReset?: boolean;
+    user?: User;
+    token?: string;
+    id?: string;
+    code?: number;
+  }
+
+export interface UserSignupRequest {
+  username: string;
+  firstName: string;
+  lastName: string;
+  dob: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  apptNumber: string;
+}

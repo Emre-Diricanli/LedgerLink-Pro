@@ -17,7 +17,8 @@ using System.Web;
 namespace Team_Tactics_Backend.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AccountsController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -25,6 +26,7 @@ namespace Team_Tactics_Backend.Controllers
         private readonly IEmailService _emailService;
         private readonly IDbContextFactory<LedgerLinkProDBContext> _contextFactory;
         private readonly ErrorReportingService _errorReportingService;
+
 
         public AccountsController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IDbContextFactory<LedgerLinkProDBContext> contextFactory, IEmailService emailService, ErrorReportingService errorReportingService)
         {
@@ -205,8 +207,8 @@ namespace Team_Tactics_Backend.Controllers
                 return StatusCode(500, "Error deactivating account");
             }
         }
-    
-    
+
+        
     
     }
 

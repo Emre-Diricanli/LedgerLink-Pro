@@ -8,7 +8,7 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { useUser } from '../../util/UserProvider';
 import { useProfilePicture } from '../UserProfilePcitures/FetchUserProfilePciture';
 import { redirectBasedOnValue } from '../DeterminRedirectPath/DeterminRedirectPath';
-import { useAuth } from '../../util/AuthenticationManagement';
+import { useAuth } from '../../util/AuthProvider';
 import ProfileImage from './profileImage';
 
 function Navbar() {

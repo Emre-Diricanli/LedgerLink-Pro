@@ -5,7 +5,7 @@ import { fetch_users as fetchUsersFromService } from '../../services/user_info_s
 import UserTable from '../../components/user-table/user-table';
 import SelectedUserInfo from '../../components/user-management/selected-user-info';
 import CircularProgress from '@mui/material/CircularProgress';
-import { User } from '../../components/interfaces/user-management';
+import { User } from '../../components/interfaces/Users';
 import CreateNewUserModal from '../../components/create-new-user/CreateNewUserModal'
 import UserManagementHotbar from '../../components/user-management/user-management-hotbar';
 

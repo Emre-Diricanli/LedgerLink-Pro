@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../signin-signup/signin-signup.css';
 import logo from '../../assets/llp-logo.png';
-import { new_user_reset_password } from '../../services/auth_service';
+import { useAuth } from '../../util/AuthProvider';
 
 const NewUserResetPassword = () => {
     const[newPassword, setNewPassword] = useState('');
@@ -11,6 +11,7 @@ const NewUserResetPassword = () => {
 
     const location = useLocation();
     const navigate = useNavigate();
+    const auth = useAuth();
 
     const query = new URLSearchParams(location.search);
     const id = query.get("id");
@@ -23,20 +24,23 @@ const NewUserResetPassword = () => {
             return;
         }
 
-        const response = await new_user_reset_password(newPassword, id);
+        if (id) {
+            const response = await auth.HandleNewUserResetPassword(newPassword, id);
 
-        if (response === true) {
-            console.log('password reset successful');
-
-            //redirect to home page
-            navigate('/');
+            if (response === 409) {
+                alert('Password was previously used. please use a different password');
+            }
+            else if (response === true) {
+                //redirect to home page
+                navigate('/');
+            }
+            else { 
+                alert('Password reset failed');
+            }
+        } else {
+            alert('Invalid reset link');
         }
-        else if( response === 409){
-            alert('Password was previously used. please use a different password');
-        }
-        else {
-            alert('password reset failed');
-        }
+        
     };
 
     return (
@@ -62,7 +66,7 @@ const NewUserResetPassword = () => {
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <button className="modal-content-btn" onClick={handlePasswordChange}>Reset Password</button>
+                    <button className="modal-content-btn"onClick={handlePasswordChange}>Reset Password</button>
                 </div>
 
             </div>

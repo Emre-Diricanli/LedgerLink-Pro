@@ -3,7 +3,7 @@ import '../create-new-user/CreateNewUserModal.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { admin_create_user_access_expiration } from '../../services/user_info_service';
-import { User } from '../interfaces/user-management';
+import { User } from '../interfaces/Users';
 
 interface EditUserModalProps {
     user: User;

@@ -16,7 +16,8 @@ using LedgerLinkPro;
 namespace Team_Tactics_Backend.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;

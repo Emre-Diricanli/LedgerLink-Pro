@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
-import { check_online_status } from '../../services/auth_service';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useSystems } from '../../util/SystemsProvider';
 
 const ServerOfflinePage = () => {
     const navigate = useNavigate();
+    const system = useSystems();
     useEffect (() => {
         //check online status
         const checkOnlineStatus = async () => {
             try {
-                const response = await check_online_status();
+                const response = await system.checkServerStatus();
 
                 if (response === true) {
                     navigate('/user-signin')

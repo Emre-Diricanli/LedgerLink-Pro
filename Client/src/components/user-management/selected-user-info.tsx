@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import '../../pages/user-management/user-management.css'
-import { SelectedUserInformationProps } from '../interfaces/user-management';
+import { SelectedUserInformationProps } from '../interfaces/Users';
 import CreateUserAccecssExpirationModal from '../create-user-access-expiration/CreateUserAccessExpiration';
 import { admin_delete_user_access_expiration } from '../../services/user_info_service';
 

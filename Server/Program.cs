@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.Services;
-
-
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -20,8 +19,6 @@ builder.Services.AddTransient<ErrorReportingService>();
 
 builder.Services.AddHostedService<TimedHostedService>();
 
-
- 
  builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseNpgsql(
         configuration.GetConnectionString("DefaultConnection"),
@@ -73,6 +70,14 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod()
                 .AllowCredentials();
     });
+});
+
+//API Versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
 });
 
 var app = builder.Build();

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../components/interfaces/user-management';
+import { User } from '../components/interfaces/Users';
 import { get_my_info } from '../services/user_info_service';
-import { check_auth } from '../services/auth_service';
+import { CheckAuth } from '../services/AuthService';
 
 interface UserContextType {
   user: User | null;
@@ -35,7 +35,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      const response = await check_auth();
+      const response = await CheckAuth();
 
       if (response === false) {
         setIsAuthenticated(false);

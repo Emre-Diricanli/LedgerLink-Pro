@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import logo from '../../assets/llp-logo.png';
 import { useLocation } from 'react-router-dom';
 import '../signin-signup/signin-signup.css';
-import { confirm_email, resend_confirmation_email as resendEmailService } from '../../services/auth_service';
+import { HandleConfirmEmail, HandleResendConfirmationEmail as resendEmailService } from '../../services/AuthService';
+import { useAuth } from '../../util/AuthProvider';
 
 function useQuery() {
     return new URLSearchParams(useLocation().search);
@@ -12,19 +13,22 @@ const AdminConfirmEmail = () => {
     let query = useQuery();
     let token = query.get("token");
     let email = query.get("email");
-    const [isEmailConfirmed, setEmailConfirmed] = useState(null);
+    const [isEmailConfirmed, setEmailConfirmed] = useState(false);
     const [madeCall, setMadeCall] = useState(false);
-    const [resendStatus, setResendStatus] = useState(null); // null, 'success', or 'failure'
+    const [resendStatus, setResendStatus] = useState(''); // null, 'success', or 'failure'
+    const auth = useAuth();
 
     useEffect(() => {
         const confirmEmail = async () => {
             if (madeCall) return;
             try {
-                console.log('Email:', email);
-                console.log('Token:', token);
-                const response = await confirm_email(email, token);
-                setMadeCall(true);
-                setEmailConfirmed(response);
+
+                if (email && token) {
+                    setMadeCall(true);
+                    const response = await auth.HandleConfirmEmail(email, token);
+                    setEmailConfirmed(response);
+                };
+
             } catch (error) {
                 console.error('Error:', error);
                 setEmailConfirmed(false); // Assuming failure to confirm in case of error
@@ -35,11 +39,17 @@ const AdminConfirmEmail = () => {
 
     const resend_confirmation_email = async () => {
         try {
-            const response = await resendEmailService(email); // Renamed imported function to avoid name conflict
-            if (response === true) {
-                console.log('Email sent successfully');
-                setResendStatus('success');
+            if (email){
+                const response = await auth.HandleResendConfirmationEmail(email); // Renamed imported function to avoid name conflict
+                if (response === true) {
+                    console.log('Email sent successfully');
+                    setResendStatus('success');
+                } else {
+                    setResendStatus('failure');
+                }
             } else {
+                alert('Something went wrong. Please try again later or contact support for assistance.');
+
                 setResendStatus('failure');
             }
         } catch (error) {

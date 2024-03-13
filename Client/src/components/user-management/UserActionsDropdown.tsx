@@ -5,7 +5,7 @@ import { activateUsers, deactivateUsers, deleteUsers, updateUser, unlockAccounts
 import ConfirmUserDeleteModal from './ConfirmUserDeleteModal';
 import AdminResetUserPasswordModal from '../admin-reset-user-password/admin-reset-user-password-modal';
 import EditUserModal from './EditUserInfoModal';
-import { User } from '../interfaces/user-management';
+import { User } from '../interfaces/Users';
 
 interface UserActionDropdownProps {
     user?: User;

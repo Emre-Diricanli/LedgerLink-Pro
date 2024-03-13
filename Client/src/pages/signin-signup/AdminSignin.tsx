@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import './signin-signup.css';
 import {useNavigate} from 'react-router-dom';
-import { admin_signin_service, user_signin_service } from '../../services/auth_service';
-import logo from '../../assets/llp-logo.png';
+import logo from '../../../public/llp-logo.png';
+import { useAuth } from '../../util/AuthProvider';
 
 const AdminSignin = () => {
+    const auth = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -12,20 +13,14 @@ const AdminSignin = () => {
 
     const handlesignin = async () => {
         try {
-            const response = await admin_signin_service(username, password);
+            const signinResult = await auth.HandleAdminSignin(username, password);
 
-            //print value of response to console
-            console.log(response);
-
-            if (response === true) {
-                console.log('signin successful');
-
-                //redirect to home page
+            if (signinResult === true) {
                 navigate('/');
-
             } else {
-                console.log('signin failed:', response);
+                console.log('signin failed:', signinResult);
             }
+
         } catch (error) {
             //print error to console
             console.error(error);
@@ -37,6 +32,7 @@ const AdminSignin = () => {
     return (
         <div className='admin-signin-page'>
             <div className="modal-content">
+                <div className='modal-body'>
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
                     <img src={logo} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
@@ -74,6 +70,7 @@ const AdminSignin = () => {
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">
                     <p>Looking for User signin? <a href="/user-signin">User Signin</a></p>
+                </div>
                 </div>
             
             </div>

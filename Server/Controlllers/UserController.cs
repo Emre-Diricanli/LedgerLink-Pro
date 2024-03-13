@@ -16,7 +16,8 @@ using System.Web;
 namespace LedgerLinkPro.Controlllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;

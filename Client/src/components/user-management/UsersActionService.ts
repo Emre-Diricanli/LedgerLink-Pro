@@ -1,4 +1,4 @@
-import { User } from "../interfaces/user-management";
+import { User } from "../interfaces/Users";
 
 const API_URL = 'http://localhost:7070';
 

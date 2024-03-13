@@ -3,10 +3,7 @@ import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import './UserTable.css'; // Make sure to create a corresponding CSS file for styling
 import '../../pages/user-management/user-management.css';
-import { User } from '../../components/interfaces/user-management';
-import { admin_activate_user, admin_deactivate_user, admin_delete_user } from '../../services/user_info_service';
-import AdminResetUsetPasswordModal from '../admin-reset-user-password/admin-reset-user-password-modal';
-import { admin_unlock_account } from '../../services/auth_service';
+import { User } from '../interfaces/Users';
 import ActionDropdown from '../user-management/UserActionsDropdown';
 
 export interface UserTableProps {
