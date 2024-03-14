@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../create-new-user/CreateNewUserModal.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faArrowsRotate, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { admin_create_user_access_expiration } from '../../services/user_info_service';
 
 interface CreateUserAccecssExpirationModalProps {
   isOpen: boolean;
-  onClose: (boolean) => void;
+  onClose: (arg0: boolean) => void;
 }
 
 const ConfirmUserDeleteModal: React.FC<CreateUserAccecssExpirationModalProps> = ({ isOpen, onClose }) => {
@@ -19,22 +16,24 @@ const handleModalClick = (event: React.MouseEvent) => {
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>
       <div className="modal-content" onClick={handleModalClick}>
-        <div className="flex flex-row items-center justify-start gap-2 w-full pb-2">
-            <h2>Confirm User Delete</h2>
-            </div>
-        <div className="flex flex-row gap-2 content-center justify-start w-full pt-4">
-            <div className="flex flex-col content-center justify-start gap-0 w-full ">
-                <p>Are you sure you want to delete this user(s)?</p>
-            </div>
-        </div>
-        <div className="flex flex-row items-center justify-center gap-2 w-full mt-8">
-            <button className="" onClick={() => onClose(false)} >
-                Cancel
-            </button>
-            <button className="danger" onClick={() => onClose(true)}>
-                Confirm
-            </button>
-        </div>
+        <div className="modal-body">
+          <div className="flex flex-row items-center justify-start gap-2 w-full pb-2">
+              <h2>Confirm User Delete</h2>
+              </div>
+          <div className="flex flex-row gap-2 content-center justify-start w-full pt-4">
+              <div className="flex flex-col content-center justify-start gap-0 w-full ">
+                  <p>Are you sure you want to delete this user(s)?</p>
+              </div>
+          </div>
+          <div className="flex flex-row items-center justify-center gap-2 w-full mt-8">
+              <button className="" onClick={() => onClose(false)} >
+                  Cancel
+              </button>
+              <button className="danger" onClick={() => onClose(true)}>
+                  Confirm
+              </button>
+          </div>  
+        </div> 
       </div>
     </div>
   );

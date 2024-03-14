@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import '../create-new-user/CreateNewUserModal.css';
 import '../navbar/navbar.css'
-import {handleFileUpload } from './profilePictureService'
+import { DeleteProfilePicture, HandleFileUpload } from './profilePictureService'
+import { useSystems } from '../../Providers/SystemsProvider';
+import './UserProfilePictureModal.css';
+import { useUser } from '../../Providers/UserProvider';
 
 interface UserProfilePictureModalProps {
     currentImageUrl: string;
@@ -12,6 +15,8 @@ interface UserProfilePictureModalProps {
 const UserProfilePictureModal: React.FC<UserProfilePictureModalProps> = ({ currentImageUrl, isOpen, onClose }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+    const systemsProvider = useSystems();
+    const userProvider = useUser();
 
   const handleModalClick = (event: React.MouseEvent) => {
       event.stopPropagation();
@@ -29,10 +34,28 @@ const UserProfilePictureModal: React.FC<UserProfilePictureModalProps> = ({ curre
     }
   };
 
+  const HandleFileDelete = async () => {
+    // Call the delete function from profilePictureService
+      if (currentImageUrl !== '') {
+          const deleteResponse = await DeleteProfilePicture(currentImageUrl, systemsProvider.apiUrl);
+
+          if (deleteResponse) {
+              userProvider.user && (userProvider.user.profilePictureUrl = '');
+              setPreviewSrc(null);
+              onClose();
+          } else {
+            alert('There was a problem deleting the file');
+          }
+      }
+  };
+
   const uploadFile = async () => {
     if (selectedFile) {
-        await handleFileUpload(selectedFile);
-        // handleFileUpload could internally call `setPreviewSrc(null)` and `onClose()` after a successful upload
+        const uploadResult = await HandleFileUpload(selectedFile, systemsProvider.apiUrl);
+
+        if (uploadResult){
+            onClose();
+        }
     }
 };
   if (!isOpen) return null;
@@ -40,25 +63,37 @@ const UserProfilePictureModal: React.FC<UserProfilePictureModalProps> = ({ curre
   return (
     <div className="modal-backdrop" onClick={() => onClose()}>
       <div className="modal-content" onClick={handleModalClick}>
-        <div className="flex flex-row items-center justify-center gap-2 w-full pb-8">         
-            <h1>User Profile Picture</h1>
-        </div>
-        <div className="flex flex-row items-center justify-center gap-2 w-full pb-8">         
-            <img 
-                src={currentImageUrl === '' ? (previewSrc || "https://www.w3schools.com/howto/img_avatar.png") : currentImageUrl} 
-                alt="Avatar" 
-                className="profile-circle-large" 
-                width={200}
-                />
-        </div>
+        <div className='modal-body'>
+          <div className="flex flex-row items-center justify-center gap-2 w-full pb-8">         
+              <h1>User Profile Picture</h1>
+          </div>
+          <div className="flex flex-row items-center justify-center gap-2 w-full pb-8">         
+              <img 
+                  src={currentImageUrl === '' ? (previewSrc || "https://www.w3schools.com/howto/img_avatar.png") : currentImageUrl} 
+                  alt="Avatar" 
+                  className="profile-circle-large" 
+                  width={200}
+                  />
+          </div>
 
-        <div className="flex flex-row items-center justify-center gap-2 w-full pb-8">
-            <input type="file" onChange={handleFileChange} />
-            <button className="btn btn-primary" onClick={uploadFile}>Upload</button>
-        </div>
+          <div className="flex flex-row items-center justify-center gap-2 w-full pb-8">
+             
+             <div className='mr-auto'>
+                <input type="file" id="file-input" name="file-input" onChange={handleFileChange}/>
 
-        <div className="flex flex-row items-center justify-center gap-2 w-full pt-8">         
-            <button className="modal-content-btn orange sm " onClick={() => onClose()}>Exit</button>
+                <label id="file-input-label" htmlFor="file-input">
+                  Select a File
+                </label>
+             </div>
+              {currentImageUrl !== '' && (
+                <button className="btn danger" onClick={HandleFileDelete}>Delete</button>
+              )}
+              <button className="btn btn-primary" onClick={uploadFile}>Upload</button>
+          </div>
+
+          <div className="flex flex-row items-center justify-center gap-2 w-full pt-8">         
+              <button className="modal-content-btn orange sm " onClick={() => onClose()}>Exit</button>
+          </div>
         </div>
       </div>
     </div>

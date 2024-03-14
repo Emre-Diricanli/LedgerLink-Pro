@@ -1,32 +1,37 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
 // Adjust the path as necessary
-import { activateUsers, deactivateUsers, deleteUsers, updateUser, unlockAccounts } from './UsersActionService';
+import { ActivateUsers, DeactivateUsers, DeleteUsers, UpdateUser, UnlockAccounts, ResendConfirmationEmail } from './UsersActionService';
 import ConfirmUserDeleteModal from './ConfirmUserDeleteModal';
-import AdminResetUserPasswordModal from '../admin-reset-user-password/admin-reset-user-password-modal';
+import AdminResetUserPasswordModal from '../admin-reset-user-password/AdminResetUserPassword';
 import EditUserModal from './EditUserInfoModal';
 import { User } from '../interfaces/Users';
+import { useSystems } from '../../Providers/SystemsProvider';
 
 interface UserActionDropdownProps {
     user?: User;
     userIds: string[];
+    showText?: boolean;
     onActionComplete: (success?: boolean) => void; // New prop for action completion callback
     actionConfig: { include?: string[]; exclude?: string[] }; // New prop for specifying action options
 }
 
 
-const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({user, userIds, onActionComplete, actionConfig }, ref) => {
+const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({user, userIds, showText = true, onActionComplete, actionConfig }, ref) => {
     const [showActionDropdown, setShowActionDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const systems = useSystems();
+
+    
 
 
     // Close the dropdown if clicking outside of it
     useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowActionDropdown(false);
             }
         }
@@ -40,7 +45,7 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
     const confirmDelete = async (confirm: boolean) => {
         if (confirm) {
             // Delete the users and handle the result
-            const result = await deleteUsers(userIds);
+            const result = await DeleteUsers(userIds, systems.apiUrl);
             onActionComplete(result); // Pass the result back up
         }
         // Close the modal and dropdown
@@ -57,7 +62,7 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
     const handleEditModalClose = async (needsUpdate: boolean, newUser: User) => {
         if(needsUpdate && user) {
             //update the user and handle the result
-            const result = await updateUser(newUser);
+            const result = await UpdateUser(newUser, systems.apiUrl);
             onActionComplete(result); // Pass the result back up
         }
 
@@ -65,13 +70,13 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
         setShowActionDropdown(false);
     };
 
-    const actionHandlers = {
+    const actionHandlers: { [key: string]: () => Promise<void> | void } = {
         'Deactivate': async () => {
-            const result = await deactivateUsers(userIds);
+            const result = await DeactivateUsers(userIds, systems.apiUrl);
             onActionComplete(result);
         },
         'Activate': async () => {
-            const result = await activateUsers(userIds);
+            const result = await ActivateUsers(userIds, systems.apiUrl);
             onActionComplete(result);
         },
         'Delete': () => setShowConfirmDeleteModal(true),
@@ -79,12 +84,16 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
             setShowResetPasswordModal(true);
         },
         'Edit': async () => {
-            setShowEditModal(true); 
+            setShowEditModal(true);
         },
         'Unlock Account': async () => {
-            const result = await unlockAccounts(userIds);
+            const result = await UnlockAccounts(userIds, systems.apiUrl);
             onActionComplete(result);
         },
+        'Resend Confirmation Email': async () => {
+            const result = await ResendConfirmationEmail(userIds, systems.apiUrl);
+            onActionComplete(result);
+        }
     };
 
     const getActionOptions = () => {
@@ -108,7 +117,7 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
             {user && <EditUserModal user={user} isOpen={showEditModal} onClose={handleEditModalClose} />}
             <AdminResetUserPasswordModal userId={userIds[0] || ''} isOpen={showResetPasswordModal} onClose={handleResetPasswordModalClose} />
             <ConfirmUserDeleteModal isOpen={showConfirmDeleteModal} onClose={confirmDelete} />
-            <p>Actions</p>
+            {showText && <p>Actions</p>}
             <button onClick={() => setShowActionDropdown(prev => !prev)} className='actions-button'>Actions</button>
             {showActionDropdown && (
                 <div className='action-dropdown'>

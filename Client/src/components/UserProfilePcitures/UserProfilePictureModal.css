@@ -1,0 +1,10 @@
+#file-input-label {
+    font-size: 1REM;
+    padding: 10px;
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+  }
+  #file-input {
+    display: none;
+  }
+  

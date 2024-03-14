@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import '../create-new-user/CreateNewUserModal.css';
-import { admin_reset_user_password } from '../../services/user_info_service';
+import { AdminResetUserPassword } from '../../services/UserService';
+import { useSystems } from '../../Providers/SystemsProvider';
 
 interface AdminUserResetPasswordModalProps {
   userId: string;
   isOpen: boolean;
-  onClose: (boolean) => void;
+  onClose: (arg0: boolean) => void;
 }
 
 const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = ({ userId, isOpen, onClose }) => {
   const [yesToReset, setYesToReset] = useState(false);
+  const systemsProvider = useSystems();
 
     const [expirePassword, setExpirePassword] = useState<boolean>(true);
 
@@ -25,7 +27,7 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
         passwordsMatch: false,
     });
 
-    const updatePasswordRequirements = (password) => {
+    const updatePasswordRequirements = (password : string) => {
 
         //if password is empty, set all requirements to false
         if (password === '') {
@@ -73,7 +75,7 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
 
     const newPassword = isntCustomPassword ? defaultPassword : password;
 
-    const response = await admin_reset_user_password(userId, newPassword, expirePassword);
+    const response = await AdminResetUserPassword(userId, newPassword, expirePassword, systemsProvider.apiUrl);
 
     if (response === true) {
       console.log('Password reset successfully');
@@ -89,13 +91,14 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>
       <div className="modal-content" onClick={handleModalClick}>
+        <div className='modal-body'>
         {yesToReset === false ? (
           <>
             <h2>Reset User Password</h2>
             <p>Are you sure you want to reset the password for this user?</p>
-            <p>This user will be notified via email that there password has been reset. They will be provided with the up to date password. </p>
+            <p>This user will be notified via email that their password has been reset. They will be provided with the updated password. </p>
             <div className="w-1/2 ml-auto mr-auto flex flex-row justify-center items-center gap-4 pt-8">
-                <button className='admin-signin-btn' onClick={() => handleResetConfirmation(false)}>No</button>
+                <button className='admin-signin-btn' onClick={() => onClose(false)}>No</button>
                 <button className='modal-content-btn' onClick={() => handleResetConfirmation(true)}>Yes</button>
             </div>
           </>
@@ -170,6 +173,7 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );

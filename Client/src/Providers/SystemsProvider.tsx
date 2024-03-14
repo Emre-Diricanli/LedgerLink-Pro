@@ -3,6 +3,8 @@ import { CheckOnlineStatus } from '../services/AuthService';
 
 interface SystemsContextType {
     checkServerStatus: () => Promise<boolean>;
+    apiUrl: string;
+    publicPaths: string[];
 }
 
 const SystemsContext = createContext<SystemsContextType | undefined>(undefined);
@@ -15,8 +17,14 @@ export const useSystems = (): SystemsContextType => {
     return context;
 };
 
-export const SystemsProvider = ({ children }: { children: ReactNode }) => {
-        const apiUrl = "http://localhost:7071/api/v1";
+interface SystemsProviderProps {
+    children: ReactNode;
+    apiUrl: string; // Add prop for apiUrl
+  }
+
+export const SystemsProvider = ({ children, apiUrl }: SystemsProviderProps) => {
+        let currentAPIUrl = apiUrl;
+        const publicPaths = ['/user-signin', '/admin-signin', '/admin-signup', '/user-registration', '/server-offline', '/admin-confirm-email', './new-user/reset-password'];
 
 
         const checkServerStatus = async (): Promise<boolean> => {
@@ -29,6 +37,8 @@ export const SystemsProvider = ({ children }: { children: ReactNode }) => {
         <SystemsContext.Provider 
                 value={{ 
                         checkServerStatus,
+                        apiUrl: currentAPIUrl,
+                        publicPaths: publicPaths
                 }}
         >
                 {children}

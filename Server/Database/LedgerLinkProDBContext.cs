@@ -31,6 +31,8 @@ namespace LedgerLinkPro.Database
         public DbSet<ReportedErrors> ReportedErrors { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<DeactivatedAccounts> DeactivatedAccounts { get; set; }
+        public DbSet<AccountEvents> AccountEvents { get; set; }
+
 
 
 

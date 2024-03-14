@@ -1,7 +1,7 @@
-import { Account } from "../components/interfaces/Accounts";
+import { Account, NewAccount } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
-export const CreateNewAccount = async (newAccount : Account, apiUrl : String): Promise<Account | null> => {
+export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
     try {
         const response = await fetch(`${apiUrl}/accounts/create-new-account`, {
             method: 'POST',
@@ -15,7 +15,6 @@ export const CreateNewAccount = async (newAccount : Account, apiUrl : String): P
         if (!response.ok) {
             // Throw an error with the status code for non-2xx responses
             return null;
-            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();

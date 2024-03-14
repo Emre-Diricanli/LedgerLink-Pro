@@ -2,10 +2,10 @@ import React, {useState} from 'react';
 import './signin-signup.css';
 import {useNavigate} from 'react-router-dom';
 import { HandleAdminSignup } from '../../services/AuthService';
-import logo from '../../assets/llp-logo.png';
-import { useAuth } from '../../util/AuthProvider';
+import { useAuth } from '../../Providers/AuthProvider';
 
 const AdminSignup = () => {
+    const logoSrc = '/llp-logo.png'
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,7 +53,7 @@ const AdminSignup = () => {
             <div className="modal-content">
                 <div className='modal-body'>
                     <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
-                        <img src={logo} alt="logo" width={75}/>
+                        <img src={logoSrc} alt="logo" width={75}/>
                         <h1>Ledger Link Pro</h1>
                     </div>
 
@@ -89,11 +89,11 @@ const AdminSignup = () => {
                     </div>
 
                     <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                        <p>Already have an account? <a href="/admin-signup">Sign In</a></p>
+                        <p>Already have an account? <a href="/admin-signin">Sign In</a></p>
                     </div>
 
                     <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">
-                        <p>Looking for User signup? <a href="/user-signin">User Sign Up</a></p>
+                        <p>Looking for User signup? <a href="/user-registration">User Sign Up</a></p>
                     </div>
                 </div>
             

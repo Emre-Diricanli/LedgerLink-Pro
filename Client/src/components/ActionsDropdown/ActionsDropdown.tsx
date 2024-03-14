@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
 // Adjust the path as necessary
-import AdminResetUserPasswordModal from '../admin-reset-user-password/admin-reset-user-password-modal';
+import AdminResetUserPasswordModal from '../admin-reset-user-password/AdminResetUserPassword';
 import { User } from '../interfaces/Users';
 
 interface ActionOption {

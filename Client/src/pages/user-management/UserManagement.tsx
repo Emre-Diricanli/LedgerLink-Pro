@@ -1,19 +1,20 @@
 import React  from 'react';
 import { useState, useEffect, useRef } from 'react';
 import './user-management.css';
-import { fetch_users as fetchUsersFromService } from '../../services/user_info_service';
-import UserTable from '../../components/user-table/user-table';
-import SelectedUserInfo from '../../components/user-management/selected-user-info';
+import UserTable from '../../components/user-table/UserTable';
+import SelectedUserInfo from '../../components/user-management/SelectedUserInfo';
 import CircularProgress from '@mui/material/CircularProgress';
 import { User } from '../../components/interfaces/Users';
 import CreateNewUserModal from '../../components/create-new-user/CreateNewUserModal'
 import UserManagementHotbar from '../../components/user-management/user-management-hotbar';
+import { useUser } from '../../Providers/UserProvider';
 
 const UserManagement: React.FC = () => {
+    const userProvider = useUser();
     const [isCreateNewUserModalOpen, setCreateNewUserModalOpen] = useState(false);
 
+    const [fetchedUsers, setFetchedUsers] = useState<User[]>([]); // Remove this line
     const [needsRefresh, setNeedsRefresh] = useState(false);
-    const [fetchedUsers, setFetchedUsers] = useState<User[]>([]);
     const [activeUser, setActiveUser] = useState<User | null>(null);
 
     const [selectedUserFilter, setSelectedUserFilter] = useState<number>(0);
@@ -47,31 +48,30 @@ const UserManagement: React.FC = () => {
     useEffect(() => {
         async function fetchUsers() {
 
-            setIsLoading(true); // Set loading to true
+            //setIsLoading(true); // Set loading to true //Commented out because it causes weird page reload behavior. its not weird its to be expected
             
-            const response = await fetchUsersFromService(selectedRowCount, 0, selectedUserFilter, selectedActiveFilter, searchString);
+            // Fetch users from the service
+            const response = await userProvider.FetchUsers(selectedRowCount, 0, selectedUserFilter, selectedActiveFilter, searchString);
 
-            // If the response is false, we can assume there was an error
-            if (response === false) {
-                console.error('There was a problem fetching the users');
-                alert('There was a problem fetching the users');
-                return;
-            } else {
-                //data is the users list
-                console.log(response);
+            setFetchedUsers(response || []); //if response is empty then set the fetched users to an empty array
+
+            // //if response is not empty then set the active user to the first user in the response
+            if (response && response.length > 0) {
                 setFetchedUsers(response);
-                setNeedsRefresh(false);
                 setActiveUser(response[0]);
+            } else {
+                setFetchedUsers([]);
+                setActiveUser(null);
             }
 
-            setIsLoading(false); // Set loading to false
+            //setIsLoading(false); // Set loading to false
         }
 
         fetchUsers();
     }, [searchString, selectedUserFilter, selectedActiveFilter, selectedRowCount, needsRefresh]);
 
     //method to handle the modal close event
-    const handleModalClose = (wasSuccessful) => {
+    const handleModalClose = (wasSuccessful : boolean) => {
         setCreateNewUserModalOpen(false);
         if (wasSuccessful) {
             setNeedsRefresh(true);

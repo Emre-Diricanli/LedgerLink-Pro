@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import ActionsDropdown from '../ActionsDropdown/ActionsDropdown';
-import CreateNewAccountModal from './CreateNewAccountModal';
+import CreateNewAccountModal from './Modals/CreateNewAccountModal';
 
 interface AccountsHotbarProps {
     accountIds: string[];

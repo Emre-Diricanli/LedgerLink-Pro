@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import './signin-signup.css';
 import {useNavigate} from 'react-router-dom';
-import logo from '../../../public/llp-logo.png';
-import { useAuth } from '../../util/AuthProvider';
+import { useAuth } from '../../Providers/AuthProvider';
 
 const AdminSignin = () => {
+    const logoSrc = '/llp-logo.png'
     const auth = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -34,7 +34,7 @@ const AdminSignin = () => {
             <div className="modal-content">
                 <div className='modal-body'>
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
-                    <img src={logo} alt="logo" width={75}/>
+                    <img src={logoSrc} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
                 </div>
 

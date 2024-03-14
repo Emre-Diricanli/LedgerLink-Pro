@@ -50,7 +50,8 @@ export const HandleUserSignin = async (email : String, password : String, apiUrl
                 resultSuccess: false,
                 userNeedsPasswordReset: false,
                 token: '',
-                id: ''
+                id: '',
+                code: response.status
             };
         }
     } catch (error) {

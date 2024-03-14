@@ -6,7 +6,7 @@ using LedgerLinkPro.Database;
 using LedgerLinkPro.Models.Users;
 using LedgerLinkPro.Services;
 
-namespace Team_Tactics_Backend.Controllers
+namespace LedgerLinkPro.Controllers
 {
     [ApiController]
     [ApiVersion("1.0")]

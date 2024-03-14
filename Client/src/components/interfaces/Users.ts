@@ -22,6 +22,15 @@ export interface User {
     zipCode: string | null;
     phoneNumber: string | null;
   }
+
+  export interface NewUser { 
+    role: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    password: string;
+  }
   
   export interface ReturnUserExpireAccessModel {
     expireId: string;
@@ -55,4 +64,12 @@ export interface UserSignupRequest {
   state: string;
   zipCode: string;
   apptNumber: string;
+}
+
+export interface UserSearchQuery {
+  pageSize: number;
+  pageIndex: number;
+  userType: string;
+  activeStatus: number;
+  searchString: string;
 }

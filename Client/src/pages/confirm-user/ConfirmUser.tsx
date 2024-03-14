@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { HandleConfirmUserAccess } from '../../services/AuthService';
-import logo from '../../assets/llp-logo.png';
 import '../signin-signup/signin-signup.css';
-import { useAuth } from '../../util/AuthProvider';
+import { useAuth } from '../../Providers/AuthProvider';
 
 //todo remove the navbar from the confirm user page
 
 const ConfirmUser = () => {
+    const logoSrc = '/llp-logo.png'
     const location = useLocation();
     const navigate = useNavigate();
     const auth = useAuth();
@@ -37,7 +37,7 @@ const ConfirmUser = () => {
         <div className='admin-signin-page'>
             <div className="signin-modal">
                 <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
-                    <img src={logo} alt="logo" width={75}/>
+                    <img src={logoSrc} alt="logo" width={75}/>
                     <h1>Ledger Link Pro</h1>
                 </div>
 

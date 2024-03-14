@@ -2,13 +2,13 @@ import React, {useState} from 'react';
 import './signin-signup.css';
 import {useNavigate} from 'react-router-dom';
 import { HandleUserRequestAccess } from '../../services/AuthService';
-import logo from '../../assets/llp-logo.png';
-import { useAuth } from '../../util/AuthProvider';
+import { useAuth } from '../../Providers/AuthProvider';
 import { UserSignupRequest } from '../../components/interfaces/Users';
 
 //TODO fix naviagation to confirmation page after successful registration
 
 const UserRegistration = () => {
+    const logoSrc = '/llp-logo.png'
     const [username, setUsername] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -67,7 +67,7 @@ const UserRegistration = () => {
             <div className="modal-content">
                 <div className='modal-body'>
                     <div className="flex flex-row items-center justify-start gap-2 w-full pb-8">
-                        <img src={logo} alt="logo" width={75}/>
+                        <img src={logoSrc} alt="logo" width={75}/>
                         <h1>Ledger Link Pro</h1>
                     </div>
 
@@ -135,7 +135,7 @@ const UserRegistration = () => {
                     </div>
 
                     <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">
-                        <p>Looking for Admin signin? <a href="/admin-signin">Admin Signin</a></p>
+                        <p>Looking for Admin Signup? <a href="/admin-signup">Admin Signup</a></p>
                     </div>
                 </div>
             

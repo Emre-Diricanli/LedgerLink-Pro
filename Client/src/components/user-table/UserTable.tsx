@@ -18,9 +18,15 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
     const [activeUser, setActiveUser] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-    const [isAdminUserResetPasswordModalOpen, setAdminUserResetPasswordModalOpen] = useState(false);
+    useEffect(() => {
+        //select firs user by default
+        if (users.length > 0){
+            setActiveUser(users[0].userId);
+            onActiveUserChange(users[0].userId);
+        }
+    }, [users]);
 
-    const actionConfig = (isActive: boolean, isLocked: boolean) => {
+    const actionConfig = (isActive: boolean, isLocked: boolean, emailConfirmed : boolean) => {
         // Define the action options based on the user's active and locked status.
         const actions: string[] = [];
         if (isActive) {
@@ -36,6 +42,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
         actions.push('Reset Password');
         actions.push('Delete');
         actions.push('Edit');
+
+        console.log('emailConfirmed', emailConfirmed);
+        
+        if (!emailConfirmed){
+            actions.push('Resend Confirmation Email');
+        }
+
         return { include: actions };
     };
 
@@ -64,8 +77,8 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
             // Refresh the user list
             usersNeedRefresh(selectedUsers);
         } else {
-            alert('Failed to perform action');
-        }
+            console.log('Action failed');
+        };
     };
 
     const [selectAll, setSelectAll] = useState(false);
@@ -139,7 +152,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onActiveUserChange, onSele
                                 <td>{user.confirmedEmail ? 'Yes' : 'No'}</td>
                                 <td>{user.passwordExpiration ? new Date(user.passwordExpiration).toLocaleString() : ''}</td>
                                 <td>
-                                    <ActionDropdown ref={dropdownRef} user={user} userIds={[activeUser || '']} onActionComplete={(result: boolean | undefined) => onActionComplete(result)} actionConfig={actionConfig(user.isActive, user.lockedOut)}/>
+                                    <ActionDropdown ref={dropdownRef} user={user} userIds={[activeUser || '']} showText={false} onActionComplete={(result: boolean | undefined) => onActionComplete(result)} actionConfig={actionConfig(user.isActive, user.lockedOut, user.confirmedEmail)}/>
                                 </td>
                             </tr>
                         ))}

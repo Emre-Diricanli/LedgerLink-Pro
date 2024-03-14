@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faTrashCan, faUser } from '@fortawesome/free-solid-svg-icons';
 import '../../pages/user-management/user-management.css'
 import { SelectedUserInformationProps } from '../interfaces/Users';
 import CreateUserAccecssExpirationModal from '../create-user-access-expiration/CreateUserAccessExpiration';
-import { admin_delete_user_access_expiration } from '../../services/user_info_service';
+import { AdminDeleteUserAccessExpiration } from '../../services/UserService';
+import { useUser } from '../../Providers/UserProvider';
+import { useSystems } from '../../Providers/SystemsProvider';
 
 const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser }) => {
+    const systemsProvider = useSystems();
     const [user, setUser] = useState(selectedUser);
     const [isCreateNewAccessExpirationModelOpen, setIsCreateNewAccessExpirationModelOpen] = useState(false);
 
@@ -15,7 +18,7 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
     }, [selectedUser]);
 
         
-    const formatDate = (dateString, showtime) => {
+    const formatDate = (dateString : string, showtime: boolean) => {
         if (!dateString) {
             return '';
         }
@@ -33,9 +36,9 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
     
 
 
-    const handleDeleteAccessExpiration = async (expireId) => {
+    const handleDeleteAccessExpiration = async (expireId : string) => {
         // delete access expiration
-        const response = await admin_delete_user_access_expiration(expireId);
+        const response = await AdminDeleteUserAccessExpiration(expireId, systemsProvider.apiUrl);
 
         if (response === false) {
             alert('Failed to delete access expiration');
@@ -51,7 +54,7 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
 
 
 
-    const handleModalClose = (wasSuccessful) => {
+    const handleModalClose = (wasSuccessful : boolean) => {
         setIsCreateNewAccessExpirationModelOpen(false);
     };
 
@@ -60,7 +63,7 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
             <CreateUserAccecssExpirationModal userId={user.userId} isOpen={isCreateNewAccessExpirationModelOpen} onClose={handleModalClose} />
             <div className="selected-user-info-container">
                 <div className="selected-user-info-profile-image">
-                    <img src={user.profilePictureUrl ?? 'llp-logo.png'} alt="profile" />
+                    {user.profilePictureUrl ? <img src={user.profilePictureUrl} alt="profile" /> : <FontAwesomeIcon icon={faUser}/>}
                 </div>
                 <h1 id="userFullName">
                     {user.firstName} {user.lastName}
@@ -104,8 +107,8 @@ const SelectedUserInfo: React.FC<SelectedUserInformationProps> = ({ selectedUser
                                             </button>
                                         </div>
                                     </td>
-                                    <td>{formatDate(accessExp.expireStartDate, false)}</td>
-                                    <td>{formatDate(accessExp.expireEndDate, false)}</td>
+                                    <td>{formatDate(accessExp.expireStartDate.toISOString(), false)}</td>
+                                    <td>{formatDate(accessExp.expireEndDate.toISOString(), false)}</td>
                                 </tr>
                             ))}
                         </tbody>

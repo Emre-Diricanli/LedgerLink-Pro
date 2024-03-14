@@ -1,9 +1,8 @@
-const API_URL = import.meta.env.VITE_LedgerLinkPro_Server_API;
-import { http_context } from './http-context.js';
+import { NewUser, User, UserSearchQuery } from "../components/interfaces/Users";
 
-export const get_my_info = async () => {
+export const GetMyInfo = async (apiUrl : string): Promise<User | false> => {
     try {
-        const response = await http_context(`${API_URL}/user/get-my-info`, {
+        const response = await fetch(`${apiUrl}/user/get-my-info`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -27,20 +26,20 @@ export const get_my_info = async () => {
     }
 };
 
-export const fetch_users = async (pageSize, pageIndex, userType, activeStatus, searchString) => {
+export const FetchUsers = async (searchQuery: UserSearchQuery, apiUrl : string) : Promise<[User]> => {
     try {
-        // Construct query string
-        const queryParams = new URLSearchParams({
-            pageSize,
-            pageIndex,
-            userType,
-            activeStatus,
-            searchString
+       // Construct query string
+       const queryParams = new URLSearchParams({
+            pageSize: searchQuery.pageSize.toString(),
+            pageIndex: searchQuery.pageIndex.toString(), // Convert pageIndex to string
+            userType: searchQuery.userType,
+            activeStatus: searchQuery.activeStatus.toString(), // Convert activeStatus to string
+            searchString: searchQuery.searchString
         }).toString();
 
-        const url = `${API_URL}/user/admin/get-users?${queryParams}`;
+        const url = `${apiUrl}/user/admin/get-users?${queryParams}`;
 
-        const response = await http_context(url, {
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -49,20 +48,23 @@ export const fetch_users = async (pageSize, pageIndex, userType, activeStatus, s
         });
 
         if (!response.ok) {
-            return false;
+            //empty array
+            return [] as unknown as [User];
         }
 
         const data = await response.json();
-        return data;
+
+        const users = data as [User];
+        return users;
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         throw error;
     }
 }
 
-export const validate_username = async (username) => {
+export const ValidateUsername = async (username : string, apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/validate-username?username=${username}`, {
+        const response = await fetch(`${apiUrl}/user/validate-username?username=${username}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -88,9 +90,9 @@ export const validate_username = async (username) => {
     }
 }
 
-export const validate_email = async (email) => {
+export const ValidateEmail = async (email : string, apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/validate-email?email=${email}`, {
+        const response = await fetch(`${apiUrl}/user/validate-email?email=${email}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -116,9 +118,9 @@ export const validate_email = async (email) => {
     }
 }
 
-export const admin_create_new_user = async (user) => {
+export const AdminCreateNewUser = async (user : NewUser, apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/admin/create-user`, {
+        const response = await fetch(`${apiUrl}/user/admin/create-user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -138,9 +140,9 @@ export const admin_create_new_user = async (user) => {
     }
 }
 
-export const admin_delete_user = async (userId) => {
+export const AdminDeleteUser = async (userId : string, apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/admin/delete-user?userId=${userId}`, {
+        const response = await fetch(`${apiUrl}/user/admin/delete-user?userId=${userId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -159,9 +161,9 @@ export const admin_delete_user = async (userId) => {
     }
 }
 
-export const admin_deactivate_user = async (userId) => {
+export const AdminDeactivateUser = async (userId : string,  apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/admin/deactivate-user?userId=${userId}`, {
+        const response = await fetch(`${apiUrl}/user/admin/deactivate-user?userId=${userId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -180,9 +182,9 @@ export const admin_deactivate_user = async (userId) => {
     }
 }
 
-export const admin_activate_user = async (userId) => {
+export const AdminActivateUser = async (userId : string, apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/admin/activate-user?userId=${userId}`, {
+        const response = await fetch(`${apiUrl}/user/admin/activate-user?userId=${userId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -201,9 +203,9 @@ export const admin_activate_user = async (userId) => {
     }
 }
 
-export const admin_reset_user_password = async (userId, password, expirePassword) => {
+export const AdminResetUserPassword = async (userId : string, password : string, expirePassword : boolean, apiUrl : string) => {
     try {
-        const response = await http_context(`${API_URL}/user/admin/reset-user-password`, {
+        const response = await fetch(`${apiUrl}/user/admin/reset-user-password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -224,7 +226,7 @@ export const admin_reset_user_password = async (userId, password, expirePassword
     }
 }
 
-export const admin_create_user_access_expiration = async (userId, expireStartDate, expireEndDate, reason) => {
+export const AdminCreateUserAccessExpirations = async (userId : string, expireStartDate : string, expireEndDate : string, reason : string, apiUrl : string) => {
     try {
         const body = JSON.stringify({
             userId,
@@ -232,7 +234,7 @@ export const admin_create_user_access_expiration = async (userId, expireStartDat
             expireEndDate,
             reason
         });
-        const response = await http_context(`${API_URL}/user/admin/create-user-access-expiration`, {
+        const response = await fetch(`${apiUrl}/user/admin/create-user-access-expiration`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -252,9 +254,9 @@ export const admin_create_user_access_expiration = async (userId, expireStartDat
     }
 }
 
-export const admin_delete_user_access_expiration = async (expireId) => {
+export const AdminDeleteUserAccessExpiration = async (expireId : string , apiUrl : string) : Promise<boolean> => {
     try {
-        const response = await http_context(`${API_URL}/user/admin/delete-user-access-expiration?expireId=${expireId}`, {
+        const response = await fetch(`${apiUrl}/user/admin/delete-user-access-expiration?expireId=${expireId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

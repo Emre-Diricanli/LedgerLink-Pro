@@ -2,10 +2,12 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { CheckAuth, HandleAdminSignin, HandleUserSignin, HandleAdminSignup, HandleUserRequestAccess, HandleConfirmEmail, HandleResendConfirmationEmail, HandleConfirmUserAccess, HandleNewUserResetPassword, GetAuthLevel } from '../services/AuthService';
 import { HandleUserSignout } from '../services/AuthService';
 import { UserSignupRequest } from '../components/interfaces/Users';
+import { useSystems } from './SystemsProvider';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  calling: boolean;
   fetchAuthentication: () => Promise<void>;
   HandleAdminSignin: (username: string, password: string) => Promise<boolean>;
   HandleUserSignin: (username: string, password: string) => Promise<boolean>;
@@ -30,21 +32,50 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const apiUrl = "http://localhost:7071/api/v1";
+interface AuthProviderProps {
+  children: ReactNode;
+  apiUrl: string; // Add prop for apiUrl
+}
+
+export const AuthProvider = ({ children, apiUrl }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const systems = useSystems();
+  const [calling, setCalling] = useState<boolean>(false);
 
   const fetchAuthentication = async () => {
-    const response = await CheckAuth(apiUrl);
-    setIsAuthenticated(response !== false);
-
-    //if response is not false, then grab role from storage
-    if (response !== false) {
-      let role = localStorage.getItem('role');
-      if (role === '3') {
-        setIsAdmin(true);
+    try{
+      setCalling(true);
+      //check page location. If either signin page or sigunp page, then return
+      const paths = systems.publicPaths;
+      const currentPath = window.location.pathname;
+  
+      if (paths.includes(currentPath)){
+        return;
       }
+  
+      const response = await CheckAuth(apiUrl);
+      setIsAuthenticated(response !== false);
+  
+      //if response is false, then redirect to signin page
+      if (response === false) {
+        window.location.href = '/user-signin';
+      }
+  
+      //if response is not false, then grab role from storage
+      if (response !== false) {
+        let role = localStorage.getItem('role');
+        if (role === '3') {
+          setIsAdmin(true);
+        }
+      }
+    }
+    catch{
+      setIsAuthenticated(false);
+      setIsAdmin(false);
+    }
+    finally{
+      setCalling(false);
     }
   };
 
@@ -75,6 +106,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.log('Redirecting to reset password page');
             return false;
         }
+    }
+    else if (signinResult.code === 403){
+      //user is deactivated
+      alert('Your account has been deactivated. Please contact your administrator to reactivate your account.')
+      return false;
     }
     else{
       //likely a mismatched username and password
@@ -152,6 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{ 
         isAuthenticated, 
         isAdmin, 
+        calling : calling,
         fetchAuthentication, 
         signOut,
         HandleAdminSignin: AdminSignin,

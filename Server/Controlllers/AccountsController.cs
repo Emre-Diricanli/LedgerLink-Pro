@@ -14,7 +14,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace Team_Tactics_Backend.Controllers
+namespace LedgerLinkPro.Controllers
 {
     [ApiController]
     [ApiVersion("1.0")]
@@ -82,17 +82,17 @@ namespace Team_Tactics_Backend.Controllers
                 {
                     AccountName = newAccount.AccountName,
                     Description = newAccount.Description,
-                    NormalSide = newAccount.NormalSide,
+                    NormalSide =  "Debit", // "Credit" or "Debit"
                     Category = newAccount.Category,
                     Subcategory = newAccount.Subcategory,
-                    UserId = newAccount.UserId,
+                    UserId = user.Id,
 
                     InitialBalance = 0,
                     ActiveStatus = true,
                     Debit = 0,
                     Credit = 0,
                     Balance = 0,
-                    DateAdded = DateTimeOffset.Now,
+                    DateAdded = DateTimeOffset.UtcNow,
                     Order = "",
                     Statement = "",
                     Comment = ""

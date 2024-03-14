@@ -1,14 +1,9 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom'; // Import NavLink
 import './navbar.css'
 import UserProfilePictureModal from '../UserProfilePcitures/UserProfilePictureModal';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser } from '@fortawesome/free-solid-svg-icons';
-import { useUser } from '../../util/UserProvider';
-import { useProfilePicture } from '../UserProfilePcitures/FetchUserProfilePciture';
-import { redirectBasedOnValue } from '../DeterminRedirectPath/DeterminRedirectPath';
-import { useAuth } from '../../util/AuthProvider';
+import { useUser } from '../../Providers/UserProvider';
+import { useAuth } from '../../Providers/AuthProvider';
 import ProfileImage from './profileImage';
 
 function Navbar() {
@@ -37,11 +32,6 @@ function Navbar() {
       alert('Sign-out failed');
     }
   };
-
-  useEffect(() => {
-    console.log('Navbar Mount')
-  }, []);
-
 
   return (
     <nav className="navbar-container">

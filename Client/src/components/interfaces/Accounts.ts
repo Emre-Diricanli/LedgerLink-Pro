@@ -17,3 +17,13 @@ export interface Account {
     Statement: string;
     Comment: string;
 }
+
+
+export interface NewAccount {
+    AccountName: string;
+    AccountNumber: number;
+    Description: string;
+    Category: string;
+    Subcategory: string;
+    InitialBalance: number;
+}
