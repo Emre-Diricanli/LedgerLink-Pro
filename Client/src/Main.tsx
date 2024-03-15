@@ -21,6 +21,7 @@ import Accounts from './pages/accounts/accounts';
 import { Layout } from './components/layout/layout';
 import { SystemsProvider } from './Providers/SystemsProvider';
 import AccountsProvider from './Providers/AccountsProvider';
+import { HttpProvider } from './Providers/HttpProvider';
 
 const apiUrl = 'http://localhost:7071/api/v1'
 
@@ -31,31 +32,33 @@ const apiUrl = 'http://localhost:7071/api/v1'
   if (rootElement) {
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <SystemsProvider apiUrl={apiUrl}>
-          <AuthProvider apiUrl={apiUrl}>
-           <UserProvider apiUrl={apiUrl}>
-            <AccountsProvider apiUrl={apiUrl}>
-              <BrowserRouter>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/user-signin" element={<UserSignin />} />
-                    <Route path="/admin-signin" element={<AdminSignin />} />
-                    <Route path="/admin-signup" element={<AdminSignup />} />
-                    <Route path="/user-registration" element={<UserRegistration />} />
-                    <Route path="/admin-confirm-email" element={<AdminConfirmEmail />} />
-                    <Route path="/confirm-user" element={<ConfirmUser />} />
-                    <Route path="/new-user/reset-password" element={<NewUserResetPassword />} />
-                    <Route path="/user-management" element={<UserManagement />} />
-                    <Route path="/accounts" element={<Accounts />} /> 
-                    <Route path="/server-offline" element={<ServerOfflinePage />} />
-                  </Routes>
-                </Layout>
-              </BrowserRouter>
-            </AccountsProvider>
-           </UserProvider>
-          </AuthProvider>
-        </SystemsProvider>
+        <HttpProvider apiUrl={apiUrl}>
+          <SystemsProvider apiUrl={apiUrl}>
+            <AuthProvider apiUrl={apiUrl}>
+            <UserProvider apiUrl={apiUrl}>
+              <AccountsProvider apiUrl={apiUrl}>
+                <BrowserRouter>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/user-signin" element={<UserSignin />} />
+                      <Route path="/admin-signin" element={<AdminSignin />} />
+                      <Route path="/admin-signup" element={<AdminSignup />} />
+                      <Route path="/user-registration" element={<UserRegistration />} />
+                      <Route path="/admin-confirm-email" element={<AdminConfirmEmail />} />
+                      <Route path="/confirm-user" element={<ConfirmUser />} />
+                      <Route path="/new-user/reset-password" element={<NewUserResetPassword />} />
+                      <Route path="/user-management" element={<UserManagement />} />
+                      <Route path="/accounts" element={<Accounts />} /> 
+                      <Route path="/server-offline" element={<ServerOfflinePage />} />
+                    </Routes>
+                  </Layout>
+                </BrowserRouter>
+              </AccountsProvider>
+            </UserProvider>
+            </AuthProvider>
+          </SystemsProvider>
+        </HttpProvider>
       </React.StrictMode>
     );
   }

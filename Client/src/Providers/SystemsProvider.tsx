@@ -1,9 +1,10 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { CheckOnlineStatus } from '../services/AuthService';
 
 interface SystemsContextType {
-    checkServerStatus: () => Promise<boolean>;
+    ServerHearbeat: () => Promise<boolean>;
     apiUrl: string;
+    serverOnline: boolean;
     publicPaths: string[];
 }
 
@@ -24,20 +25,38 @@ interface SystemsProviderProps {
 
 export const SystemsProvider = ({ children, apiUrl }: SystemsProviderProps) => {
         let currentAPIUrl = apiUrl;
+        const [serverOnline, setServerOnline] = React.useState(false);
         const publicPaths = ['/user-signin', '/admin-signin', '/admin-signup', '/user-registration', '/server-offline', '/admin-confirm-email', './new-user/reset-password'];
 
-
-        const checkServerStatus = async (): Promise<boolean> => {
-                const status = await CheckOnlineStatus(apiUrl);
-
-                return status;
+        const HandleServerHearbeat = async (): Promise<boolean> => {
+            const status = await CheckOnlineStatus(apiUrl);
+            
+            return status;
         };
+
+        //if server is offline then redirect to server-offline page
+        useEffect(() => {
+           const checkStatus = async () => {
+                const response = await HandleServerHearbeat();
+            
+                if (!response) {
+                    setServerOnline(false);
+                    window.location.href = '/server-offline';
+                } else {
+                    setServerOnline(true);
+                }
+            };
+
+            checkStatus();
+        }, []);
+        
 
     return (
         <SystemsContext.Provider 
                 value={{ 
-                        checkServerStatus,
+                        ServerHearbeat : HandleServerHearbeat,
                         apiUrl: currentAPIUrl,
+                        serverOnline: serverOnline,
                         publicPaths: publicPaths
                 }}
         >
