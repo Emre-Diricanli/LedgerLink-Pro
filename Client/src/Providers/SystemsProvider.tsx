@@ -20,7 +20,7 @@ export const useSystems = (): SystemsContextType => {
 
 interface SystemsProviderProps {
     children: ReactNode;
-    apiUrl: string; // Add prop for apiUrl
+    apiUrl: string;
   }
 
 export const SystemsProvider = ({ children, apiUrl }: SystemsProviderProps) => {
@@ -37,15 +37,28 @@ export const SystemsProvider = ({ children, apiUrl }: SystemsProviderProps) => {
         //if server is offline then redirect to server-offline page
         useEffect(() => {
            const checkStatus = async () => {
+            // Check if the current page is /server-offline
                 const response = await HandleServerHearbeat();
             
                 if (!response) {
                     setServerOnline(false);
-                    window.location.href = '/server-offline';
+                    
+                    // Redirect to server-offline page, but first check if the current page is not server-offline
+                    if (window.location.pathname !== '/server-offline') {
+                        window.location.href = '/server-offline';
+                    }
+
                 } else {
-                    setServerOnline(true);
+                    if (serverOnline === false) {
+                        setServerOnline(true);
+
+                        //redirect to home page
+                        if (window.location.pathname === '/server-offline') {
+                            window.location.href = '/';
+                        }
+                    }
                 }
-            };
+            }
 
             checkStatus();
         }, []);

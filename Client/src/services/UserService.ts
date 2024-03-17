@@ -26,7 +26,7 @@ export const GetMyInfo = async (apiUrl : string): Promise<User | false> => {
     }
 };
 
-export const FetchUsers = async (searchQuery: UserSearchQuery, apiUrl : string) : Promise<[User]> => {
+export const FetchUsers = async (searchQuery: UserSearchQuery, apiUrl : string) : Promise<User[]> => {
     try {
        // Construct query string
        const queryParams = new URLSearchParams({
@@ -49,12 +49,12 @@ export const FetchUsers = async (searchQuery: UserSearchQuery, apiUrl : string) 
 
         if (!response.ok) {
             //empty array
-            return [] as unknown as [User];
+            return [] as unknown as User[];
         }
 
         const data = await response.json();
 
-        const users = data as [User];
+        const users = data as User[];
         return users;
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);

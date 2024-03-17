@@ -1,5 +1,4 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CheckOnlineStatus } from '../services/AuthService';
 
 interface HttpContextType {
@@ -25,20 +24,19 @@ interface HttpProviderProps {
 
 export const HttpProvider = ({ children, apiUrl }: HttpProviderProps) => {
     const [serverOnline, setServerOnline] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const checkStatus = async () => {
             const status = await CheckOnlineStatus(apiUrl);
             setServerOnline(status);
             if (!status) {
-                navigate('/server-offline');
+                window.location.href = '/server-offline';
             }
         };
 
         checkStatus();
         // Consider adding a mechanism to periodically check or listen for changes in server status
-    }, [apiUrl, navigate]);
+    }, [apiUrl]);
 
     const fetchWithAuth = async (url: string, options: any) => {
         if (!serverOnline) {

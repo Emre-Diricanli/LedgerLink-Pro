@@ -1,29 +1,35 @@
 export interface Account {
-    AccountId: string; // Guid in C# is string in TypeScript
-    ActiveStatus: boolean;
-    AccountName: string;
-    AccountNumber: number;
-    Description: string;
-    NormalSide: string;
-    Category: string;
-    Subcategory: string;
-    InitialBalance: number; // decimal in C# is number in TypeScript
-    Debit: number;
-    Credit: number;
-    Balance: number;
-    DateAdded: Date; // DateTimeOffset in C# is Date in TypeScript
-    UserId: string;
-    Order: string;
-    Statement: string;
-    Comment: string;
+    accountId: string;
+    activeStatus: boolean;
+    accountName: string;
+    accountNumber: number;
+    description: string;
+    normalSide: string;
+    category: string;
+    subcategory: string;
+    initialBalance: number;
+    debit: number;
+    credit: number;
+    balance: number;
+    dateAdded: Date;
+    userId: string;
+    order: string;
+    statement: string;
+    comment: string;
 }
 
-
 export interface NewAccount {
-    AccountName: string;
-    AccountNumber: number;
-    Description: string;
-    Category: string;
-    Subcategory: string;
-    InitialBalance: number;
+    accountName: string;
+    accountNumber: number;
+    description: string;
+    category: string;
+    subcategory: string;
+    initialBalance: number;
+}
+
+export interface AccountSearchQuery {
+    pageSize: number;
+    pageIndex: number;
+    activeStatus: number;
+    searchString: string;
 }

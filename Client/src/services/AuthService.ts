@@ -1,6 +1,6 @@
 import { useHttp } from "../Providers/HttpProvider";
 import { UserSigninResult, UserSignupRequest } from "../components/interfaces/Users";
-const fetchWithAuth = useHttp().fetchWithAuth;
+
 
 export const CheckAuth = async (apiUrl : String): Promise<Boolean> => {
     try {
@@ -271,7 +271,7 @@ export const HandleNewUserResetPassword = async (newPassword: string, userid: st
 
 export const CheckOnlineStatus = async (apiUrl: string) => {
     try {
-        const response = await fetchWithAuth(`${apiUrl}/auth/online-status`, {
+        const response = await fetch(`${apiUrl}/auth/online-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -286,7 +286,7 @@ export const CheckOnlineStatus = async (apiUrl: string) => {
         return true;
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
-        throw error;
+        return false;
     }
 }
 

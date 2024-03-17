@@ -3,6 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import ActionsDropdown from '../ActionsDropdown/ActionsDropdown';
 import CreateNewAccountModal from './Modals/CreateNewAccountModal';
+import { useAccounts } from '../../Providers/AccountsProvider';
+import AccountsActionDropdown from './AccountActionsDropdown';
+import { Account } from '../interfaces/Accounts';
+
 
 interface AccountsHotbarProps {
     accountIds: string[];
@@ -14,7 +18,7 @@ interface AccountsHotbarProps {
 }
 
 const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
-    accountIds: accountIds,
+    accountIds,
     actionComplete,
     typeFilter: typeFilter,
     activeFilter,
@@ -28,25 +32,31 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
     const [searchValue, setSearchValue] = useState('');
     const dropdownRef = useRef(null);
     const [createNewAccountModalOpen, setCreateNewAccountModalOpen] = useState(false);
+    const [actionCompleted, setActionCompleted] = useState(false);
+  
+    const actionConfig = () => {
+        const actions: string[] = [];
+        actions.push('Activate');
+        actions.push('Deactivate');
 
-    const activate = (userIds: string[]) => {
-            console.log('Activating accounts:', userIds);
-    }
+        actions.push('Delete');
 
-    const deactivate = (userIds: string[]) => {
-            console.log('Deactivating accounts:', userIds);
-    }
+        return { include: actions };
+    };
 
-    const actionConfig = [
-            {
-                label: 'Activate',
-                action: () => activate(accountIds),
-            },
-            {
-                label: 'Deactivate',
-                action: () => deactivate(accountIds),
-            }
-    ];
+    const onActionComplete = (result?: boolean, updatedAccount? : Account[]) => {
+        if (result) {
+           //close dropdown and refresh table
+            actionComplete(result);
+
+            //close the dropdown
+            setActionCompleted(prev => !prev); // Toggle the actionCompleted state
+            
+            
+        } else {
+            console.log('Action failed');
+        };
+    };
 
     const onModalActionComplete = (success: boolean) => {
         //if action complete is successful, refresh the table else close modal and do nothing
@@ -109,15 +119,20 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
                 <button className='w-full' onClick={() => setCreateNewAccountModalOpen(true)}>Create</button>
                 
             </div>
+           
             <div className='flex flex-col items-start w-fit ml-auto'>
                 <button className="icon-button secondary" onClick={() => actionComplete(true)}>
                     <FontAwesomeIcon icon={faArrowsRotate} />
                 </button>
             </div>
             <div className='flex flex-col items-start w-fit' > {/* ref={dropdownRef} */}
-                <p>Actions</p>
-                <ActionsDropdown 
-                actionOptions={actionConfig}
+                <AccountsActionDropdown 
+                    ref={dropdownRef}
+                    accountIds={accountIds}
+                    showText={true}
+                    onActionComplete={onActionComplete}
+                    actionConfig={actionConfig()}
+                    closeDropdown={actionCompleted}
                 />
             </div>
             <div className='flex flex-col items-start w-fit'>

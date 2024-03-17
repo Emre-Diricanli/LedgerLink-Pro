@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { NewUser, User, UserSearchQuery } from '../components/interfaces/Users';
 import { AdminCreateNewUser, AdminDeleteUser, FetchUsers, GetMyInfo } from '../services/UserService';
 import { useAuth } from './AuthProvider';
+import { useSystems } from './SystemsProvider';
 
 interface UserContextType {
   user: User | null;
@@ -30,6 +31,7 @@ export const UserProvider = ({ children, apiUrl }: UserProviderProps) => {
   const [hasUserInfo, setHasUserInfo] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const { calling } = useAuth();
+  const systemsProvider = useSystems();
 
   useEffect(() => {
     if (!calling){
@@ -43,6 +45,12 @@ export const UserProvider = ({ children, apiUrl }: UserProviderProps) => {
 
   //Get current user
   const HandleFetchUser = async () => {
+    // if( systemsProvider.serverOnline === false){
+    //   console.log("Server is offline");
+    //   setUser(null);
+    //   return;
+    // };
+
     const userData = await GetMyInfo(apiUrl);
 
     if (userData != null){

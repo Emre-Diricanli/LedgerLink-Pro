@@ -32,7 +32,7 @@ const apiUrl = 'http://localhost:7071/api/v1'
   if (rootElement) {
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <HttpProvider apiUrl={apiUrl}>
+        {/* <HttpProvider apiUrl={apiUrl}> */}
           <SystemsProvider apiUrl={apiUrl}>
             <AuthProvider apiUrl={apiUrl}>
             <UserProvider apiUrl={apiUrl}>
@@ -58,7 +58,7 @@ const apiUrl = 'http://localhost:7071/api/v1'
             </UserProvider>
             </AuthProvider>
           </SystemsProvider>
-        </HttpProvider>
+        {/* </HttpProvider> */}
       </React.StrictMode>
     );
   }
