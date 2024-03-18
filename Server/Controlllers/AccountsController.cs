@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
+using LedgerLinkPro.DTO.Accounts;
 
 namespace LedgerLinkPro.Controllers
 {
@@ -42,10 +43,10 @@ namespace LedgerLinkPro.Controllers
             int AccountNumber = 0;
             switch (Category)
             {
-                case "Assets":
+                case "Asset":
                     AccountNumber = 1000;
                     break;
-                case "Liabilities":
+                case "Liabillity":
                     AccountNumber = 2000;
                     break;
                 case "Equity":
@@ -54,7 +55,7 @@ namespace LedgerLinkPro.Controllers
                 case "Revenue":
                     AccountNumber = 4000;
                     break;
-                case "Expenses":
+                case "Expense":
                     AccountNumber = 5000;
                     break;
             }
@@ -86,12 +87,11 @@ namespace LedgerLinkPro.Controllers
                     Category = newAccount.Category,
                     Subcategory = newAccount.Subcategory,
                     UserId = user.Id,
-
-                    InitialBalance = 0,
+                    AccountNumber = newAccount.AccountNumber,
                     ActiveStatus = true,
                     Debit = 0,
                     Credit = 0,
-                    Balance = 0,
+                    Balance = newAccount.InitialBalance,
                     DateAdded = DateTimeOffset.UtcNow,
                     Order = "",
                     Statement = "",
@@ -99,6 +99,7 @@ namespace LedgerLinkPro.Controllers
                 };
 
                 //get the account number
+                /*
                 int accountPrefix = GetAccountNumber(account.Category);
 
                 int accountNumber = accountPrefix + 10;
@@ -115,10 +116,18 @@ namespace LedgerLinkPro.Controllers
                 }
 
                 account.AccountNumber = accountNumber;
+                */
 
-                // Save the account to the database
                 using (var context = _contextFactory.CreateDbContext())
                 {
+                    //ensure account numbers arent the same 
+                    var accountExists = await context.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == account.AccountNumber);
+                    if (accountExists != null)
+                    {
+                        return BadRequest("Account number already exists");
+                    }
+
+                    // Save the account to the database
                     context.Accounts.Add(account);
                     await context.SaveChangesAsync();
                 }
@@ -136,7 +145,7 @@ namespace LedgerLinkPro.Controllers
                     DateAdded = account.DateAdded,
                     Debit = account.Debit,
                     Description = account.Description,
-                    InitialBalance = account.InitialBalance,
+                    Balance = account.Balance,
                     NormalSide = account.NormalSide,
                     Order = account.Order,
                     Statement = account.Statement,
@@ -222,7 +231,7 @@ namespace LedgerLinkPro.Controllers
                         DateAdded = account.DateAdded,
                         Debit = account.Debit,
                         Description = account.Description,
-                        InitialBalance = account.InitialBalance,
+                        Balance = account.Balance,
                         NormalSide = account.NormalSide,
                         Order = account.Order,
                         Statement = account.Statement,
@@ -447,6 +456,160 @@ namespace LedgerLinkPro.Controllers
                 await _errorReportingService.ReportError("Error deleting account. Exception Catched", "AccountsController.cs", identityUser.Id, "DeleteAccount", ex.Message);
 
                 return StatusCode(500, "Error deleting account");
+            }
+        }
+
+        [HttpPost("create-new-account-transaction")]
+        [Authorize]
+        public async Task<IActionResult> NewAccountTransaction([FromBody] AccountTransactionsDTO newTransaction)
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                //validate the model
+               
+
+                var db = _contextFactory.CreateDbContext();
+
+                //Verify if the account exists
+                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId == newTransaction.AccountId);
+
+                if (account == null)
+                {
+                    return NotFound("Account not found");
+                }
+
+                var utcNow = DateTimeOffset.UtcNow;
+
+                AccountTransaction accountTransaction = new AccountTransaction
+                {
+                   TransactionId = Guid.NewGuid(),
+                   UserId = user.Id,
+                   AccountId = newTransaction.AccountId,
+                   BeforeTransactionBalance = newTransaction.BeforeTransactionBalance,
+                   AfterTransactionBalance = newTransaction.AfterTransactionBalance,
+                   TransactionAmount = newTransaction.TransactionAmount,
+                   TransactionDescription = newTransaction.TransactionDescription,
+                   TransactionDate = utcNow
+                };
+
+                //To manage concurrency, check if the before transaction balance is the same as the current balance, if not then return an error message
+                if (account.Balance != newTransaction.BeforeTransactionBalance)
+                {
+                    return BadRequest("The before transaction balance does not match the current balance");
+                }
+
+                //Update the account balance
+                account.Balance = newTransaction.AfterTransactionBalance;
+
+                await db.AccountTransactions.AddAsync(accountTransaction);
+
+                db.Accounts.Update(account);
+
+                await db.SaveChangesAsync();
+
+                AccountTransactionsDTO returnTransaction = new AccountTransactionsDTO
+                {
+                    AccountId = accountTransaction.AccountId,
+                    TransactionId = accountTransaction.TransactionId,
+                    TransactionDate = accountTransaction.TransactionDate,
+                    TransactionDescription = accountTransaction.TransactionDescription,
+                    TransactionAmount = accountTransaction.TransactionAmount,
+                    BeforeTransactionBalance = accountTransaction.BeforeTransactionBalance,
+                    AfterTransactionBalance = accountTransaction.AfterTransactionBalance,
+                    UserName = user.UserName
+                };
+
+                //return the account transaction
+                return Ok(returnTransaction);
+
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error creating new account transaction. Exception Catched", "AccountsController.cs", "UNKNOWN", "NewAccountTransaction", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error creating new account transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "NewAccountTransaction", ex.Message);
+
+                return StatusCode(500, "Error creating new account transaction");   
+            }
+        }
+
+        [HttpGet("get-account-transactions")]
+        [Authorize]
+        public async Task<IActionResult> GetAccounTransactions([FromQuery] string accountId)
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                var db = _contextFactory.CreateDbContext();
+
+                //Verify if the account exists
+                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+
+                if (account == null)
+                {
+                    return NotFound("Account not found");
+                }
+
+                //Get the account transactions
+                var accountTransactions = await db.AccountTransactions.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
+
+                List<AccountTransactionsDTO> accountTransactionsDTO = new List<AccountTransactionsDTO>();
+
+                foreach (var transaction in accountTransactions)
+                {
+                    AccountTransactionsDTO accountTransaction = new AccountTransactionsDTO
+                    {
+                        AccountId = transaction.AccountId,
+                        TransactionId = transaction.TransactionId,
+                        TransactionDate = transaction.TransactionDate,
+                        TransactionDescription = transaction.TransactionDescription,
+                        TransactionAmount = transaction.TransactionAmount,
+                        BeforeTransactionBalance = transaction.BeforeTransactionBalance,
+                        AfterTransactionBalance = transaction.AfterTransactionBalance,
+                        UserName = user.UserName
+                    };
+
+                    accountTransactionsDTO.Add(accountTransaction);
+                }
+
+                return Ok(accountTransactionsDTO);
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error getting account transactions. Exception Catched", "AccountsController.cs", "UNKNOWN", "GetAccounTransactions", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error getting account transactions. Exception Catched", "AccountsController.cs", identityUser.Id, "GetAccounTransactions", ex.Message);
+
+                return StatusCode(500, "Error getting account transactions");
             }
         }
     }

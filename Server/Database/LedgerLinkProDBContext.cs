@@ -1,9 +1,7 @@
-﻿using LedgerLinkPro.Server.Models.Accounts;
+﻿using LedgerLinkPro.Models.Accounts;
 using LedgerLinkPro.Models.Users;
 using LedgerLinkPro.Models.Util;
-using LedgerLinkPro.Models.Accounts;
 using LedgerLinkPro.Models.Auth;
-using LedgerLinkPro.Models.Users;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,8 +28,7 @@ namespace LedgerLinkPro.Database
         public DbSet<UserProfilePictureLocations> UserProfilePictureLocations { get; set; }
         public DbSet<ReportedErrors> ReportedErrors { get; set; }
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<DeactivatedAccounts> DeactivatedAccounts { get; set; }
-        public DbSet<AccountEvents> AccountEvents { get; set; }
+        public DbSet<AccountTransaction> AccountTransactions { get; set; }
 
 
 

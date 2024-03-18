@@ -3,15 +3,16 @@ import './Modal.css'
 
 interface ModalFooterProps {
     canceltext?: string;
-    completetext?: string;
-    onActionCancel: () => void;
-    onActionComplete: () => void;
+    completeText?: string;
+    onActionCancel?: () => void;
+    onActionComplete?: () => void;
+    hideCancel?: boolean;
 }
 
-const ModalFooter: React.FC<ModalFooterProps> = ({ canceltext, completetext, onActionCancel, onActionComplete }) => {
+const ModalFooter: React.FC<ModalFooterProps> = ({ canceltext, completeText: completetext, onActionCancel, onActionComplete, hideCancel }) => {
     return (
         <div className="modal-footer">
-            <button className='secondary' onClick={onActionCancel}>{canceltext || 'Cancel'}</button>
+            {!hideCancel && <button onClick={onActionCancel}>{canceltext || 'Cancel'}</button>}
             <button onClick={onActionComplete}>{completetext || 'Ok'}</button>
         </div>
     );

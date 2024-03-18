@@ -6,6 +6,7 @@ import AccountsTable from '../../components/accounts/Table/AccountsTable';
 import { useAccounts } from '../../Providers/AccountsProvider';
 import { Account } from '../../components/interfaces/Accounts';
 import { CircularProgress } from '@mui/material';
+import SelectedAccountInfo from '../../components/accounts/SelectedAccountInfo';
 
 const Accounts: React.FC = () => {
     const accountsProvider = useAccounts();
@@ -97,7 +98,7 @@ const Accounts: React.FC = () => {
                     <CircularProgress value={80} />
                 </div>
             ): (
-                <div className='flex flex-row justify-between w-full h-full pl-8'>
+                <div className='flex flex-row justify-center w-full h-full pl-8'>
                     <AccountsTable
                         accounts={accountsProvider.accounts}
                         onActiveAccountChange={handleActiveAccountChange}
@@ -105,7 +106,7 @@ const Accounts: React.FC = () => {
                         accountsNeedRefresh={handleRefreshAccounts}
                         />
 
-                    {/* {activeUser && <SelectedUserInfo selectedUser={activeUser} />} */}
+                    {/* {activeAccount && <SelectedAccountInfo selectedAccount={activeAccount} />} */}
                 </div>
             )}
             

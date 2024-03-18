@@ -1,4 +1,4 @@
-import { Account, AccountSearchQuery, NewAccount } from "../components/interfaces/Accounts";
+import { Account, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
 export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
@@ -148,3 +148,56 @@ export const UpdateAccount = async (account: Account, apiUrl: string): Promise<b
         return false; // Return false in case of error
     }
 };
+
+export const FetchAccountTransactions = async (accountId: string, apiUrl: string): Promise<AccountTransaction[]> => {
+    try{
+        const response = await fetch(`${apiUrl}/accounts/get-account-transactions?accountId=${accountId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return [] as unknown as AccountTransaction[];
+        }
+
+        const data = await response.json();
+
+        const transactions = data as AccountTransaction[];
+
+        return transactions;
+    }
+    catch (error) {
+        console.error("Error in Fetch Account Transactions: ", (error as Error).message);
+        return [] as unknown as AccountTransaction[];
+    }
+}
+
+export const CreateNewAccountTransaction = async (transaction: AccountTransaction, apiUrl: string): Promise<AccountTransaction> => {
+    try {
+        const response = await fetch(`${apiUrl}/accounts/create-new-account-transaction`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(transaction),
+        });
+
+        if (!response.ok) {
+            return {} as AccountTransaction;
+        }
+
+        const data = await response.json();
+
+        const newTransaction = data as AccountTransaction;
+
+        return newTransaction;
+    } catch (error) {
+        console.error("Error in Create New Account Transaction: ", (error as Error).message);
+        return {} as AccountTransaction; // Return empty object in case of error
+    }
+}
+

@@ -33,3 +33,14 @@ export interface AccountSearchQuery {
     activeStatus: number;
     searchString: string;
 }
+
+export interface AccountTransaction {
+    accountId: string;
+    transactionId?: string;
+    transactionsDate: Date;
+    transactionDescription: string;
+    transactionAmount: number;
+    beforeTransactionBalance : number;
+    afterTransactionBalance : number;
+    userName: string;
+};

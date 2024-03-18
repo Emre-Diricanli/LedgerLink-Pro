@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Account, AccountSearchQuery, NewAccount } from "../components/interfaces/Accounts";
-import { ActivateAccounts, CreateNewAccount, DeactivateAccounts, DeleteAccounts, FetchAccounts, UpdateAccount } from "../services/AccountsService";
+import { Account, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
+import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountTransactions, FetchAccounts, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -12,6 +12,8 @@ type AccountsContextType = {
     updateAccount: (account: Account) => Promise<boolean>;
     activateAccounts: (accountIds: string[]) => Promise<boolean>;
     deactivateAccounts: (accountIds: string[]) => Promise<boolean>;
+    getAccountTransactions: (accountId: string) => Promise<AccountTransaction[]>;
+    createAccountTransaction: (transaction: AccountTransaction) => Promise<AccountTransaction>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -110,6 +112,26 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
+    const HandleGetAccountTransactions = async (accountId: string): Promise<AccountTransaction[]> => {
+        const response = await FetchAccountTransactions(accountId, apiUrl);
+
+        return response;
+    };
+
+    const HandleCreateAcccountTransaction = async (transaction: AccountTransaction): Promise<AccountTransaction> => {
+        const response = await CreateNewAccountTransaction(transaction, apiUrl);
+
+        if (response != null) {
+            //update the balance of the account
+            const index = accounts.findIndex(a => a.accountId === transaction.accountId);
+            if (index > -1) {
+                accounts[index].balance = response.afterTransactionBalance;
+            }
+        }
+
+        return response;
+    }
+
     return (
         <AccountsContext.Provider value={{ 
             isLoading: isLoading, 
@@ -120,7 +142,9 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             deleteAccounts: HandleDeleteAccounts,
             updateAccount: HandleUpdateAccount,
             activateAccounts: HandleActivateAccounts,
-            deactivateAccounts: HandleDeactivateAccounts
+            deactivateAccounts: HandleDeactivateAccounts,
+            getAccountTransactions: HandleGetAccountTransactions,
+            createAccountTransaction: HandleCreateAcccountTransaction
         }}>
             {children}
         </AccountsContext.Provider>

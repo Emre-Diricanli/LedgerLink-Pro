@@ -44,6 +44,12 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
         return { include: actions };
     };
 
+    const forceRefresh = () => {
+        let searchString = searchValue;
+        setSearchValue('');
+        setSearchValue(searchString);
+    };
+
     const onActionComplete = (result?: boolean, updatedAccount? : Account[]) => {
         if (result) {
            //close dropdown and refresh table
@@ -51,7 +57,6 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
 
             //close the dropdown
             setActionCompleted(prev => !prev); // Toggle the actionCompleted state
-            
             
         } else {
             console.log('Action failed');
@@ -121,7 +126,7 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
             </div>
            
             <div className='flex flex-col items-start w-fit ml-auto'>
-                <button className="icon-button secondary" onClick={() => actionComplete(true)}>
+                <button className="icon-button secondary" onClick={() => forceRefresh()}>
                     <FontAwesomeIcon icon={faArrowsRotate} />
                 </button>
             </div>

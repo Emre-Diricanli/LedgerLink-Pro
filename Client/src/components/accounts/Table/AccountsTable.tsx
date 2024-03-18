@@ -1,10 +1,11 @@
 // UserTable.js
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import './AccountsTable.css'; // Make sure to create a corresponding CSS file for styling
 import { Account } from '../../interfaces/Accounts';
 import AccountsActionDropdown from '../AccountActionsDropdown';
 import { useAccounts } from '../../../Providers/AccountsProvider';
+import TransactionsButton from '../TransactionsButton';
+import '../AccountsComponents.css';
 
 export interface AccountsTableProps {
     accounts: Account[];
@@ -82,6 +83,11 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccount
         };
     };
 
+    //refresh the accounts
+    const refreshAccounts = () => {
+        accountsNeedRefresh(selectedAccounts);
+    };
+
     // Define a function to handle the select all checkbox change
     const handleSelectAllChange = () => {
         setSelectAll(!selectAll);
@@ -114,7 +120,9 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccount
                             <th>Category</th>
                             <th>Sub Category</th>
                             <th>Status</th>
+                            <th>Balance</th>
                             <th>Actions</th>
+                            <th>Transactions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,8 +147,12 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccount
                                 <td>{account.category}</td>
                                 <td>{account.subcategory}</td>
                                 <td>{account.activeStatus ? 'Active' : 'Inactive'}</td>
+                                <td>${account.balance}</td>
                                 <td>
                                     <AccountsActionDropdown ref={dropdownRef} account={account} accountIds={[activeAccount || '']} showText={false} onActionComplete={onActionComplete} actionConfig={actionConfig(account.activeStatus)} closeDropdown={actionCompleted}/>
+                                </td>
+                                <td>
+                                   <TransactionsButton account={account} needsRefresh={refreshAccounts}/>
                                 </td>
                             </tr>
                         ))}

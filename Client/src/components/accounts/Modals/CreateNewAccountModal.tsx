@@ -11,23 +11,34 @@ interface CreateNewAccountModalProps {
 }
 
 const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, onClose }) => {
-    const [newAccount, setNewAccount] = useState<NewAccount>({} as NewAccount);
+    const [accountName, setAccountName] = useState<string>('');
+    const [accountNumber, setAccountNumber] = useState<number>();
+    const [description, setDescription] = useState<string>('');
+    const [subcategory, setSubcategory] = useState<string>('');
     const [selectedCategory, setSelectedCategory] = useState<string>('Asset');
     const accountsProvider = useAccounts();
-
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = event.target;
-        setNewAccount(prevState => ({ ...prevState, [name]: value }));
-        if (name === 'Category') {
-            console.log('Category changed: ' + value);
-            setSelectedCategory(value);
-        }
-    };
+    const [initialBalanceDollars, setInitialBalanceDollars] = useState<number>();
+    const [initialBalanceCents, setInitialBalanceCents] = useState<number>();
     
     const handleCreateNewAccount = async () => {
-        //Create new account
-        newAccount.Category = selectedCategory;
+        let newAccount: NewAccount = {
+            accountName: accountName,
+            accountNumber: accountNumber || 0,
+            description: description,
+            category: selectedCategory,
+            subcategory: subcategory,
+            initialBalance: (initialBalanceDollars || 0) + ((initialBalanceCents || 0) / 100)
+        };
+
+        //verify that all required fields are filled
+        if (newAccount.accountName === '' || newAccount.accountNumber === 0 || newAccount.description === '' || newAccount.subcategory === '' || newAccount.initialBalance === 0){
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        console.log('Creating new account: ' + JSON.stringify(newAccount));
+   
+        //Call the provider to create the new account
         const createNewAccountResponse = await accountsProvider.createNewAccount(newAccount);
 
         //If account was created successfully, close the modal
@@ -52,30 +63,30 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
         <ModalBody > 
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Account Name<strong>*</strong></p>
-                <input type="text" name="AccountName" placeholder='Account Name' value={newAccount.AccountName} maxLength={50} onChange={handleInputChange}/>
+                <input type="text" name="AccountName" placeholder='Account Name' value={accountName} maxLength={50} onChange={(e) => setAccountName(e.target.value)}/>
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Account Number<strong>*</strong></p>
-                <input type="number" name="AccountNumber" placeholder='Account Number' value={newAccount.AccountNumber} maxLength={10} onChange={handleInputChange}/>
+                <input type="number" name="AccountNumber" placeholder='Account Number' value={accountNumber || ''} onChange={(e) => setAccountNumber(Number(e.target.value))}/>
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-full">
                 <p>Description<strong>*</strong></p>
-                <textarea placeholder="Description"  name="Description" maxLength={250} value={newAccount.Description} onChange={handleInputChange} />
+                <textarea placeholder="Description"  name="Description" maxLength={250} value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Category<strong>*</strong></p>
-                <select name="Category" value={selectedCategory} onChange={handleInputChange}>
+                <select name="Category" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                     <option value="Asset">Asset</option>
                     <option value="Liability">Liability</option>
                     <option value="Equity">Equity</option>
                     <option value="Revenue">Revenue</option>
-                    <option value="Expenses">Expenses</option>
+                    <option value="Expenses">Expense</option>
                 </select>
 
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Sub-Category<strong>*</strong></p>
-                <input type="text" name="Subcategory" placeholder='Sub-Category' maxLength={50} value={newAccount.Subcategory} onChange={handleInputChange}/>
+                <input type="text" name="Subcategory" placeholder='Sub-Category' maxLength={50} value={subcategory} onChange={(e) => setSubcategory(e.target.value)}/>
             </div>
             {/* <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Normal side<strong>*</strong></p>
@@ -86,7 +97,11 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
             </div> */}
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Initial Balance<strong>*</strong></p>
-                <input type="number" name="InitialBalance" placeholder='Initial Balance' maxLength={10} value={newAccount.InitialBalance} onChange={handleInputChange}/>
+                {/*<input type="text" name="InitialBalance" placeholder='Initial Balance' maxLength={10} value={newAccount.initialBalance} onChange={handleInputChange} pattern="^\d*(\.\d{0,2})?$"/> */}
+                <div className="flex">
+                <input type="number" name="InitialBalanceDollars" placeholder='Dollars' value={initialBalanceDollars || ''} onChange={(e) => setInitialBalanceDollars(Number(e.target.value))} min="0" className="w-1/2" />
+                <input type="number" name="InitialBalanceCents" placeholder='Cents' value={initialBalanceCents || ''} onChange={(e) => setInitialBalanceCents(Number(e.target.value))} max="99" className="w-1/2" />
+                </div>
             </div>
             {/* <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Statement<strong>*</strong></p>
@@ -108,7 +123,7 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
                 <textarea placeholder="Comments" maxLength={150} />
             </div> */}
         </ModalBody>
-        <ModalFooter completetext='Create' onActionCancel={() => onClose(false)} onActionComplete={() => handleCreateNewAccount()} />
+        <ModalFooter completeText='Create' onActionCancel={() => onClose(false)} onActionComplete={() => handleCreateNewAccount()} />
       </div>
     </div>
   );
