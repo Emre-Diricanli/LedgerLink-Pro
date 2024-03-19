@@ -9,11 +9,11 @@ interface ConfirmDeleteModalProps {
 }
 
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose, headerText, bodyText }) => {
+if (!isOpen) return null;
 const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent click from propagating to the backdrop
     };
     
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>

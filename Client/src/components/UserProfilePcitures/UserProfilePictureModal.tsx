@@ -7,12 +7,13 @@ import './UserProfilePictureModal.css';
 import { useUser } from '../../Providers/UserProvider';
 
 interface UserProfilePictureModalProps {
-    currentImageUrl: string;
-    isOpen: boolean;
-    onClose: () => void;
-  }
+  currentImageUrl: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 const UserProfilePictureModal: React.FC<UserProfilePictureModalProps> = ({ currentImageUrl, isOpen, onClose }) => {
+    if (!isOpen) return null;
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewSrc, setPreviewSrc] = useState<string | null>(null);
     const systemsProvider = useSystems();
@@ -58,7 +59,6 @@ const UserProfilePictureModal: React.FC<UserProfilePictureModalProps> = ({ curre
         }
     }
 };
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose()}>

@@ -12,8 +12,8 @@ interface ModalFooterProps {
 const ModalFooter: React.FC<ModalFooterProps> = ({ canceltext, completeText: completetext, onActionCancel, onActionComplete, hideCancel }) => {
     return (
         <div className="modal-footer">
-            {!hideCancel && <button onClick={onActionCancel}>{canceltext || 'Cancel'}</button>}
-            <button onClick={onActionComplete}>{completetext || 'Ok'}</button>
+            {!hideCancel && <button title={canceltext || 'Cancel'} onClick={onActionCancel}>{canceltext || 'Cancel'}</button>}
+            <button title={completetext || 'Ok'} onClick={onActionComplete}>{completetext || 'Ok'}</button>
         </div>
     );
 }

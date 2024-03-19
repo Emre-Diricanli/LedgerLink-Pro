@@ -10,6 +10,7 @@ interface AdminUserResetPasswordModalProps {
 }
 
 const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = ({ userId, isOpen, onClose }) => {
+  if (!isOpen) return null;
   const [yesToReset, setYesToReset] = useState(false);
   const systemsProvider = useSystems();
 
@@ -86,7 +87,6 @@ const AdminResetUserPasswordModal: React.FC<AdminUserResetPasswordModalProps> = 
     }
   };
 
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>

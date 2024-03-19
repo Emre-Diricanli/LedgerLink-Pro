@@ -62,6 +62,51 @@ namespace LedgerLinkPro.Controllers
             return AccountNumber;
         }
 
+        private async Task LogObject(Account accountBeforeChanges, Account accountAfterChanges, string action, string userId, string userName )
+        {
+            try
+            {
+                // Create a new account log
+                DateTimeOffset utcNow = DateTimeOffset.UtcNow;
+
+                AccountLog accountLog = new AccountLog
+                {
+                    LogId = Guid.NewGuid(),
+                    AccountId = accountBeforeChanges.AccountId,
+                    Action = action,
+                    Date = utcNow,
+                    AccountBeforeChanges = accountBeforeChanges,
+                    AccountAfterChanges = accountAfterChanges,
+                    UserId = userId,
+                    UserName = userName
+                };
+
+                // Save the account log to the database
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    context.AccountLogs.Add(accountLog);
+                    await context.SaveChangesAsync();
+                }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error logging object. Exception Catched", "AccountsController.cs", "UNKNOWN", "LogObject", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error logging object. Exception Catched", "AccountsController.cs", identityUser.Id, "LogObject", ex.Message);
+
+                return;
+            }
+        }
+
 
         [HttpPost("create-new-account")]
         [Authorize(Roles = "Admin")]
@@ -282,6 +327,7 @@ namespace LedgerLinkPro.Controllers
                 using (var context = _contextFactory.CreateDbContext())
                 {
                     var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId == updateAccount.AccountId);
+                    var accountBeforeChanges = account;
 
                     if (account == null)
                     {
@@ -295,6 +341,8 @@ namespace LedgerLinkPro.Controllers
 
                     context.Accounts.Update(account);
                     await context.SaveChangesAsync();
+
+                    await LogObject(accountBeforeChanges, account, "Account Information Update", user.Id, user.UserName);
                 }
 
                 return Ok("Account updated successfully");
@@ -333,18 +381,30 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
+                    var accountsBeforeChanges = new List<Account>();
+                    var accountsAfterChanges = new List<Account>(); 
                     foreach (var accountId in accountIds)
                     {
                         var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+                        var accountBeforeChanges = account;
+                        accountsBeforeChanges.Add(accountBeforeChanges);
+
                         if (account == null)
                         {
                             continue;
                         }
 
                         account.ActiveStatus = false;
+                        accountsAfterChanges.Add(account);
                     }
 
                     await context.SaveChangesAsync();
+
+                    // Log the changes
+                    for (int i = 0; i < accountsBeforeChanges.Count; i++)
+                    {
+                        await LogObject(accountsBeforeChanges[i], accountsAfterChanges[i], "Account Deactivation", user.Id, user.UserName);
+                    }
                 }
 
                 return Ok("Account deactivated successfully");
@@ -383,18 +443,29 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
+                    var accountsBeforeChanges = new List<Account>();
+                    var accountsAfterChanges = new List<Account>();
                     foreach (var accountId in accountIds)
                     {
                         var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+                        var accountBeforeChanges = account;
+                        accountsBeforeChanges.Add(accountBeforeChanges);
                         if (account == null)
                         {
                             continue;
                         }
 
                         account.ActiveStatus = true;
+                        accountsAfterChanges.Add(account);
                     }
 
                     await context.SaveChangesAsync();
+
+                    // Log the changes
+                    for (int i = 0; i < accountsBeforeChanges.Count; i++)
+                    {
+                        await LogObject(accountsBeforeChanges[i], accountsAfterChanges[i], "Account Activation", user.Id, user.UserName);
+                    }
                 }
 
                 return Ok("Account activated successfully");
@@ -433,18 +504,31 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
+                    var accountsBeforeChanges = new List<Account>();
+                    var accountsAfterChanges = new List<Account>();
+
                     foreach (var accountId in accountIds)
                     {
                         var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+                        var accountBeforeChanges = account;
+                        accountsBeforeChanges.Add(accountBeforeChanges);
+
                         if (account == null)
                         {
                             continue;
                         }
 
                         context.Accounts.Remove(account);
+                        accountsAfterChanges.Add(account);
                     }
 
                     await context.SaveChangesAsync();
+
+                    // Log the changes
+                    for (int i = 0; i < accountsBeforeChanges.Count; i++)
+                    {
+                        await LogObject(accountsBeforeChanges[i], accountsAfterChanges[i], "Account Deletion", user.Id, user.UserName);
+                    }
                 }
 
                 return Ok("Account deleted successfully");
@@ -617,6 +701,45 @@ namespace LedgerLinkPro.Controllers
                 await _errorReportingService.ReportError("Error getting account transactions. Exception Catched", "AccountsController.cs", identityUser.Id, "GetAccounTransactions", ex.Message);
 
                 return StatusCode(500, "Error getting account transactions");
+            }
+        }
+
+        [HttpGet("get-account-logs")]
+        [Authorize]
+        public async Task<IActionResult> GetAccountLogs([FromQuery] string accountId)
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                //Get the account logs
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    var accountLogs = await context.AccountLogs.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
+ 
+                    return Ok(accountLogs);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error getting account logs. Exception Catched", "AccountsController.cs", "UNKNOWN", "GetAccountLogs", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error getting account logs. Exception Catched", "AccountsController.cs", identityUser.Id, "GetAccountLogs", ex.Message);
+
+                return StatusCode(500, "Error getting account logs");
             }
         }
     }

@@ -12,6 +12,7 @@ interface CreateUserAccessExpirationModalProps {
 }
 
 const CreateUserAccecssExpirationModal: React.FC<CreateUserAccessExpirationModalProps> = ({ userId, isOpen, onClose }) => {
+    if (!isOpen) return null;
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
@@ -50,7 +51,6 @@ const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent click from propagating to the backdrop
     };
     
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>

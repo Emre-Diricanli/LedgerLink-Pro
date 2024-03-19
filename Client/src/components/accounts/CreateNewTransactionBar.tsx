@@ -36,7 +36,7 @@ const CreateNewTransactionBar: React.FC<CreateNewTransactionBarProps> = ({ accou
             transactionAmount: value,
             beforeTransactionBalance: account.balance,
             afterTransactionBalance: account.balance + value,
-            transactionsDate: new Date(),
+            transactionDate: new Date(),
             userName: 'UNKNOWN'
         };
 

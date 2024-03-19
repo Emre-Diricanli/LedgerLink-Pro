@@ -1,7 +1,7 @@
 import React from 'react';
 import './AccountsComponents.css'
-import TransactionsModal from './Modals/TransactionsModal';
 import { Account } from '../interfaces/Accounts';
+import ViewAccountModal from './Modals/ViewAccountModal';
 
 interface ViewAccountButtonProps {
     account: Account;
@@ -24,12 +24,14 @@ const ViewAccountButton: React.FC<ViewAccountButtonProps> = ({account, needsRefr
     }
 
     return (
-        <div className='view-account-button'>
-            <TransactionsModal account={account} isOpen={isOpen} onClose={hideModal} />
-            <button onClick={showModal}>
-                View
-            </button>
-        </div>
+       <div>
+            <ViewAccountModal account={account} isOpen={isOpen} onClose={hideModal} />
+            <div className='view-account-button'>
+                <button onClick={showModal}>
+                    View
+                </button>
+            </div>
+       </div>
     );
 };
 

@@ -11,7 +11,8 @@ interface EditUserModalProps {
 }
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose }) => {
-
+    if (!isOpen) return null;
+    
     const [newUser, setNewUser] = useState<User>(user);
 
     const [roleOptions, setRoleOptions] = useState<string[]>([]);
@@ -33,7 +34,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose }) 
     event.stopPropagation(); // Prevent click from propagating to the backdrop
     };
     
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false, user)}>

@@ -1,4 +1,4 @@
-import { Account, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
 export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
@@ -201,3 +201,28 @@ export const CreateNewAccountTransaction = async (transaction: AccountTransactio
     }
 }
 
+export const FetchAccountLogs = async (accountId: string, apiUrl: string): Promise<AccountLogs[]> => {
+    try{
+        const response = await fetch(`${apiUrl}/accounts/get-account-logs?accountId=${accountId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return [] as unknown as AccountLogs[];
+        }
+
+        const data = await response.json();
+
+        const logs = data as AccountLogs[];
+
+        return logs;
+    }
+    catch (error) {
+        console.error("Error in Fetch Account Logs: ", (error as Error).message);
+        return [] as unknown as AccountLogs[];
+    }
+}

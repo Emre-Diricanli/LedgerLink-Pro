@@ -37,10 +37,21 @@ export interface AccountSearchQuery {
 export interface AccountTransaction {
     accountId: string;
     transactionId?: string;
-    transactionsDate: Date;
+    transactionDate: Date;
     transactionDescription: string;
     transactionAmount: number;
     beforeTransactionBalance : number;
     afterTransactionBalance : number;
+    userName: string;
+};
+
+export interface AccountLogs {
+    logId: string;
+    accountId: string;
+    action: string;
+    date: Date;
+    accountBeforeChanges: Account;
+    accountAfterChanges: Account;
+    userId: string;
     userName: string;
 };

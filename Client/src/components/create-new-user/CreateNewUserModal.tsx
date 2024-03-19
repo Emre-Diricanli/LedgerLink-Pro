@@ -17,6 +17,7 @@ interface UserModalProps {
 }
 
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
     const systemsProvider = useSystems();
     const userProvider = useUser();
     const [username, setUsername] = React.useState('');
@@ -274,7 +275,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
         event.stopPropagation(); // This prevents the click from propagating to the backdrop
     };
 
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>

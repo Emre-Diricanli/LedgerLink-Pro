@@ -2,12 +2,11 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { Account, AccountTransaction } from '../../interfaces/Accounts';
-import { useAccounts } from '../../../Providers/AccountsProvider';
 import '../AccountsComponents.css';
 
 export interface TransactionsTableProps {
     account: Account;
-    onActiveTransactionChange: (accountId: string) => void;
+    onActiveTransactionChange?: (accountId: string) => void;
     transactions: AccountTransaction[];
      
 }
@@ -18,7 +17,9 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
 
     const handleRowClick = (transactionId: string) => {
         setActiveTransaction(transactionId);
-        onActiveTransactionChange(transactionId);
+        if (onActiveTransactionChange) {
+            onActiveTransactionChange(transactionId);
+        }
     };
 
 
@@ -52,7 +53,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                                     }}
                                 />
                             </td> */}
-                            <td>{String(transaction.transactionsDate)}</td>
+                            <td>{new Date(transaction.transactionDate).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                             <td>{transaction.transactionAmount}</td>
                             <td>{transaction.beforeTransactionBalance}</td>
                             <td>{transaction.afterTransactionBalance}</td>

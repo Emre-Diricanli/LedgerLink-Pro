@@ -14,8 +14,14 @@ interface EditAccountModalProps {
 }
 
 const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, isOpen, onClose }) => {
+    if (!isOpen) return null;
 
-    const [newAccount, setNewAccount] = useState<Account>(account);
+    const [accountName, setAccountName] = useState<string>(account.accountName);
+    const [accountNumber, setAccountNumber] = useState<number>(account.accountNumber);
+    const [description, setDescription] = useState<string>(account.description);
+    const [category, setCategory] = useState<string>(account.category);
+    const [subcategory, setSubcategory] = useState<string>(account.subcategory);
+
     const [selectedCategory, setSelectedCategory] = useState<string>('Asset');
 
     // const [roleOptions, setRoleOptions] = useState<string[]>([]);
@@ -25,20 +31,23 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
     //     'User': 'User',
     // }
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = event.target;
-        setNewAccount(prevState => ({ ...prevState, [name]: value }));
-        if (name === 'Category') {
-            console.log('Category changed: ' + value);
-            setSelectedCategory(value);
-        }
-    };
-
     const revertChanges = () => {
-        setNewAccount(account);
+        setAccountName(account.accountName);
+        setAccountNumber(account.accountNumber);
+        setDescription(account.description);
+        setCategory(account.category);
+        setSubcategory(account.subcategory);
     };
 
+    // update the selected account
     const handleUpdateAccount = async () => {
+        const newAccount  = account;
+        newAccount.accountName = accountName;
+        newAccount.accountNumber = accountNumber;
+        newAccount.description = description;
+        newAccount.category = category;
+        newAccount.subcategory = subcategory;
+
         onClose(true, newAccount);
     }
 
@@ -46,30 +55,29 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
     event.stopPropagation(); // Prevent click from propagating to the backdrop
     };
     
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false, account)}>
       <div className="modal-content" onClick={handleModalClick}>
-        <ModalHeader mainText={`Edit ${newAccount.accountName}`} subText={`[${newAccount.accountNumber.toString()}]`} />
+        <ModalHeader mainText={`Edit ${account.accountName}`} subText={`[${account.accountNumber.toString()}]`} />
         <ModalBody>
             <div className="flex flex-row gap-2 content-center justify-start w-full">
                 <div className="flex flex-col w-1/2">
                     <label htmlFor="firstName">Account</label>
-                    <input type="text" id="firstName" name="firstName" value={newAccount.accountName}  onChange={handleInputChange}/>
+                    <input type="text" id="firstName" name="firstName" value={accountName}  onChange={(e) => setAccountName(e.target.value)} />
                 </div>
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Account Number<strong>*</strong></p>
-                <input type="number" name="AccountNumber" placeholder='Account Number' value={newAccount.accountNumber} maxLength={10} onChange={handleInputChange}/>
+                <input type="number" name="AccountNumber" placeholder='Account Number' value={accountNumber} maxLength={10} onChange={(e) => setAccountNumber(parseInt(e.target.value))}/>
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-full">
                 <p>Description<strong>*</strong></p>
-                <textarea placeholder="Description"  name="Description" maxLength={250} value={newAccount.description} onChange={handleInputChange} />
+                <textarea placeholder="Description"  name="Description" maxLength={250} value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Category<strong>*</strong></p>
-                <select name="Category" value={selectedCategory} onChange={handleInputChange}>
+                <select name="Category" value={selectedCategory} onChange={(e) => setCategory(e.target.value)}>
                     <option value="Asset">Asset</option>
                     <option value="Liability">Liability</option>
                     <option value="Equity">Equity</option>
@@ -80,7 +88,7 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
             
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Sub-Category<strong>*</strong></p>
-                <input type="text" name="Subcategory" placeholder='Sub-Category' maxLength={50} value={newAccount.subcategory} onChange={handleInputChange}/>
+                <input type="text" name="Subcategory" placeholder='Sub-Category' maxLength={50} value={subcategory} onChange={(e) => setSubcategory(e.target.value)}/>
             </div>
             
             <div className="flex flex-row items-center justify-start gap-2 w-full mt-8">
@@ -92,7 +100,7 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
                 </span>
             </div>
         </ModalBody>
-        <ModalFooter completeText='Update' onActionCancel={() => onClose(false, newAccount)} onActionComplete={() => handleUpdateAccount()} />
+        <ModalFooter completeText='Update' onActionCancel={() => onClose(false, account)} onActionComplete={() => handleUpdateAccount()} />
         
         
       </div>

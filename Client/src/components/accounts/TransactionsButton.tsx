@@ -24,12 +24,14 @@ const TransactionsButton: React.FC<TransactionsButtonProps> = ({account, needsRe
     }
 
     return (
-        <div className='transactions-button'>
+       <div>
             <TransactionsModal account={account} isOpen={isOpen} onClose={hideModal} />
-            <button onClick={showModal}>
-                Transactions
-            </button>
-        </div>
+            <div className='transactions-button'>
+                <button onClick={showModal}>
+                    Transactions
+                </button>
+            </div>
+       </div>
     );
 };
 

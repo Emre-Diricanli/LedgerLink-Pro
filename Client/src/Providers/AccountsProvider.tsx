@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Account, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
-import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountTransactions, FetchAccounts, UpdateAccount } from "../services/AccountsService";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
+import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -14,6 +14,7 @@ type AccountsContextType = {
     deactivateAccounts: (accountIds: string[]) => Promise<boolean>;
     getAccountTransactions: (accountId: string) => Promise<AccountTransaction[]>;
     createAccountTransaction: (transaction: AccountTransaction) => Promise<AccountTransaction>;
+    fetchAccountLogs: (accountId: string) => Promise<AccountLogs[]>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -132,6 +133,12 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
+    const HandleFetchAccountLogs = async (accountId: string): Promise<AccountLogs[]> => {
+       const response  = await FetchAccountLogs(accountId, apiUrl);
+
+         return response;
+    } 
+
     return (
         <AccountsContext.Provider value={{ 
             isLoading: isLoading, 
@@ -144,7 +151,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             activateAccounts: HandleActivateAccounts,
             deactivateAccounts: HandleDeactivateAccounts,
             getAccountTransactions: HandleGetAccountTransactions,
-            createAccountTransaction: HandleCreateAcccountTransaction
+            createAccountTransaction: HandleCreateAcccountTransaction,
+            fetchAccountLogs: HandleFetchAccountLogs
         }}>
             {children}
         </AccountsContext.Provider>

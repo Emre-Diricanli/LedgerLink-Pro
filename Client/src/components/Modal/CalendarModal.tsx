@@ -12,6 +12,7 @@ interface Props {
 }
 
 const CalendarModal: React.FC<Props> = ({isOpen, onClose }) => {
+    if (!isOpen) return null;
     // Component logic goes here
     const [value, onChange] = useState<Value>(new Date());
 
@@ -23,7 +24,6 @@ const CalendarModal: React.FC<Props> = ({isOpen, onClose }) => {
         event.stopPropagation(); // Prevent click from propagating to the backdrop
         };
 
-    if (!isOpen) return null;
 
     return (
         <div className="modal-backdrop" onClick={() => onClose(false)}>

@@ -12,6 +12,7 @@ interface CreateNewAccountModalProps {
 }
 
 const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, onClose }) => {
+    if (!isOpen) return null;
     const [accountName, setAccountName] = useState<string>('');
     const [accountNumber, setAccountNumber] = useState<number>();
     const [description, setDescription] = useState<string>('');
@@ -62,7 +63,6 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
     event.stopPropagation(); // Prevent click from propagating to the backdrop
     };
     
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>

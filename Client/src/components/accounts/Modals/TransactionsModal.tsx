@@ -17,7 +17,8 @@ interface TransactionsModalProps {
 }
 
 const TransactionsModal: React.FC<TransactionsModalProps> = ({ account: account, isOpen, onClose }) => {
-    const accountsProivder = useAccounts();
+    if (!isOpen) return null;
+    const accountsProvider = useAccounts();
     const [transactions, setTransactions] = useState<AccountTransaction[]>([]);
     const [hasChanges, setHasChanges] = useState(false);
     
@@ -27,16 +28,16 @@ const TransactionsModal: React.FC<TransactionsModalProps> = ({ account: account,
 
     useEffect(() => {
         const fetchTransactions = async () => {
-            const transactions = await accountsProivder.getAccountTransactions(account.accountId);
+            const transactions = await accountsProvider.getAccountTransactions(account.accountId);
 
             setTransactions(transactions);
         }
 
-        fetchTransactions();
+        if (isOpen) fetchTransactions();
     }, []);
 
     const handleCreateTransaction = async (transaction: AccountTransaction) => {
-        const newTransaction = await accountsProivder.createAccountTransaction(transaction);
+        const newTransaction = await accountsProvider.createAccountTransaction(transaction);
 
         // Add the new transaction to the transactions list
         setTransactions([...transactions, newTransaction]);
@@ -46,7 +47,6 @@ const TransactionsModal: React.FC<TransactionsModalProps> = ({ account: account,
 
     
     
-    if (!isOpen) return null;
 
     return (
         <div className="modal-backdrop" onClick={() => onClose(hasChanges)}>
