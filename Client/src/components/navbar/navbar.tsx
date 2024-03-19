@@ -5,12 +5,17 @@ import UserProfilePictureModal from '../UserProfilePcitures/UserProfilePictureMo
 import { useUser } from '../../Providers/UserProvider';
 import { useAuth } from '../../Providers/AuthProvider';
 import ProfileImage from './profileImage';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import CalendarModal from '../Modal/CalendarModal';
 
 function Navbar() {
+  const logoSrc = '/llp-logo-alpha.png'
   const { user } = useUser();
   const noUrl = !user?.profilePictureUrl;
   const auth = useAuth();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const { signOut, isAuthenticated } = useAuth();
 
 
@@ -21,7 +26,14 @@ function Navbar() {
 
   const handleModalClose = () => {
     setIsProfilePictureModalOpen(false);
+    setIsCalendarModalOpen(false);
   };
+
+  const handleCalendarClick = () => {
+    //show CalendarModal
+    setIsCalendarModalOpen(true);
+  }
+
 
   const handleSignout = async () => {
     try {
@@ -36,7 +48,12 @@ function Navbar() {
   return (
     <nav className="navbar-container">
       <UserProfilePictureModal currentImageUrl={noUrl ? '' : user.profilePictureUrl || ''} isOpen={isProfilePictureModalOpen} onClose={handleModalClose} />
+      <CalendarModal isOpen={isCalendarModalOpen} onClose={handleModalClose} />
       <div className='navbar-navlinks-container'>
+        <div className='navbar-item'>
+          <img src={logoSrc} alt="logo" width={30}/>
+        </div>
+        
         <div className='navbar-item'>
           <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
         </div>
@@ -50,6 +67,9 @@ function Navbar() {
         )}
       </div>
       <div className='navbar-profile-container'>
+        <div className='navbar-item cursor-pointer'>
+          <FontAwesomeIcon icon={faCalendarDays} size='xl' onClick={handleCalendarClick}/>
+        </div>
         {user ? <p>{user.username}</p> : <p>Loading user...</p>}
 
         <ProfileImage handleProfilePictureClick={handleProfilePictureClick} />

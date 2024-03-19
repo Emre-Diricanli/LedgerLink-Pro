@@ -1,4 +1,9 @@
 
+.react-calendar__navigation__arrow {
+  color: var(--primary-color); /* Color of the arrow */
+}
+
+
 .modal-backdrop {
     position: fixed;
     top: 0;

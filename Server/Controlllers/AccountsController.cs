@@ -64,7 +64,7 @@ namespace LedgerLinkPro.Controllers
 
 
         [HttpPost("create-new-account")]
-        [Authorize (Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateNewAccount(NewAccountDTO newAccount)
         {
             try
@@ -83,7 +83,7 @@ namespace LedgerLinkPro.Controllers
                 {
                     AccountName = newAccount.AccountName,
                     Description = newAccount.Description,
-                    NormalSide =  "Debit", // "Credit" or "Debit"
+                    NormalSide = "Debit", // "Credit" or "Debit"
                     Category = newAccount.Category,
                     Subcategory = newAccount.Subcategory,
                     UserId = user.Id,
@@ -127,6 +127,13 @@ namespace LedgerLinkPro.Controllers
                         return BadRequest("Account number already exists");
                     }
 
+                    var nameAlreadyExists = await context.Accounts.FirstOrDefaultAsync(a => a.AccountName == account.AccountName);
+
+                    if (nameAlreadyExists != null)
+                    {
+                        return BadRequest("Account name already exists");
+                    }
+
                     // Save the account to the database
                     context.Accounts.Add(account);
                     await context.SaveChangesAsync();
@@ -163,10 +170,10 @@ namespace LedgerLinkPro.Controllers
                 //null handling
                 if (identityUser == null)
                 {
-                    await _errorReportingService.ReportError("Error creating new account. Exception Catched",  "AccountsController.cs", "UNKNOWN", "CreateNewAccount", ex.Message);
+                    await _errorReportingService.ReportError("Error creating new account. Exception Catched", "AccountsController.cs", "UNKNOWN", "CreateNewAccount", ex.Message);
                 }
 
-                await _errorReportingService.ReportError("Error creating new account. Exception Catched",  "AccountsController.cs", identityUser.Id, "CreateNewAccount", ex.Message);
+                await _errorReportingService.ReportError("Error creating new account. Exception Catched", "AccountsController.cs", identityUser.Id, "CreateNewAccount", ex.Message);
 
                 return StatusCode(500, "Error creating new account");
             }
@@ -193,7 +200,7 @@ namespace LedgerLinkPro.Controllers
                     accountsQuery = accountsQuery.Where(u =>
                         (u.AccountName.ToLower()).Contains(normalizedSearchString));
 
-                        
+
                 }
 
 
@@ -474,7 +481,7 @@ namespace LedgerLinkPro.Controllers
                 }
 
                 //validate the model
-               
+
 
                 var db = _contextFactory.CreateDbContext();
 
@@ -490,14 +497,14 @@ namespace LedgerLinkPro.Controllers
 
                 AccountTransaction accountTransaction = new AccountTransaction
                 {
-                   TransactionId = Guid.NewGuid(),
-                   UserId = user.Id,
-                   AccountId = newTransaction.AccountId,
-                   BeforeTransactionBalance = newTransaction.BeforeTransactionBalance,
-                   AfterTransactionBalance = newTransaction.AfterTransactionBalance,
-                   TransactionAmount = newTransaction.TransactionAmount,
-                   TransactionDescription = newTransaction.TransactionDescription,
-                   TransactionDate = utcNow
+                    TransactionId = Guid.NewGuid(),
+                    UserId = user.Id,
+                    AccountId = newTransaction.AccountId,
+                    BeforeTransactionBalance = newTransaction.BeforeTransactionBalance,
+                    AfterTransactionBalance = newTransaction.AfterTransactionBalance,
+                    TransactionAmount = newTransaction.TransactionAmount,
+                    TransactionDescription = newTransaction.TransactionDescription,
+                    TransactionDate = utcNow
                 };
 
                 //To manage concurrency, check if the before transaction balance is the same as the current balance, if not then return an error message
@@ -531,7 +538,7 @@ namespace LedgerLinkPro.Controllers
                 return Ok(returnTransaction);
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 var identityUser = await _userManager.GetUserAsync(User);
@@ -544,7 +551,7 @@ namespace LedgerLinkPro.Controllers
 
                 await _errorReportingService.ReportError("Error creating new account transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "NewAccountTransaction", ex.Message);
 
-                return StatusCode(500, "Error creating new account transaction");   
+                return StatusCode(500, "Error creating new account transaction");
             }
         }
 
@@ -596,7 +603,7 @@ namespace LedgerLinkPro.Controllers
 
                 return Ok(accountTransactionsDTO);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 var identityUser = await _userManager.GetUserAsync(User);

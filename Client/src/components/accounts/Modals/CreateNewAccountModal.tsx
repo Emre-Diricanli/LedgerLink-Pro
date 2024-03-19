@@ -4,6 +4,7 @@ import ModalFooter from '../../Modal/ModalFooter';
 import ModalHeader from '../../Modal/ModalHeader';
 import ModalBody from '../../Modal/ModalBody';
 import { useAccounts } from '../../../Providers/AccountsProvider';
+import CurrencyInput from 'react-currency-input-field';
 
 interface CreateNewAccountModalProps {
     isOpen: boolean;
@@ -17,8 +18,15 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
     const [subcategory, setSubcategory] = useState<string>('');
     const [selectedCategory, setSelectedCategory] = useState<string>('Asset');
     const accountsProvider = useAccounts();
-    const [initialBalanceDollars, setInitialBalanceDollars] = useState<number>();
-    const [initialBalanceCents, setInitialBalanceCents] = useState<number>();
+    const [initialBalance, setInitialBalance] = React.useState<number>(0);
+
+    const onValueChange = (value: string | undefined) => {
+        if (value) {
+            setInitialBalance(Number(value));
+        } else {
+            setInitialBalance(0);
+        }
+    }
     
     const handleCreateNewAccount = async () => {
         let newAccount: NewAccount = {
@@ -27,7 +35,7 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
             description: description,
             category: selectedCategory,
             subcategory: subcategory,
-            initialBalance: (initialBalanceDollars || 0) + ((initialBalanceCents || 0) / 100)
+            initialBalance: initialBalance
         };
 
         //verify that all required fields are filled
@@ -67,7 +75,8 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Account Number<strong>*</strong></p>
-                <input type="number" name="AccountNumber" placeholder='Account Number' value={accountNumber || ''} onChange={(e) => setAccountNumber(Number(e.target.value))}/>
+                
+                <input type="number" name="AccountNumber" placeholder='Account Number' value={accountNumber || ''} onChange={(e) => setAccountNumber(parseInt(e.target.value))}/>
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-full">
                 <p>Description<strong>*</strong></p>
@@ -98,10 +107,13 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Initial Balance<strong>*</strong></p>
                 {/*<input type="text" name="InitialBalance" placeholder='Initial Balance' maxLength={10} value={newAccount.initialBalance} onChange={handleInputChange} pattern="^\d*(\.\d{0,2})?$"/> */}
-                <div className="flex">
-                <input type="number" name="InitialBalanceDollars" placeholder='Dollars' value={initialBalanceDollars || ''} onChange={(e) => setInitialBalanceDollars(Number(e.target.value))} min="0" className="w-1/2" />
-                <input type="number" name="InitialBalanceCents" placeholder='Cents' value={initialBalanceCents || ''} onChange={(e) => setInitialBalanceCents(Number(e.target.value))} max="99" className="w-1/2" />
-                </div>
+                <CurrencyInput
+                    name="currency-input"
+                    placeholder="$1,000.00"
+                    decimalsLimit={2}
+                    prefix='$'
+                    onValueChange={onValueChange}
+                    />
             </div>
             {/* <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Statement<strong>*</strong></p>

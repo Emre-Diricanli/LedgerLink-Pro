@@ -111,6 +111,11 @@
   background-color: var(--accent-hover-color);
 }
 
-  
+.view-account-button button{
+  background-color: #009514;
+}
 
+.view-account-button button:hover{
+  background-color: #007a11;
+}
   

@@ -6,6 +6,7 @@ import AccountsActionDropdown from '../AccountActionsDropdown';
 import { useAccounts } from '../../../Providers/AccountsProvider';
 import TransactionsButton from '../TransactionsButton';
 import '../AccountsComponents.css';
+import ViewAccountButton from '../ViewAccountButton';
 
 export interface AccountsTableProps {
     accounts: Account[];
@@ -104,61 +105,74 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccount
 
     return (
         <div>
-            <div className="accounts-table-container">
-                <table className="accounts-table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <input
-                                    type="checkbox"
-                                    checked={selectAll}
-                                    onChange={handleSelectAllChange}
-                                />
-                            </th>
-                            <th>Account Name</th>
-                            <th>Account Number</th>
-                            <th>Category</th>
-                            <th>Sub Category</th>
-                            <th>Status</th>
-                            <th>Balance</th>
-                            <th>Actions</th>
-                            <th>Transactions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {accounts.map((account) => (
-                                <tr 
-                                    key={account.accountId} 
-                                    onClick={() => handleRowClick(account.accountId)}
-                                    className={activeAccount === account.accountId ? 'active-user-row' : ''}
-                                >
-                                <td>
+
+            {accounts.length === 0 ? (
+                <div className='w-full h-full flex flex-col'>
+                    <h3 className='mt-16'>To get started please create an Account</h3>
+                </div>
+            ) : (
+                <div className="accounts-table-container">
+                    <table className="accounts-table">
+                        <thead>
+                            <tr>
+                                <th>
                                     <input
                                         type="checkbox"
-                                        checked={selectedAccounts.includes(account.accountId)}
-                                        onChange={(e) => {
-                                            e.stopPropagation(); // Prevent row click when interacting with the checkbox
-                                            handleCheckboxChange(account.accountId);
-                                        }}
+                                        checked={selectAll}
+                                        onChange={handleSelectAllChange}
                                     />
-                                </td>
-                                <td>{account.accountName}</td>
-                                <td>{account.accountNumber}</td>
-                                <td>{account.category}</td>
-                                <td>{account.subcategory}</td>
-                                <td>{account.activeStatus ? 'Active' : 'Inactive'}</td>
-                                <td>${account.balance}</td>
-                                <td>
-                                    <AccountsActionDropdown ref={dropdownRef} account={account} accountIds={[activeAccount || '']} showText={false} onActionComplete={onActionComplete} actionConfig={actionConfig(account.activeStatus)} closeDropdown={actionCompleted}/>
-                                </td>
-                                <td>
-                                   <TransactionsButton account={account} needsRefresh={refreshAccounts}/>
-                                </td>
+                                </th>
+                                <th>Account Name</th>
+                                <th>Account Number</th>
+                                <th>Category</th>
+                                <th>Sub Category</th>
+                                <th>Status</th>
+                                <th>Balance</th>
+                                <th>Actions</th>
+                                <th>Transactions</th>
+                                <th>View Account</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {accounts.map((account) => (
+                                    <tr 
+                                        key={account.accountId} 
+                                        onClick={() => handleRowClick(account.accountId)}
+                                        className={activeAccount === account.accountId ? 'active-user-row' : ''}
+                                    >
+                                    <td>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedAccounts.includes(account.accountId)}
+                                            onChange={(e) => {
+                                                e.stopPropagation(); // Prevent row click when interacting with the checkbox
+                                                handleCheckboxChange(account.accountId);
+                                            }}
+                                        />
+                                    </td>
+                                    <td>{account.accountName}</td>
+                                    <td>{account.accountNumber}</td>
+                                    <td>{account.category}</td>
+                                    <td>{account.subcategory}</td>
+                                    <td>{account.activeStatus ? 'Active' : 'Inactive'}</td>
+                                    <td>${account.balance}</td>
+                                    <td>
+                                        <AccountsActionDropdown ref={dropdownRef} account={account} accountIds={[activeAccount || '']} showText={false} onActionComplete={onActionComplete} actionConfig={actionConfig(account.activeStatus)} closeDropdown={actionCompleted}/>
+                                    </td>
+                                    <td>
+                                        <TransactionsButton account={account} needsRefresh={refreshAccounts}/>
+                                    </td>
+                                    <td>
+                                        <ViewAccountButton account={account} needsRefresh={refreshAccounts}/>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+             ) }
+                
+            
         </div>
     );
 };

@@ -68,6 +68,19 @@ const AccountsActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProp
 
     const actionHandlers: { [key: string]: () => Promise<void> | void } = {
         'Deactivate': async () => {
+
+            //if account has a greater balance than 0, then do not deactivate
+            const accountsToDeactivate = accountsProvider.accounts.filter(account => accountIds.includes(account.accountId));
+
+            const hasBalance = accountsToDeactivate.some(account => account.balance > 0);
+
+            if (hasBalance) {
+                alert('Cannot deactivate account with balance greater than 0');
+                onActionComplete(false);
+                return;
+            }
+
+
             const result = await accountsProvider.deactivateAccounts(accountIds);
 
             //if true then update account

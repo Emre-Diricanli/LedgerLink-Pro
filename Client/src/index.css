@@ -10,6 +10,15 @@
   overflow: hidden;
 }
 
+abbr{
+  color: var(--primary-color);
+}
+
+span {
+  color: var(--primary-color);
+}
+
+
 :root {
   font-family:sans-serif;
 
