@@ -31,6 +31,14 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
     //     'User': 'User',
     // }
 
+    useEffect(() => {
+        setSelectedCategory(account.category);
+    }, [account.category]);
+
+    const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCategory(event.target.value);
+    };
+
     const revertChanges = () => {
         setAccountName(account.accountName);
         setAccountNumber(account.accountNumber);
@@ -45,7 +53,7 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
         newAccount.accountName = accountName;
         newAccount.accountNumber = accountNumber;
         newAccount.description = description;
-        newAccount.category = category;
+        newAccount.category = selectedCategory;
         newAccount.subcategory = subcategory;
 
         onClose(true, newAccount);
@@ -77,7 +85,7 @@ const EditAccountModal: React.FC<EditAccountModalProps> = ({ account: account, i
             </div>
             <div className="flex flex-col content-center justify-start gap-0 w-3/5">
                 <p>Category<strong>*</strong></p>
-                <select name="Category" value={selectedCategory} onChange={(e) => setCategory(e.target.value)}>
+                <select name="Category" value={selectedCategory} onChange={handleCategoryChange}>
                     <option value="Asset">Asset</option>
                     <option value="Liability">Liability</option>
                     <option value="Equity">Equity</option>

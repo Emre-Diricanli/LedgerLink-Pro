@@ -327,7 +327,25 @@ namespace LedgerLinkPro.Controllers
                 using (var context = _contextFactory.CreateDbContext())
                 {
                     var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId == updateAccount.AccountId);
-                    var accountBeforeChanges = account;
+
+                    var accountBeforeChanges = new Account
+                    {
+                        AccountId = account.AccountId,
+                        AccountName = account.AccountName,
+                        Description = account.Description,
+                        Category = account.Category,
+                        Subcategory = account.Subcategory,
+                        ActiveStatus = account.ActiveStatus,
+                        Balance = account.Balance,
+                        Credit = account.Credit,
+                        Debit = account.Debit,
+                        DateAdded = account.DateAdded,
+                        NormalSide = account.NormalSide,
+                        Order = account.Order,
+                        Statement = account.Statement,
+                        UserId = account.UserId,
+                        Comment = account.Comment
+                    };
 
                     if (account == null)
                     {

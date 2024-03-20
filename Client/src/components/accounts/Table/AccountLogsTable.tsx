@@ -19,12 +19,13 @@ const AccountLogsTable: React.FC<AccountLogsTableProps> = ({ accountLogs }) => {
     };
 
     return (
-        <div>
+        <div className='account-log-table-container'>
             <table>
                 <thead>
                     <tr>
                         <th>Action</th>
                         <th>Date</th>
+                        <th>User</th>
                         <th>View</th>
                     </tr>
                 </thead>
@@ -34,6 +35,7 @@ const AccountLogsTable: React.FC<AccountLogsTableProps> = ({ accountLogs }) => {
                         <tr>
                             <td>{log.action}</td>
                             <td>{new Date(log.date).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
+                            <td>{log.userName}</td>
                             <td>
                                 <div onClick={() => toggleRow(index)}>
                                     { openRowIndex === index ? (
@@ -46,9 +48,20 @@ const AccountLogsTable: React.FC<AccountLogsTableProps> = ({ accountLogs }) => {
                         </tr>
                         {openRowIndex === index && (
                             <tr>
-                                <td colSpan={3}>
-                                    {/* Render your dropdown or expanded content here */}
-                                    Detailed information for log {log.logId}
+                                <td colSpan={4}>
+                                    <div className='flex flex-row'>
+                                        <p><strong>User: </strong></p>
+                                        <p> {log.userName}: <strong>{log.userId}</strong></p>
+                                    </div>
+                                    <div style={{height: `350px`}} className='w-full flex flex-row flex-grow justify-between mt-4'>
+                                        <p className='text-xs whitespace-pre-wrap w-fit'>
+                                            {JSON.stringify(log.accountBeforeChanges, null, 4)}
+                                        </p>
+                                        <div className='vertical-divider mr-8'></div>
+                                        <p className='text-xs whitespace-pre-wrap w-fit'>
+                                            {JSON.stringify(log.accountAfterChanges, null, 4)}
+                                        </p>
+                                    </div>
                                 </td>
                             </tr>
                         )}
