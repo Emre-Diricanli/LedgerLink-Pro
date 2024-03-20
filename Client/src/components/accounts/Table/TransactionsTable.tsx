@@ -54,9 +54,9 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                                 />
                             </td> */}
                             <td>{new Date(transaction.transactionDate).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
-                            <td>{transaction.transactionAmount}</td>
-                            <td>{transaction.beforeTransactionBalance}</td>
-                            <td>{transaction.afterTransactionBalance}</td>
+                            <td>${transaction.transactionAmount}</td>
+                            <td>${transaction.beforeTransactionBalance}</td>
+                            <td>${transaction.afterTransactionBalance}</td>
                             <td>{transaction.transactionDescription}</td>
                         </tr>
                     ))}
