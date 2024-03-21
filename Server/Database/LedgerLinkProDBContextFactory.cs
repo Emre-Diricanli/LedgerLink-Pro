@@ -1,7 +1,7 @@
 ﻿using LedgerLinkPro.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace LedgerLinkProBackend.Database
+namespace LedgerLinkPro.Database
 {
     public class LedgerLinkProDBContextFactory : IDbContextFactory<LedgerLinkProDBContext>
     {

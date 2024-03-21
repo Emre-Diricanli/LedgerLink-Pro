@@ -1,6 +1,6 @@
-﻿using LedgerLink_Pro_Backend.DTO;
-using LedgerLink_Pro_Backend.Models.Users;
-using LedgerLink_Pro_Backend.Services;
+﻿using LedgerLinkPro.DTO;
+using LedgerLinkPro.Models.Users;
+using LedgerLinkPro.Services;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Auth;
@@ -13,10 +13,11 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace LedgerLink_Pro_Backend.Controlllers
+namespace LedgerLinkPro.Controlllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -645,14 +646,8 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
                 if (userProfilePictureLocation != null)
                 {
-                    //Create the DTO to delete the old photo
-                    NewProfilePictureURLModel UserProfilePictureLocation = new NewProfilePictureURLModel
-                    {
-                        url = userProfilePictureLocation.ProfilePictureLocation
-                    };
-
                     //Remove the old profile picture from Azure Blob Storage
-                    var response = await DeleteUserProfilePicture(UserProfilePictureLocation);
+                    var response = await DeleteUserProfilePicture(userProfilePictureLocation.ProfilePictureLocation);
 
                     //if the response is not an OkObjectResult, return BadRequest
                     if (response! is OkObjectResult okResult)
@@ -722,7 +717,10 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     var userExpireAccess = await db.UserExpireAccesses.Where(u => u.userId == userToDeleteId).ToListAsync();
 
                     db.Users.Remove(userToDelete);
-                    db.NeedsCreateNewPasswords.Remove(needsCreateNewPassword);
+                    if (needsCreateNewPassword != null)
+                    {
+                        db.NeedsCreateNewPasswords.Remove(needsCreateNewPassword);
+                    }
                     //null check for passwordExpiration
                     if (passwordExpiration != null)
                     {
@@ -744,14 +742,8 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
                     if (userProfilePictureLocation != null)
                     {
-                        //Create the DTO to delete the old photo
-                        NewProfilePictureURLModel UserProfilePictureLocation = new NewProfilePictureURLModel
-                        {
-                            url = userProfilePictureLocation.ProfilePictureLocation
-                        };
-
                         //Remove the old profile picture from Azure Blob Storage
-                        var response = await DeleteUserProfilePicture(UserProfilePictureLocation);
+                        var response = await DeleteUserProfilePicture(userProfilePictureLocation.ProfilePictureLocation);
 
                         //if the response is not an OkObjectResult, return BadRequest
                         if (response! is OkObjectResult okResult)
@@ -785,7 +777,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -931,45 +923,6 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     await db.SaveChangesAsync();
                 }
 
-                /* 
-                 //if password equals initial password (Password123$), create new entry in NeedsCreateNewPassword table to signal user to change password on signin otherwise , create new entry in PasswordExpirations table and add to previous password history
-                if (newUserResetPassword.password.Equals("Password123$"))
-                {
-                    using var db = _contextFactory.CreateDbContext();
-                    var needsCreateNewPassword = new NeedsCreateNewPassword
-                    {
-                        Email = newUserResetPassword.email,
-                        InitialPassword = true
-                    };
-
-                    db.NeedsCreateNewPasswords.Add(needsCreateNewPassword);
-                    await db.SaveChangesAsync();
-                }
-                else
-                {
-                    using var db = _contextFactory.CreateDbContext();
-                    DateTime utcNow = DateTime.UtcNow;
-                    var passwordExpiration = new PasswordExpirationInfo
-                    {
-                        UserId = user.Id,
-                        PasswordExpiration = utcNow.AddDays(90)
-                    };
-
-                    db.PasswordExpirations.Add(passwordExpiration);
-                    await db.SaveChangesAsync();
-
-                    var passwordHash = _userManager.PasswordHasher.HashPassword(user, newUserResetPassword.password);
-
-                    var passwordHistory = new PreviousUsedPasswords
-                    {
-                        UserId = user.Id,
-                        PasswordHash = passwordHash
-                    };
-
-                    db.PreviousUsedPasswords.Add(passwordHistory);
-                    await db.SaveChangesAsync();
-                }
-                 */
 
                 var identUser = await _userManager.GetUserAsync(User);
 
@@ -1153,7 +1106,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
         [HttpPost("add-user-profile-picture-url")]
         [Authorize]
-        public async Task<IActionResult> UploadProfilePictureUrl([FromBody] NewProfilePictureURLModel url)
+        public async Task<IActionResult> UploadProfilePictureUrl([FromBody] string url)
         {
             try
             {
@@ -1174,14 +1127,8 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
                 if (userProfilePictureLocation != null)
                 {
-                    //Create the DTO to delete the old photo
-                    NewProfilePictureURLModel UserProfilePictureLocation = new NewProfilePictureURLModel
-                    {
-                        url = userProfilePictureLocation.ProfilePictureLocation
-                    };
-
                     //Remove the old profile picture from Azure Blob Storage
-                    var response = await DeleteUserProfilePicture(UserProfilePictureLocation);
+                    var response = await DeleteUserProfilePicture(userProfilePictureLocation.ProfilePictureLocation);
 
                     //if the response is not an OkObjectResult, return BadRequest
                     if (response! is OkObjectResult okResult)
@@ -1190,8 +1137,19 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     }
                     else
                     {
+                        //refresh context. Do this because we deleted the old profile picture from Azure Blob Storage and need to update the location in the databases otheriwse its tracking two entities under the same UserId (PK)
+                        _context = _contextFactory.CreateDbContext();
+
                         //update the user's profile picture location
-                        userProfilePictureLocation.ProfilePictureLocation = url.url;
+                        UserProfilePictureLocations newLocation = new UserProfilePictureLocations
+                        {
+                            UserId = identUser.Id,
+                            ProfilePictureLocation = url
+                        };
+
+                        await _context.UserProfilePictureLocations.AddAsync(newLocation);
+
+                        await _context.SaveChangesAsync();
                     }
                 }
                 else
@@ -1200,14 +1158,13 @@ namespace LedgerLink_Pro_Backend.Controlllers
                     UserProfilePictureLocations newlocation = new UserProfilePictureLocations
                     {
                         UserId = identUser.Id,
-                        ProfilePictureLocation = url.url
+                        ProfilePictureLocation = url
                     };
 
                     //add the new location
                     _context.UserProfilePictureLocations.Add(newlocation);
+                    await _context.SaveChangesAsync();
                 }
-
-                await _context.SaveChangesAsync();
 
                 return Ok();
             }
@@ -1220,7 +1177,7 @@ namespace LedgerLink_Pro_Backend.Controlllers
 
         [HttpDelete("delete-user-profile-picture")]
         [Authorize]
-        public async Task<IActionResult> DeleteUserProfilePicture([FromBody] NewProfilePictureURLModel url)
+        public async Task<IActionResult> DeleteUserProfilePicture([FromBody] string url)
         {
             try
             {
@@ -1230,18 +1187,32 @@ namespace LedgerLink_Pro_Backend.Controlllers
                 if (identUser == null)
                 {
                     return BadRequest("User not found");
-                }
-
-                
+                }                
                 //remove the user's profile picture from Azure Blob Storage
                 //create a new instance of AzureBlobService
                 AzureBlobService azureBlobService = new AzureBlobService(_userManager, _signInManager, _contextFactory, _emailService, _configuration);
 
                 //delete using the url
-                IActionResult response = await azureBlobService.DeleteProfilePictureByUrl(url.url);
+                IActionResult response = await azureBlobService.DeleteProfilePictureByUrl(url);
 
                 if (response is OkObjectResult okResult)
                 {
+                    //remove the user's profile picture location in database
+                    var _context = _contextFactory.CreateDbContext();
+                    var userProfilePictureLocation = await _context.UserProfilePictureLocations.Where(u => u.UserId == identUser.Id).FirstOrDefaultAsync();
+
+                    if (userProfilePictureLocation != null)
+                    {
+                        _context.UserProfilePictureLocations.Remove(userProfilePictureLocation);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        //report error
+                        await _errorReportingService.ReportError("Error deleting profile picture", "UserController.cs", identUser.Id, "DeleteUserProfilePicture", $"Error deleting profile picture from SQL db after successful delete from Azure Blob. URL: {url} ");
+                        return Ok("There was a problem deleting the profile picture. It appears that the image has been removed from storage but the changes were not made in the database. This may cause future issues.");
+                    }
+
                     return Ok();
                 } 
                 else

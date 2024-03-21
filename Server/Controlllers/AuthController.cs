@@ -4,19 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.Models.Users;
-using LedgerLink_Pro_Backend.Services;
+using LedgerLinkPro.Services;
 using System.Web;
-using LedgerLink_Pro_Backend.DTO;
+using LedgerLinkPro.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Auth;
-using LedgerLink_Pro_Backend.Models.Users;
+using LedgerLinkPro.Models.Users;
 using LedgerLinkPro;
+using LedgerLinkPro.DTO.User;
 
-namespace Team_Tactics_Backend.Controllers
+namespace LedgerLinkPro.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -178,6 +180,8 @@ namespace Team_Tactics_Backend.Controllers
 
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, true);
 
+
+
                 if (!result.Succeeded)
                 {
                     // Check if the failure is due to an incorrect password or username and not because the user is already locked out
@@ -206,6 +210,21 @@ namespace Team_Tactics_Backend.Controllers
                 }
                 else
                 {
+                    //First check if user id deactivated
+                    //get user by id
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.id == identUser.Id);
+
+                    if (user == null)
+                    {
+                        return BadRequest("User not found");
+                    }
+
+                    if (!user.IsActive)
+                    {
+                        return StatusCode(403, "User account is deactivated");
+                    }
+
+                    //Check is user is locked out. This is due to too many failed attempts
                     var lockoutEnabled = await _userManager.GetLockoutEnabledAsync(identUser);
 
                     if (lockoutEnabled)
@@ -227,7 +246,6 @@ namespace Team_Tactics_Backend.Controllers
                             }
                         }
                     }
-
                 }
 
                 //check if user needs to change password
@@ -235,27 +253,6 @@ namespace Team_Tactics_Backend.Controllers
                 {
                     //get identity user
                     var identityUser = await _userManager.FindByNameAsync(model.Email);
-
-                    var usersEmail = identityUser.Email;
-
-                    //get object from NeedsCreateNewPassword table
-                    var needsCreateNewPassword = await db.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == usersEmail);
-                    if (needsCreateNewPassword == null)
-                    {
-                        return BadRequest("User not found");
-                    }
-
-                    if (needsCreateNewPassword.InitialPassword)
-                    {
-                        //return 429 status code to indicate user needs to change password
-                        //genereate new password token
-                        var token = await _userManager.GeneratePasswordResetTokenAsync(await _userManager.FindByNameAsync(model.Email));
-
-                        // Encode the token for URL
-                        var codeEncoded = HttpUtility.UrlEncode(token);
-
-                        return Ok(new { status = 428, token = codeEncoded, id = identityUser.Id });
-                    }
 
                     //TODO: Implement password expiration checks
 
@@ -270,9 +267,38 @@ namespace Team_Tactics_Backend.Controllers
 
                     db.UserLoginHistories.Add(lastLogin);
                     await db.SaveChangesAsync();
+
+                    //get object from NeedsCreateNewPassword table
+                    var needsCreateNewPassword = await db.NeedsCreateNewPasswords.FirstOrDefaultAsync(u => u.Email == identityUser.Email);
+                   
+                    if(needsCreateNewPassword != null)
+                    {
+                        //return 428 status code to indicate user needs to change password
+                        //genereate new password token
+                        var token = await _userManager.GeneratePasswordResetTokenAsync(await _userManager.FindByNameAsync(model.Email));
+
+                        // Encode the token for URL
+                        var codeEncoded = HttpUtility.UrlEncode(token);
+
+                        return Ok(new UserSigninResult
+                        {
+                            resultSuccess = true,
+                            userNeedsPasswordReset = true,
+                            token = codeEncoded,
+                            id = identityUser.Id,
+                            code = 428
+                        });
+                    }
                 }
 
-                return Ok(new { userNeedsPasswordReset = false });
+                return Ok(new UserSigninResult
+                {
+                    resultSuccess = true,
+                    userNeedsPasswordReset = false,
+                    token = null,
+                    id = identUser.Id,
+                    code = 200
+                });
             }
             catch (Exception ex)
             {
@@ -838,8 +864,8 @@ namespace Team_Tactics_Backend.Controllers
                     }
                     else
                     {
-                        needsCreateNewPassword.InitialPassword = false;
-                        _context.NeedsCreateNewPasswords.Update(needsCreateNewPassword);
+                        //remove user from NeedsCreateNewPassword table
+                        _context.NeedsCreateNewPasswords.Remove(needsCreateNewPassword);
                     }
 
                     var PasswordExpiration = await _context.PasswordExpirations.FirstOrDefaultAsync(u => u.UserId == user.Id);
@@ -860,7 +886,9 @@ namespace Team_Tactics_Backend.Controllers
                     }
                     else
                     {
-                        PasswordExpiration.PasswordExpiration = DateTime.Now.AddMonths(3);
+                        DateTime utcnow = DateTime.UtcNow;
+                        utcnow = utcnow.AddMonths(3);
+                        PasswordExpiration.PasswordExpiration = utcnow;
                         _context.PasswordExpirations.Update(PasswordExpiration);
                         await _context.SaveChangesAsync();
                     }
