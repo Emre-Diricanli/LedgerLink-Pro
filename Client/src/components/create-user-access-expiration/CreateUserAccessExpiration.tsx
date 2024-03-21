@@ -2,18 +2,21 @@ import React, { useState, useEffect } from 'react';
 import '../create-new-user/CreateNewUserModal.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faArrowsRotate, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { admin_create_user_access_expiration } from '../../services/user_info_service';
+import { AdminCreateUserAccessExpirations } from '../../services/UserService';
+import { useSystems } from '../../Providers/SystemsProvider';
 
-interface CreateUserAccecssExpirationModalProps {
+interface CreateUserAccessExpirationModalProps {
   userId: string;
   isOpen: boolean;
-  onClose: (boolean) => void;
+  onClose: (arg0: boolean) => void;
 }
 
-const CreateUserAccecssExpirationModal: React.FC<CreateUserAccecssExpirationModalProps> = ({ userId, isOpen, onClose }) => {
+const CreateUserAccecssExpirationModal: React.FC<CreateUserAccessExpirationModalProps> = ({ userId, isOpen, onClose }) => {
+    if (!isOpen) return null;
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
+    const systemsProvider = useSystems();
 
     const [creatingNewAccessExpiration, setCreatingNewAccessExpiration] = useState(false);
 
@@ -35,7 +38,7 @@ const CreateUserAccecssExpirationModal: React.FC<CreateUserAccecssExpirationModa
             return;
         }
 
-        const response = await admin_create_user_access_expiration(userId, startDate, endDate, reason);
+        const response = await AdminCreateUserAccessExpirations(userId, startDate, endDate, reason, systemsProvider.apiUrl);
 
         if (response === true) {
             onClose(true);
@@ -48,7 +51,6 @@ const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent click from propagating to the backdrop
     };
     
-  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={() => onClose(false)}>

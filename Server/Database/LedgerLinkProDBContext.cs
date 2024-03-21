@@ -1,9 +1,10 @@
-﻿using LedgerLink_Pro_Backend.Models.Users;
-using LedgerLink_Pro_Backend.Models.Util;
-using LedgerLinkPro.Models.Auth;
+﻿using LedgerLinkPro.Models.Accounts;
 using LedgerLinkPro.Models.Users;
+using LedgerLinkPro.Models.Util;
+using LedgerLinkPro.Models.Auth;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace LedgerLinkPro.Database
 {
@@ -27,12 +28,27 @@ namespace LedgerLinkPro.Database
         public DbSet<UserExpireAccess> UserExpireAccesses { get; set; }
         public DbSet<UserProfilePictureLocations> UserProfilePictureLocations { get; set; }
         public DbSet<ReportedErrors> ReportedErrors { get; set; }
-
-
-
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<AccountTransaction> AccountTransactions { get; set; }
+        public DbSet<AccountLog> AccountLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AccountLog>()
+                .Property(b => b.AccountBeforeChanges)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<Account>(v));
+
+            modelBuilder.Entity<AccountLog>()
+                .Property(b => b.AccountAfterChanges)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<Account>(v));
+
+
             base.OnModelCreating(modelBuilder);
         }
     }

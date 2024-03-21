@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LedgerLink_Pro_Backend.Models.Util
+namespace LedgerLinkPro.Models.Util
 {
     public class ReportedErrors
     {

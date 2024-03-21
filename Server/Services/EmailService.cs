@@ -1,7 +1,7 @@
 ﻿using System.Net.Mail;
 using System.Net;
 
-namespace LedgerLink_Pro_Backend.Services
+namespace LedgerLinkPro.Services
 {
 
     public class EmailService : IEmailService

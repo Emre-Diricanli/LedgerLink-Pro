@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LedgerLink_Pro_Backend.Services
+namespace LedgerLinkPro.Services
 {
     [ApiController]
-    [Route("[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AzureBlobService: ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -89,19 +90,35 @@ namespace LedgerLink_Pro_Backend.Services
         [Authorize]
         public async Task<IActionResult> DeleteProfilePictureByUrl(string blobUrl)
         {
-            // Assuming blobUrl is the full URL to the blob, we need to extract the blob name from it.
-            // This code assumes the URL structure is as mentioned above and that 'user-profile-pictures' is your container name.
-            var uri = new Uri(blobUrl);
-            var blobName = uri.AbsolutePath.Substring(uri.AbsolutePath.LastIndexOf('/') + 1);
+            if (string.IsNullOrWhiteSpace(blobUrl))
+            {
+                return BadRequest("Blob URL must not be empty.");
+            }
 
-            var connectionString = _configuration.GetValue<string>("AzureStorageConfig:ConnectionString");
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var blobContainerClient = blobServiceClient.GetBlobContainerClient("user-profile-pictures");
-            var blobClient = blobContainerClient.GetBlobClient(blobName);
+            try
+            {
+                var uri = new Uri(blobUrl);
+                var blobName = Uri.UnescapeDataString(uri.AbsolutePath.Substring(uri.AbsolutePath.LastIndexOf('/') + 1));
 
-            await blobClient.DeleteIfExistsAsync();
+                var connectionString = _configuration.GetValue<string>("AzureStorageConfig:ConnectionString");
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var blobContainerClient = blobServiceClient.GetBlobContainerClient("user-profile-pictures");
+                var blobClient = blobContainerClient.GetBlobClient(blobName);
 
-            return Ok(new { message = "Delete successful" });
+                bool exists = await blobClient.ExistsAsync();
+                if (!exists)
+                {
+                    return NotFound("Blob does not exist.");
+                }
+
+                await blobClient.DeleteIfExistsAsync();
+                return Ok(new { message = "Delete successful" });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details to your logging framework
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
     }

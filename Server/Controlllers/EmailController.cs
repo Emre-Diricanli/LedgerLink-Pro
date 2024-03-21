@@ -1,4 +1,4 @@
-﻿namespace LedgerLink_Pro_Backend.Controlllers
+﻿namespace LedgerLinkPro.Controlllers
 {
     public class EmailController
     {

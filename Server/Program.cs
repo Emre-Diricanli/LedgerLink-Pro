@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using LedgerLinkProBackend.Database;
 using LedgerLinkPro.Database;
-using LedgerLink_Pro_Backend.Services;
-
-
+using LedgerLinkPro.Database;
+using LedgerLinkPro.Services;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -20,8 +19,6 @@ builder.Services.AddTransient<ErrorReportingService>();
 
 builder.Services.AddHostedService<TimedHostedService>();
 
-/* 
- 
  builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
     options.UseNpgsql(
         configuration.GetConnectionString("DefaultConnection"),
@@ -32,7 +29,7 @@ builder.Services.AddHostedService<TimedHostedService>();
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorCodesToAdd: null);
         }));
- */
+ 
 
 //change cookie name
 builder.Services.ConfigureApplicationCookie(options =>
@@ -40,9 +37,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "LedgerLinkProCookie";
 });
 
- builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
+/* 
+  builder.Services.AddDbContextFactory<LedgerLinkProDBContext>(options =>
      options.UseSqlServer(
          configuration.GetConnectionString("AzureSQLConnection")));
+ */
 
 /* 
  builder.Services.Configure<IdentityOptions>(options =>
@@ -71,6 +70,14 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod()
                 .AllowCredentials();
     });
+});
+
+//API Versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
 });
 
 var app = builder.Build();
