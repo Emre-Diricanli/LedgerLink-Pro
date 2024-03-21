@@ -40,7 +40,7 @@ const  CreateNewAccountModal: React.FC<CreateNewAccountModalProps> = ({isOpen, o
         };
 
         //verify that all required fields are filled
-        if (newAccount.accountName === '' || newAccount.accountNumber === 0 || newAccount.description === '' || newAccount.subcategory === '' || newAccount.initialBalance === 0){
+        if (newAccount.accountName === '' || newAccount.accountNumber === 0 || newAccount.description === '' || newAccount.subcategory === ''){
             alert('Please fill in all required fields');
             return;
         }

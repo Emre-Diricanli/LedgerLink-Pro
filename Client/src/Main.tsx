@@ -16,12 +16,11 @@ import NewUserResetPassword from './pages/new-user/NewUserResetPassword';
 import AdminSignup from './pages/signin-signup/AdminSignup';
 import ServerOfflinePage from './pages/server-offline/ServerOffline';
 import { AuthProvider } from './Providers/AuthProvider';
-import Accounts from './pages/accounts/accounts';
+import Accounts from './pages/accounts/Accounts';
 
 import { Layout } from './components/layout/layout';
 import { SystemsProvider } from './Providers/SystemsProvider';
 import AccountsProvider from './Providers/AccountsProvider';
-import { HttpProvider } from './Providers/HttpProvider';
 
 const apiUrl = 'http://localhost:7071/api/v1'
 
