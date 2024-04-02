@@ -228,14 +228,25 @@ export const FetchAccountLogs = async (accountId: string, apiUrl: string): Promi
 }
 
 export const SendAccountRejection = async (transactionId: string, rejectionReason: string, apiUrl: string): Promise<boolean> => {
+    if (!transactionId || typeof transactionId !== 'string') {
+        console.error('Invalid or missing transactionId');
+        return false;
+    }
+
+    if (!rejectionReason || typeof rejectionReason !== 'string') {
+        console.error('Invalid or missing rejectionReason');
+        return false;
+    }
+
+    const params = new URLSearchParams({ transactionId, rejectionReason });
+
     try {
-        const response = await fetch(`${apiUrl}/accounts/reject-transaction`, {
+        const response = await fetch(`${apiUrl}/accounts/reject-transaction?${params.toString()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ transactionId, rejectionReason }),
         });
 
         if (!response.ok) {
@@ -248,5 +259,4 @@ export const SendAccountRejection = async (transactionId: string, rejectionReaso
         console.error("Error in Send Account Rejection: ", (error as Error).message);
         return false;
     }
-
 };

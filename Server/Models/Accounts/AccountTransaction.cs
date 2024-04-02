@@ -14,6 +14,7 @@ namespace LedgerLinkPro.Models.Accounts
         public decimal TransactionAmount { get; set; }
         public string TransactionDescription { get; set; }
         public bool IsApproved { get; set; }
+        public bool Rejected { get; set; }
      
         public DateTimeOffset TransactionDate { get; set; }
     }

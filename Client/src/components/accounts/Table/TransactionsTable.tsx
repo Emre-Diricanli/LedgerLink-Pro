@@ -5,8 +5,9 @@ import { Account, AccountTransaction } from '../../interfaces/Accounts';
 import '../AccountsComponents.css';
 import { useAuth } from '../../../Providers/AuthProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faTimes, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import TransactionRejectionModal from '../Modals/TransactionRejcetionModal';
+import ViewTransactionRejectionModal from '../Modals/ViewTransactionRejectionModal';
 
 export interface TransactionsTableProps {
     account: Account;
@@ -20,6 +21,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
     const [activeTransaction, setActiveTransaction] = useState<string | null>(null);
     const [canReject, setCanReject] = useState<boolean>(false);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
     const [selectedTransaction, setSelectedTransaction] = useState<AccountTransaction>({} as AccountTransaction);
     
 
@@ -38,10 +40,22 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
         // Call the approve transaction function from the accounts provider
     }
 
+    const setSelectTransaction = (transaction: AccountTransaction) => {
+        setSelectedTransaction(transaction);
+    }
+
     const handleRejectTransaction = async (transactionId: string) => {
         // show modal
-        const selectedTransaction = transactions.find(transaction => transaction.transactionId === transactionId);
+        let transaction = transactions.find((transaction) => transaction.transactionId === transactionId);
+        setSelectTransaction(transaction as AccountTransaction);
         setIsModalOpen(true);
+    }
+
+    const handleViewTransactionRejection = async (transactionId: string) => {
+        // show modal
+        let transaction = transactions.find((transaction) => transaction.transactionId === transactionId);
+        setSelectTransaction(transaction as AccountTransaction);
+        setIsViewModalOpen(true);
     }
 
     useEffect(() => {
@@ -50,10 +64,13 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
         }
     }, [auth.isAdmin, auth.isManager]);
 
+
     return (
         <>
+            <ViewTransactionRejectionModal transaction={selectedTransaction} isOpen={isViewModalOpen} onClose={setIsViewModalOpen} />
             <TransactionRejectionModal transaction={selectedTransaction} isOpen={isModalOpen} onClose={setIsModalOpen} />
             <div className="transactions-table-container p-6">
+                
                 <table className="accounts-table">
                     <thead>
                         <tr>
@@ -89,17 +106,29 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                                 <td>{transaction.transactionDescription}</td>
                                 <td>
                                     <div className='flex flex-row justify-center content-center items-center'>
-                                        <p className='mr-4'>{transaction.isApproved ? 'Yes' : 'No'}</p>
-                                        {canReject && (
-                                        <div className='flex flex-row gap-1'>
-                                                <button className='icon-button' style={{backgroundColor: "red"}} onClick={() => handleRejectTransaction(transaction.transactionId || '')}>
-                                                    <FontAwesomeIcon icon={faTimes} size="xs"/>
-                                                </button>
-                                                <button className='icon-button' style={{backgroundColor: "green"}} onClick={() => handleApproveTransaction(transaction.transactionId || '')}>
-                                                    <FontAwesomeIcon icon={faCheck} size='xs'/>
-                                                </button>
-                                            </div>
-                                        )}
+                                    {!transaction.rejected && 
+                                        <p className='mr-4' style={{color: transaction.isApproved ? 'green' : 'red'}}>
+                                            {transaction.isApproved ? 'Approved' : 'No'}
+                                        </p>
+                                    }
+                                        {transaction.rejected ? 
+                                            <div className='flex flex-row items-center gap-2'>
+                                                <strong style={{color: 'red'}}>REJECTED</strong>
+                                            <button className='icon-button' style={{backgroundColor: '#ff8c00'}} onClick={() => handleViewTransactionRejection(transaction.transactionId || '')}>
+                                                <FontAwesomeIcon icon={faArrowUpRightFromSquare} size='xs'/>
+                                            </button>
+                                            </div> :
+                                            !transaction.isApproved && canReject && (
+                                                <div className='flex flex-row gap-1'>
+                                                    <button className='icon-button' style={{backgroundColor: "red"}} onClick={() => handleRejectTransaction(transaction.transactionId || '')}>
+                                                        <FontAwesomeIcon icon={faTimes} size="xs"/>
+                                                    </button>
+                                                    <button className='icon-button' style={{backgroundColor: "green"}} onClick={() => handleApproveTransaction(transaction.transactionId || '')}>
+                                                        <FontAwesomeIcon icon={faCheck} size='xs'/>
+                                                    </button>
+                                                </div>
+                                            )
+                                        }
                                     </div>
                                 </td>
                             </tr>

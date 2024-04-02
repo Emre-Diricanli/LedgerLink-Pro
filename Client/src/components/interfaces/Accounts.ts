@@ -44,6 +44,18 @@ export interface AccountTransaction {
     afterTransactionBalance : number;
     userName: string;
     isApproved: boolean;
+    rejected: boolean;
+    rejectedAccountTransaction: RejectedAccountTransaction;
+};
+
+export interface RejectedAccountTransaction {
+    id: string;
+    accountId: string;
+    transactionId: string;
+    rejectionReason: string;
+    rejectionDate: Date;
+    rejectedByFullName: string;
+    rejectedById: string;
 };
 
 export interface AccountLogs {

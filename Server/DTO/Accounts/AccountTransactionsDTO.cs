@@ -11,6 +11,8 @@
         public decimal AfterTransactionBalance { get; set; }
         public string? UserName { get; set; }
         public bool IsApproved { get; set; }
+        public bool Rejected { get; set; }
+        public RejectedAccountTransaction? RejectedAccountTransaction { get; set; }
 
     }
 }

@@ -123,6 +123,8 @@ namespace LedgerLinkPro.Controllers
                     return BadRequest(ModelState);
                 }
 
+                DateTimeOffset utcNow = DateTimeOffset.UtcNow;
+
                 // Create a new account
                 var account = new Account
                 {
@@ -137,7 +139,7 @@ namespace LedgerLinkPro.Controllers
                     Debit = 0,
                     Credit = 0,
                     Balance = newAccount.InitialBalance,
-                    DateAdded = DateTimeOffset.UtcNow,
+                    DateAdded = utcNow,
                     Order = "",
                     Statement = "",
                     Comment = ""
@@ -612,7 +614,8 @@ namespace LedgerLinkPro.Controllers
                     TransactionAmount = newTransaction.TransactionAmount,
                     TransactionDescription = newTransaction.TransactionDescription,
                     TransactionDate = utcNow,
-                    IsApproved = IsApproved
+                    IsApproved = false,
+                    Rejected = false
                 };
 
                 //To manage concurrency, check if the before transaction balance is the same as the current balance, if not then return an error message
@@ -690,6 +693,11 @@ namespace LedgerLinkPro.Controllers
                 //Get the account transactions
                 var accountTransactions = await db.AccountTransactions.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
 
+                if (accountTransactions == null || accountTransactions.Count() == 0)
+                {
+                    return Ok();
+                }
+
                 List<AccountTransactionsDTO> accountTransactionsDTO = new List<AccountTransactionsDTO>();
 
                 foreach (var transaction in accountTransactions)
@@ -704,8 +712,22 @@ namespace LedgerLinkPro.Controllers
                         BeforeTransactionBalance = transaction.BeforeTransactionBalance,
                         AfterTransactionBalance = transaction.AfterTransactionBalance,
                         UserName = user.UserName,
-                        IsApproved = transaction.IsApproved
+                        IsApproved = transaction.IsApproved,
+                        Rejected = transaction.Rejected
                     };
+
+                    if(accountTransaction.Rejected == true)
+                    {
+                        //Grab rejection object
+                        var rejectedTransaction = await db.RejectedAccountTransactions.FirstOrDefaultAsync(a => a.transactionId == transaction.TransactionId);
+
+                        if (rejectedTransaction == null)
+                        {
+                            break;
+                        }
+
+                        accountTransaction.RejectedAccountTransaction = rejectedTransaction;
+                    }
 
                     accountTransactionsDTO.Add(accountTransaction);
                 }
@@ -826,7 +848,7 @@ namespace LedgerLinkPro.Controllers
 
         [HttpPost("reject-transaction")]
         [Authorize]
-        public async Task<IActionResult> RejectTransaction([FromBody] string transactionId, string rejectionReason)
+        public async Task<IActionResult> RejectTransaction([FromQuery] string transactionId, [FromQuery] string rejectionReason)
         {
             try
             {
@@ -860,21 +882,44 @@ namespace LedgerLinkPro.Controllers
                         return NotFound("User not found");
                     }
 
-                    accountTransaction.IsApproved = false;
+                    accountTransaction.Rejected = true;
 
                     context.AccountTransactions.Update(accountTransaction);
 
-                    RejectedAccountTransactions rejectedAccountTransaction = new RejectedAccountTransactions
+                    DateTimeOffset utcNow = DateTimeOffset.UtcNow;
+
+                    RejectedAccountTransaction rejectedAccountTransaction = new RejectedAccountTransaction
                     {
                         id = Guid.NewGuid(),
                         accountId = accountTransaction.AccountId,
                         transactionId = accountTransaction.TransactionId,
                         rejectionReason = rejectionReason,
-                        rejectionDate = DateTimeOffset.UtcNow,
+                        rejectionDate = utcNow,
                         rejectedByFullName = dbUser.FirstName + " " + dbUser.LastName,
                         rejectedById = user.Id
                     };
 
+                    context.RejectedAccountTransactions.Add(rejectedAccountTransaction);
+
+                    //update account balance
+                    var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId == accountTransaction.AccountId);
+
+                    if (account == null)
+                    {
+                        return NotFound("Account not found");
+                    }
+
+                    //to update account balance first determine if the transaction is a debit or credit
+                    if (accountTransaction.TransactionAmount > 0)
+                    {
+                        account.Balance -= accountTransaction.TransactionAmount;
+                    }
+                    else
+                    {
+                        account.Balance -= accountTransaction.TransactionAmount;
+                    }
+
+                    context.Accounts.Update(account);
 
                     await context.SaveChangesAsync();
                 }

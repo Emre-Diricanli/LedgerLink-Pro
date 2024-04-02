@@ -31,7 +31,7 @@ namespace LedgerLinkPro.Database
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountTransaction> AccountTransactions { get; set; }
         public DbSet<AccountLog> AccountLogs { get; set; }
-        public DbSet<RejectedAccountTransactions> RejectedAccountTransactions { get; set; }
+        public DbSet<RejectedAccountTransaction> RejectedAccountTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

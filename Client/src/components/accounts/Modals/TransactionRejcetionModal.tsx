@@ -32,7 +32,7 @@ const TransactionRejectionModal: React.FC<TransactionRejectionModalProps> = ({tr
 
         //send rejection to backend
         if (transaction.transactionId !== undefined) {
-            console.log('sending rejection');
+           
             const success = await SendAccountRejection(transaction.transactionId, rejectionDescription, systems.apiUrl);
 
             if (!success) {
@@ -61,7 +61,7 @@ const TransactionRejectionModal: React.FC<TransactionRejectionModalProps> = ({tr
                             </div>
                        </div>
                     </ModalBody>
-                <ModalFooter onActionCancel={() => onClose(false)} onActionComplete={() => handleSubmitRejections()} completeText='Reject'/>
+                <ModalFooter onActionCancel={() => onClose(false)} onActionComplete={handleSubmitRejections} completeText='Reject'/>
             </div>
         </div>
     );

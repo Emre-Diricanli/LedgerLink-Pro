@@ -1,4 +1,4 @@
-public class RejectedAccountTransactions
+public class RejectedAccountTransaction
 {
     public Guid id { get; set; }
     public Guid accountId { get; set; }
