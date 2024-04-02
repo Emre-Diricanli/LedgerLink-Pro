@@ -1,4 +1,4 @@
-import { NewUser, User, UserSearchQuery } from "../components/interfaces/Users";
+import { NewUser, SimpleUser, User, UserSearchQuery } from "../components/interfaces/Users";
 
 export const GetMyInfo = async (apiUrl : string): Promise<User | false> => {
     try {
@@ -273,5 +273,53 @@ export const AdminDeleteUserAccessExpiration = async (expireId : string , apiUrl
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         return false;
+    }
+}
+
+export const GetAccountants = async (apiUrl : string) : Promise<SimpleUser[]> => {
+    try {
+        const response = await fetch(`${apiUrl}/user/accountants`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return [] as unknown as SimpleUser[];
+        }
+
+        const data = await response.json();
+
+        const accountants = data as SimpleUser[];
+        return accountants;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
+    }
+}
+
+export const GetManagers = async (apiUrl : string) : Promise<SimpleUser[]> => {
+    try {
+        const response = await fetch(`${apiUrl}/user/managers`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return [] as unknown as SimpleUser[];
+        }
+
+        const data = await response.json();
+
+        const managers = data as SimpleUser[];
+        return managers;
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error;
     }
 }

@@ -6,6 +6,7 @@ import CreateNewAccountModal from './Modals/CreateNewAccountModal';
 import { useAccounts } from '../../Providers/AccountsProvider';
 import AccountsActionDropdown from './AccountActionsDropdown';
 import { Account } from '../interfaces/Accounts';
+import ContactButton from '../contact/ContactButton';
 
 
 interface AccountsHotbarProps {
@@ -125,12 +126,12 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
                 
             </div>
            
-            <div className='flex flex-col items-start w-fit ml-auto'>
+            {/* <div className='flex flex-col items-start w-fit ml-auto'>
                 <button className="icon-button secondary" onClick={() => forceRefresh()}>
                     <FontAwesomeIcon icon={faArrowsRotate} />
                 </button>
-            </div>
-            <div className='flex flex-col items-start w-fit' > {/* ref={dropdownRef} */}
+            </div> */}
+            <div className='flex flex-col items-start w-fit ml-auto' > {/* ref={dropdownRef} */}
                 <AccountsActionDropdown 
                     ref={dropdownRef}
                     accountIds={accountIds}
@@ -152,6 +153,10 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
                         return <option key={index} value={option}>{option}</option>;
                     })}
                 </select>
+            </div>
+            <div className='flex flex-col items-start w-fit'>
+                <p>Contact</p>
+                <ContactButton />
             </div>
                
             </div>

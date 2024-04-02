@@ -27,7 +27,7 @@ const ViewAccountButton: React.FC<ViewAccountButtonProps> = ({account, needsRefr
        <div>
             <ViewAccountModal account={account} isOpen={isOpen} onClose={hideModal} />
             <div className='view-account-button'>
-                <button onClick={showModal}>
+                <button onClick={showModal} title='View Account'>
                     View
                 </button>
             </div>

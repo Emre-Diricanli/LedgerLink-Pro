@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
+using LedgerLinkPro.DTO.User;
 
 namespace LedgerLinkPro.Controlllers
 {
@@ -1224,6 +1225,124 @@ namespace LedgerLinkPro.Controlllers
             {
                 Debug.WriteLine(ex.Message);
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("accountants")]
+        [Authorize]
+        public async Task<IActionResult> GetAccounants()
+        {
+            try
+            {
+                // Verify user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                //get all accountants
+                var _context = _contextFactory.CreateDbContext();
+
+                var accountants = await _context.Users.Where(u => u.UserRole == 1).ToListAsync();
+
+                if (accountants == null)
+                {
+                    return Ok();
+                }
+
+                //Convert to SimpleUserInfoReturnModel
+                List<SimpleUserInfoModel> accountantsList = new List<SimpleUserInfoModel>();
+
+                foreach (var accountant in accountants)
+                {
+                    var identUser = await _userManager.FindByIdAsync(accountant.id);
+
+                    if (identUser == null)
+                    {
+                        continue;
+
+                    }
+
+                    SimpleUserInfoModel model = new SimpleUserInfoModel
+                    {
+                        Username = identUser.UserName,
+                        Email = identUser.Email,
+                        FullName = accountant.FirstName + " " + accountant.LastName
+
+                    };
+
+                    accountantsList.Add(model);
+                }
+                
+                //return accountants
+                return Ok(accountants);
+
+
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("managers")]
+        [Authorize]
+        public async Task<IActionResult> GetManagers()
+        {
+            try
+            {
+                // Verify user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                //get all managers
+                var _context = _contextFactory.CreateDbContext();
+
+                var managers = await _context.Users.Where(u => u.UserRole == 2).ToListAsync();
+
+                if (managers == null)
+                {
+                    return Ok();
+                }
+
+                //Convert to SimpleUserInfoReturnModel
+                List<SimpleUserInfoModel> managersList = new List<SimpleUserInfoModel>();
+
+                foreach (var manager in managers)
+                {
+                    var identUser = await _userManager.FindByIdAsync(manager.id);
+
+                    if (identUser == null)
+                    {
+                        continue;
+                    }
+
+                    SimpleUserInfoModel model = new SimpleUserInfoModel
+                    {
+                        Username = identUser.UserName,
+                        Email = identUser.Email,
+                        FullName = manager.FirstName + " " + manager.LastName
+
+                    };
+
+                    managersList.Add(model);
+                }
+
+                //return managers
+                return Ok(managersList);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 

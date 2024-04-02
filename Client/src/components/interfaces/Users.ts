@@ -73,3 +73,9 @@ export interface UserSearchQuery {
   activeStatus: number;
   searchString: string;
 }
+
+export interface SimpleUser {
+  username: string;
+  fullName: string;
+  email: string;
+}
