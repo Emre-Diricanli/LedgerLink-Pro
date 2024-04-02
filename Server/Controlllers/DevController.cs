@@ -111,13 +111,78 @@ namespace LedgerLinkPro.Controllers
                     IsActive = true // Bypassing the activation process for development
                 };
 
+                //Create accountant and manager users
+                var identUserAccountant = new IdentityUser
+                {
+                    UserName = "janedoe" + DateTime.Now.ToString("MMyy"),
+                    Email = "janedoe@gmail.com",
+                    EmailConfirmed = true // Bypassing email confirmation for development
+                };
+
+                var identRegistrationResultAccountant = await _userManager.CreateAsync(identUserAccountant, "Password123$");
+
+                if (!identRegistrationResultAccountant.Succeeded) return BadRequest(identRegistrationResultAccountant.Errors);
+
+                // Add user to role
+                var roleResultAccountant = await _userManager.AddToRoleAsync(identUserAccountant, "User");
+
+                if (!roleResultAccountant.Succeeded)
+                {
+                    await _userManager.DeleteAsync(identUserAccountant);
+                    return BadRequest(roleResultAccountant.Errors);
+                }
+
+                // Assuming direct usage of the User entity like in your original code
+                var userAccountant = new User
+                {
+                    id = identUserAccountant.Id,
+                    Username = identUserAccountant.UserName,
+                    FirstName = "Jane",
+                    LastName = "Doe",
+                    UserRole = 1, 
+                    IsActive = true // Bypassing the activation process for development
+                };
+
+                var identUserManager = new IdentityUser
+                {
+                    UserName = "tonystark" + DateTime.Now.ToString("MMyy"),
+                    Email = "tonystark@gmail.com",
+                    EmailConfirmed = true // Bypassing email confirmation for development
+                };
+
+                var identRegistrationResultManager = await _userManager.CreateAsync(identUserManager, "Password123$");
+
+                if (!identRegistrationResultManager.Succeeded) return BadRequest(identRegistrationResultManager.Errors);
+
+                // Add user to role
+                var roleResultManager = await _userManager.AddToRoleAsync(identUserManager, "Manager");
+
+                if (!roleResultManager.Succeeded)
+                {
+                    await _userManager.DeleteAsync(identUserManager);
+                    return BadRequest(roleResultManager.Errors);
+                }
+
+                // Assuming direct usage of the User entity like in your original code
+                var userManager = new User
+                {
+                    id = identUserManager.Id,
+                    Username = identUserManager.UserName,
+                    FirstName = "Tony",
+                    LastName = "Stark",
+                    UserRole = 2, 
+                    IsActive = true 
+                };
+
                 using (var db = _contextFactory.CreateDbContext())
                 {
                     db.Users.Add(user);
+                    db.Users.Add(userAccountant);
+                    db.Users.Add(userManager);
                     await db.SaveChangesAsync();
                 }
 
-                return Ok(new { Message = "Sample admin created successfully", UserName = sampleUserName, Email = sampleEmail });
+                return Ok(new { Message = "Sample users created successfully", UserName = sampleUserName, Email = sampleEmail });
             }
             catch (Exception ex)
             {

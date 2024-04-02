@@ -7,6 +7,7 @@ import { useSystems } from './SystemsProvider';
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isManager: boolean;
   calling: boolean;
   fetchAuthentication: () => Promise<void>;
   HandleAdminSignin: (username: string, password: string) => Promise<boolean>;
@@ -40,6 +41,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children, apiUrl }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isManager, setIsManager] = useState<boolean>(false);
   const systems = useSystems();
   const [calling, setCalling] = useState<boolean>(false);
 
@@ -67,12 +69,18 @@ export const AuthProvider = ({ children, apiUrl }: AuthProviderProps) => {
         let role = localStorage.getItem('role');
         if (role === '3') {
           setIsAdmin(true);
+        } else if (role === '2') {
+          setIsManager(true);
+        } else {
+          setIsAdmin(false);
+          setIsManager(false);
         }
       }
     }
     catch{
       setIsAuthenticated(false);
       setIsAdmin(false);
+      setIsManager(false);
     }
     finally{
       setCalling(false);
@@ -188,6 +196,7 @@ export const AuthProvider = ({ children, apiUrl }: AuthProviderProps) => {
       value={{ 
         isAuthenticated, 
         isAdmin, 
+        isManager,
         calling : calling,
         fetchAuthentication, 
         signOut,

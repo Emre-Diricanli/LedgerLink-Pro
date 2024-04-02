@@ -226,3 +226,27 @@ export const FetchAccountLogs = async (accountId: string, apiUrl: string): Promi
         return [] as unknown as AccountLogs[];
     }
 }
+
+export const SendAccountRejection = async (transactionId: string, rejectionReason: string, apiUrl: string): Promise<boolean> => {
+    try {
+        const response = await fetch(`${apiUrl}/accounts/reject-transaction`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ transactionId, rejectionReason }),
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        return true;
+    }
+    catch (error) {
+        console.error("Error in Send Account Rejection: ", (error as Error).message);
+        return false;
+    }
+
+};

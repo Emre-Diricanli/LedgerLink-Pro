@@ -109,7 +109,7 @@ namespace LedgerLinkPro.Controllers
 
 
         [HttpPost("create-new-account")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> CreateNewAccount(NewAccountDTO newAccount)
         {
             try
@@ -582,7 +582,12 @@ namespace LedgerLinkPro.Controllers
                     return Unauthorized();
                 }
 
-                //validate the model
+                //if user is manager or admin, then allow the transaction
+                bool IsApproved = false;
+                if (await _userManager.IsInRoleAsync(user, "Manager") || await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    IsApproved = true;
+                }
 
 
                 var db = _contextFactory.CreateDbContext();
@@ -606,7 +611,8 @@ namespace LedgerLinkPro.Controllers
                     AfterTransactionBalance = newTransaction.AfterTransactionBalance,
                     TransactionAmount = newTransaction.TransactionAmount,
                     TransactionDescription = newTransaction.TransactionDescription,
-                    TransactionDate = utcNow
+                    TransactionDate = utcNow,
+                    IsApproved = IsApproved
                 };
 
                 //To manage concurrency, check if the before transaction balance is the same as the current balance, if not then return an error message
@@ -697,7 +703,8 @@ namespace LedgerLinkPro.Controllers
                         TransactionAmount = transaction.TransactionAmount,
                         BeforeTransactionBalance = transaction.BeforeTransactionBalance,
                         AfterTransactionBalance = transaction.AfterTransactionBalance,
-                        UserName = user.UserName
+                        UserName = user.UserName,
+                        IsApproved = transaction.IsApproved
                     };
 
                     accountTransactionsDTO.Add(accountTransaction);
@@ -758,6 +765,178 @@ namespace LedgerLinkPro.Controllers
                 await _errorReportingService.ReportError("Error getting account logs. Exception Catched", "AccountsController.cs", identityUser.Id, "GetAccountLogs", ex.Message);
 
                 return StatusCode(500, "Error getting account logs");
+            }
+        }
+    
+        [HttpPost("approve-transaction")]
+        [Authorize]
+        public async Task<IActionResult> ApproveTransaction([FromBody] string transactionId)
+        {
+            try
+            {
+               //validate is manager or admin
+               var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                     return Unauthorized();
+                }
+
+                if (!await _userManager.IsInRoleAsync(user, "Manager") && !await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    return Unauthorized();
+                }
+
+                // Get the account
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    var accountTransaction = await context.AccountTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
+
+                    if (accountTransaction == null)
+                    {
+                        return NotFound("Transaction not found");
+                    }
+
+                    accountTransaction.IsApproved = true;
+
+                    context.AccountTransactions.Update(accountTransaction);
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok("Transaction approved successfully");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error approving transaction. Exception Catched", "AccountsController.cs", "UNKNOWN", "ApproveTransaction", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error approving transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "ApproveTransaction", ex.Message);
+
+                return StatusCode(500, "Error approving transaction");
+            }
+
+        }
+
+
+        [HttpPost("reject-transaction")]
+        [Authorize]
+        public async Task<IActionResult> RejectTransaction([FromBody] string transactionId, string rejectionReason)
+        {
+            try
+            {
+                //validate is manager or admin
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                if (!await _userManager.IsInRoleAsync(user, "Manager") && !await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    return Unauthorized();
+                }
+
+                // Get the account
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    var accountTransaction = await context.AccountTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
+
+                    if (accountTransaction == null)
+                    {
+                        return NotFound("Transaction not found");
+                    }
+
+                    var dbUser = await context.Users.Where(u => u.id == user.Id).FirstOrDefaultAsync();
+
+                    if (dbUser == null)
+                    {
+                        return NotFound("User not found");
+                    }
+
+                    accountTransaction.IsApproved = false;
+
+                    context.AccountTransactions.Update(accountTransaction);
+
+                    RejectedAccountTransactions rejectedAccountTransaction = new RejectedAccountTransactions
+                    {
+                        id = Guid.NewGuid(),
+                        accountId = accountTransaction.AccountId,
+                        transactionId = accountTransaction.TransactionId,
+                        rejectionReason = rejectionReason,
+                        rejectionDate = DateTimeOffset.UtcNow,
+                        rejectedByFullName = dbUser.FirstName + " " + dbUser.LastName,
+                        rejectedById = user.Id
+                    };
+
+
+                    await context.SaveChangesAsync();
+                }
+
+                //return the account transaction
+                return Ok("Transaction rejected successfully");
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error rejecting transaction. Exception Catched", "AccountsController.cs", "UNKNOWN", "RejectTransaction", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error rejecting transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "RejectTransaction", ex.Message);
+
+                return StatusCode(500, "Error rejecting transaction");
+            }
+        }
+    
+        [HttpGet("rejected-transactions")]
+        [Authorize]
+        public async Task<IActionResult> GetRejectedTransactions([FromBody] List<string> transactionIds)
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                //get all rejected transactions under transactionIds
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    var rejectedTransactions = await context.RejectedAccountTransactions.Where(a => transactionIds.Contains(a.transactionId.ToString())).ToListAsync();
+
+                    //return the rejected transactions
+
+                    return Ok(rejectedTransactions);
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error getting rejected transactions. Exception Catched", "AccountsController.cs", "UNKNOWN", "GetRejectedTransactions", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error getting rejected transactions. Exception Catched", "AccountsController.cs", identityUser.Id, "GetRejectedTransactions", ex.Message);
+
+                return StatusCode(500, "Error getting rejected transactions");
             }
         }
     }

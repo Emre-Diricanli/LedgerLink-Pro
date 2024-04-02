@@ -43,6 +43,7 @@ export interface AccountTransaction {
     beforeTransactionBalance : number;
     afterTransactionBalance : number;
     userName: string;
+    isApproved: boolean;
 };
 
 export interface AccountLogs {

@@ -10,6 +10,7 @@
         public decimal BeforeTransactionBalance { get; set; }
         public decimal AfterTransactionBalance { get; set; }
         public string? UserName { get; set; }
+        public bool IsApproved { get; set; }
 
     }
 }
