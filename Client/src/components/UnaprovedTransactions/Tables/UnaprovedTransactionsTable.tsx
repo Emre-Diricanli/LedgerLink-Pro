@@ -6,13 +6,14 @@ import { useAuth } from '../../../Providers/AuthProvider';
 import TransactionRejectionModal from '../../accounts/Modals/TransactionRejcetionModal';
 import { useAccounts } from '../../../Providers/AccountsProvider';
 import CreateNewTransactionBar from '../../accounts/CreateNewTransactionBar';
+import { PostNewUnapprovedTransaction } from '../../../services/AccountsService';
 
 
 export interface UnaprovedTransactionsTableProps {
     account: Account;
 }
 
-const UnaprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = ({ account}) => {
+const UnapprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = ({ account}) => {
     const auth = useAuth();
     const accountsProvider = useAccounts();
     const [canReject, setCanReject] = useState<boolean>(false);
@@ -42,19 +43,21 @@ const UnaprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = ({
         //fetch unapproved transactions
         const fetchUnapprovedTransactions = async () => {
             const transactions = await accountsProvider.getUnapprovedTransactions(account.accountId);
-            console.log(transactions);
             setUnaprovedTransactions(transactions);
         }
 
-        console.log('fetching unapproved transactions');
         fetchUnapprovedTransactions();
         
     }, []);
 
-    const handleCreateTransaction = async (transaction: UnapprovedTransaction) => {
-        const newTransaction = await Post
+    const handleCreateTransaction = async (value: number, description: string) => {
+        const newTransaction = await accountsProvider.createUnapprovedTransaction(account.accountId, value, description);
 
-        //STOPPED HERE. MOVE THIS LOGIC TO ACCOUNTS PROVIDER
+        // if new transaction is null/empty then alert the user
+        if (!newTransaction) {
+            alert('Failed to create new transaction');
+            return;
+        }
 
         // Add the new transaction to the transactions list
         setUnaprovedTransactions([...unaprovedTransactions, newTransaction]);
@@ -70,7 +73,7 @@ const UnaprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = ({
     return (
         <>
             <TransactionRejectionModal transaction={selectedTransaction} isOpen={isModalOpen} onClose={setIsModalOpen} />
-            <div className="transactions-table-container p-6">
+            <div className=" p-6">
                 
                 <table className="accounts-table">
                     <thead>
@@ -131,10 +134,10 @@ const UnaprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = ({
                         ))}
                     </tbody>
                 </table>
-                <CreateNewTransactionBar account={account} onCreate={handleCreateTransaction} />
+                <CreateNewTransactionBar account={account} onCreate={(value, description) => handleCreateTransaction(value, description)} />
             </div>
         </>
     );
 };
 
-export default UnaprovedTransactionsTable;
+export default UnapprovedTransactionsTable;

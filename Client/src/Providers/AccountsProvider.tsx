@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, UnapprovedTransaction } from "../components/interfaces/Accounts";
-import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, UpdateAccount } from "../services/AccountsService";
+import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, PostNewUnapprovedTransaction, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -16,6 +16,7 @@ type AccountsContextType = {
     createAccountTransaction: (transaction: AccountTransaction) => Promise<AccountTransaction>;
     fetchAccountLogs: (accountId: string) => Promise<AccountLogs[]>;
     getUnapprovedTransactions: (accountId: string) => Promise<UnapprovedTransaction[]>;
+    createUnapprovedTransaction: (accountId: string, value: number, description: string) => Promise<UnapprovedTransaction>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -138,6 +139,13 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
+    const HandleCreateUnapprovedTransaction = async (accountId: string, value: number, description: string): Promise<UnapprovedTransaction> => {
+        // Call the create unapproved transaction function from the accounts provider
+        const response = await PostNewUnapprovedTransaction(accountId,  description, value, apiUrl);
+
+        return response;
+    }
+
 
     return (
         <AccountsContext.Provider value={{ 
@@ -153,7 +161,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             getAccountTransactions: HandleGetAccountTransactions,
             createAccountTransaction: HandleCreateAcccountTransaction,
             fetchAccountLogs: HandleFetchAccountLogs,
-            getUnapprovedTransactions: HandleFetchUnaprovedTransactions
+            getUnapprovedTransactions: HandleFetchUnaprovedTransactions,
+            createUnapprovedTransaction: HandleCreateUnapprovedTransaction
         }}>
             {children}
         </AccountsContext.Provider>

@@ -775,7 +775,7 @@ namespace LedgerLinkPro.Controllers
 
         [HttpPost("create-new-unapproved-transaction")]
         [Authorize]
-        public async Task<IActionResult> CreateNewUnapprovedAccountransaction([FromQuery] string accountId, [FromBody] string transactionName, [FromQuery] double transactionAmount)
+        public async Task<IActionResult> CreateNewUnapprovedAccountransaction([FromQuery] string accountId, [FromQuery] string transactionName, [FromQuery] double transactionAmount)
         {
             try
             {

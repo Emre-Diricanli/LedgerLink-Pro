@@ -7,7 +7,7 @@ import { Account, AccountTransaction } from '../interfaces/Accounts';
 // Define the types for your props
 interface CreateNewTransactionBarProps {
     account: Account; // Replace 'any' with the type of your account
-    onCreate: (transaction: AccountTransaction) => void; // Replace 'any' with the type of your transaction
+    onCreate: (value: number, description: string) => void; // Replace 'any' with the type of your transaction
 }
 
 // Define your component
@@ -30,17 +30,9 @@ const CreateNewTransactionBar: React.FC<CreateNewTransactionBarProps> = ({ accou
             alert('Please enter a valid amount and description');
         }
 
-        let transaction : AccountTransaction = {
-            accountId: account.accountId,
-            transactionDescription: description,
-            transactionAmount: value,
-            beforeTransactionBalance: account.balance,
-            afterTransactionBalance: account.balance + value,
-            transactionDate: new Date(),
-            userName: 'UNKNOWN'
-        };
+        console.log('Creating new transaction');
 
-        onCreate(transaction);
+        onCreate(value, description);
     };
 
     return (

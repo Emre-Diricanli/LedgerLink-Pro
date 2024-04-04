@@ -288,26 +288,32 @@ export const FetchUnapprovedTransactions = async ( accountId: String, apiUrl: st
 
 };
 
-export const PostNewUnapprovedTransaction = async (accountId: string, transactionName: string, transactionAmount: number, apiUrl: string): Promise<boolean> => {
+export const PostNewUnapprovedTransaction = async (accountId: string, transactionName: string, transactionAmount: number, apiUrl: string): Promise<UnapprovedTransaction> => {
     try {
-        const response = await fetch(`${apiUrl}/accounts/create-new-unapproved-transaction?accountId=${accountId}&transactionAmount=${transactionAmount}`, {
+        if (!transactionName) {
+            throw new Error("Transaction name is required");
+        }
+
+        const response = await fetch(`${apiUrl}/accounts/create-new-unapproved-transaction?accountId=${accountId}&transactionName=${transactionName}&transactionAmount=${transactionAmount}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                transactionName: transactionName
-            }),
             credentials: 'include'
         });
 
         if (!response.ok) {
-            return false;
+            return {} as UnapprovedTransaction;
         }
 
-        return true;
+        const data = await response.json();
+
+        const newTransaction = data as UnapprovedTransaction;
+
+        return newTransaction;
     } catch (error) {
         console.error("Error in Post New Unapproved Transaction: ", (error as Error).message);
-        return false; // Return false in case of error
+
+        return {} as UnapprovedTransaction;
     }
 };
