@@ -6,7 +6,8 @@ import { useAccounts } from '../../Providers/AccountsProvider';
 import TransactionsTable from '../../components/accounts/Table/TransactionsTable';
 import AccountLogsTable from '../../components/accounts/Table/AccountLogsTable';
 import CreateNewTransactionBar from '../../components/accounts/CreateNewTransactionBar';
-import UnapprovedTransactionsTable from '../../components/UnaprovedTransactions/Tables/UnaprovedTransactionsTable';
+import UnapprovedTransactionsTable from '../../components/ledger/tables/UnaprovedTransactionsTable';
+import RejectedJournalEntriesTable from '../../components/ledger/tables/RejectedJournalEntries';
 
 interface LedgerProps {
     // define your props here
@@ -41,8 +42,8 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
 
 
     return (
-        <div className='flex flex-col w-full h-full p-4'>
-            <div className='flex flex-row w-full justify-between'>
+        <div className='flex flex-col w-full h-full'>
+            <div className='flex flex-row w-full justify-between p-2'>
                 <button className='icon-button' onClick={hideLedger}>
                     <div className='flex flex-row gap-2 items-center'>
                         <FontAwesomeIcon icon={faArrowRightFromBracket} flip='horizontal'/>
@@ -51,6 +52,7 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
                 </button>
                 <h2 className='ml-auto mr-auto'>{account.accountName}</h2>
             </div>
+            <div className='horizontal-divider'></div>
             <div className='flex flex-row w-full h-full gap-0'>
                 <div className='flex flex-col w-full'>
                     { transactions.length > 0 ? (
@@ -63,7 +65,7 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
                     </div> */}
                 </div>
                 <div className='vertical-divider'></div>
-                <div className='flex flex-col w-full '>
+                <div className='flex flex-col w-full h-full'>
                     {/* { accountLogs.length > 0 ? (
                     <>
                         <AccountLogsTable accountLogs={accountLogs} />
@@ -72,8 +74,19 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
                         <p>There are no logs for this account</p>
                     )} */}
                     
-                    <UnapprovedTransactionsTable account={account} />
-                   
+                    <div className='flex flex-col h-full'>
+                    <div className='p-4'>
+                            <h3>Unapproved Journal Entries</h3>
+                        </div>
+                        <UnapprovedTransactionsTable account={account} />
+                    </div>
+                    <div className='horizontal-divider'></div>
+                    <div className='flex flex-col h-full'>
+                        <div className='p-4'>
+                            <h3>Rejected Journal Entries</h3>
+                        </div>
+                        <RejectedJournalEntriesTable account={account} />
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, UnapprovedTransaction } from "../components/interfaces/Accounts";
-import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, PostNewUnapprovedTransaction, UpdateAccount } from "../services/AccountsService";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, RejectedJournalEntry, UnapprovedTransaction } from "../components/interfaces/Accounts";
+import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, GetRejectedJournalEntries, PostNewUnapprovedTransaction, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -17,6 +17,7 @@ type AccountsContextType = {
     fetchAccountLogs: (accountId: string) => Promise<AccountLogs[]>;
     getUnapprovedTransactions: (accountId: string) => Promise<UnapprovedTransaction[]>;
     createUnapprovedTransaction: (accountId: string, value: number, description: string) => Promise<UnapprovedTransaction>;
+    getRejectedJournalEntries: (accountId: string) => Promise<RejectedJournalEntry[]>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -146,6 +147,12 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
+    const HandleGetRejectedJournalEntries = async (accountId: string): Promise<RejectedJournalEntry[]> => {
+        const response = await GetRejectedJournalEntries(accountId, apiUrl);
+
+        return response;
+    }
+
 
     return (
         <AccountsContext.Provider value={{ 
@@ -162,7 +169,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             createAccountTransaction: HandleCreateAcccountTransaction,
             fetchAccountLogs: HandleFetchAccountLogs,
             getUnapprovedTransactions: HandleFetchUnaprovedTransactions,
-            createUnapprovedTransaction: HandleCreateUnapprovedTransaction
+            createUnapprovedTransaction: HandleCreateUnapprovedTransaction,
+            getRejectedJournalEntries: HandleGetRejectedJournalEntries
         }}>
             {children}
         </AccountsContext.Provider>

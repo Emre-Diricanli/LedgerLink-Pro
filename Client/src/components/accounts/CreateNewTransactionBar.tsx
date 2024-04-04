@@ -2,6 +2,7 @@ import React from 'react';
 import './AccountsComponents.css'
 import CurrencyInput from 'react-currency-input-field';
 import { Account, AccountTransaction } from '../interfaces/Accounts';
+import { on } from 'events';
 
 
 // Define the types for your props
@@ -33,7 +34,15 @@ const CreateNewTransactionBar: React.FC<CreateNewTransactionBarProps> = ({ accou
         console.log('Creating new transaction');
 
         onCreate(value, description);
+
+       
+        clearInput();
     };
+
+    const clearInput = () => {
+        setDescription('');
+        onValueChange('');
+    }
 
     return (
         <div className='flex flex-row w-full create-new-transaction-bar'>

@@ -387,3 +387,15 @@ th, td {
   padding: 8px;
   border-bottom: 1px solid #ddd; /* Adds a line between rows */
 }
+
+.vertical-divider{
+  width: 1px;
+  height: auto;
+  background-color: var(--soft-gray);
+}
+
+.horizontal-divider{
+  width: 100%;
+  height: 1px;
+  background-color: var(--soft-gray);
+}

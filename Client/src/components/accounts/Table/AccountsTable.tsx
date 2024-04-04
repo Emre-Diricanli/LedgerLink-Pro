@@ -131,7 +131,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                 <th>Status</th>
                                 <th>Balance</th>
                                 <th>Actions</th>
-                                <th>Transactions</th>
+                                {/* <th>Transactions</th> */}
                                 <th>Ledger</th>
                             </tr>
                         </thead>
@@ -161,9 +161,9 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                     <td>
                                         <AccountsActionDropdown ref={dropdownRef} account={account} accountIds={[activeAccount || '']} showText={false} onActionComplete={onActionComplete} actionConfig={actionConfig(account.activeStatus)} closeDropdown={actionCompleted}/>
                                     </td>
-                                    <td>
+                                    {/* <td>
                                         <TransactionsButton account={account} needsRefresh={refreshAccounts}/>
-                                    </td>
+                                    </td> */}
                                     <td>
                                         <button onClick={() => showLedger(account)}>Ledger</button>
                                         {/* <ViewAccountButton account={account} needsRefresh={refreshAccounts}/> */}

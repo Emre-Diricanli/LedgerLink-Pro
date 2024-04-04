@@ -1,4 +1,4 @@
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, UnapprovedTransaction } from "../components/interfaces/Accounts";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, RejectedJournalEntry, UnapprovedTransaction } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
 export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
@@ -317,3 +317,28 @@ export const PostNewUnapprovedTransaction = async (accountId: string, transactio
         return {} as UnapprovedTransaction;
     }
 };
+
+export const GetRejectedJournalEntries = async (accountId: string, apiUrl: string): Promise<RejectedJournalEntry[]> => {
+    try {
+        const response = await fetch(`${apiUrl}/accounts/rejected-transactions?accountId=${accountId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return [] as unknown as RejectedJournalEntry[];
+        }
+
+        const data = await response.json();
+
+        const transactions = data as RejectedJournalEntry[];
+
+        return transactions;
+    } catch (error) {
+        console.error("Error in Get Rejected Journal Entries: ", (error as Error).message);
+        return [] as unknown as RejectedJournalEntry[];
+    }
+}

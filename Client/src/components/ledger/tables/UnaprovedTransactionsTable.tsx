@@ -7,6 +7,8 @@ import TransactionRejectionModal from '../../accounts/Modals/TransactionRejcetio
 import { useAccounts } from '../../../Providers/AccountsProvider';
 import CreateNewTransactionBar from '../../accounts/CreateNewTransactionBar';
 import { PostNewUnapprovedTransaction } from '../../../services/AccountsService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 
 export interface UnaprovedTransactionsTableProps {
@@ -69,11 +71,10 @@ const UnapprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = (
         }
     }, [auth.isAdmin, auth.isManager]);
 
-
     return (
         <>
             <TransactionRejectionModal transaction={selectedTransaction} isOpen={isModalOpen} onClose={setIsModalOpen} />
-            <div className=" p-6">
+            <div className="flex flex-col justify-between h-full">
                 
                 <table className="accounts-table">
                     <thead>
@@ -90,46 +91,21 @@ const UnapprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = (
                                     key={transaction.transactionId} 
                                     className={activeTransaction === transaction.transactionId ? 'active-user-row' : ''}
                                 >
-                                {/* <td>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedAccounts.includes(account.accountId)}
-                                        onChange={(e) => {
-                                            e.stopPropagation(); // Prevent row click when interacting with the checkbox
-                                            handleCheckboxChange(account.accountId);
-                                        }}
-                                    />
-                                </td> */}
                                 <td>{new Date(transaction.transactionDate).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                                 <td>{formatCurrencyString(transaction.transactionAmount)}</td>
                                 <td>{transaction.transactionDescription}</td>
-                                {/* <td>
-                                    <div className='flex flex-row justify-center content-center items-center'>
-                                    {!transaction.rejected && 
-                                        <p className='mr-4' style={{color: transaction.isApproved ? 'green' : 'red'}}>
-                                            {transaction.isApproved ? 'Approved' : 'No'}
-                                        </p>
-                                    }
-                                        {transaction.rejected ? 
-                                            <div className='flex flex-row items-center gap-2'>
-                                                <strong style={{color: 'red'}}>REJECTED</strong>
-                                            <button className='icon-button' style={{backgroundColor: '#ff8c00'}} onClick={() => handleViewTransactionRejection(transaction.transactionId || '')}>
-                                                <FontAwesomeIcon icon={faArrowUpRightFromSquare} size='xs'/>
-                                            </button>
-                                            </div> :
-                                            !transaction.isApproved && canReject && (
-                                                <div className='flex flex-row gap-1'>
-                                                    <button className='icon-button' style={{backgroundColor: "red"}} onClick={() => handleRejectTransaction(transaction.transactionId || '')}>
-                                                        <FontAwesomeIcon icon={faTimes} size="xs"/>
-                                                    </button>
-                                                    <button className='icon-button' style={{backgroundColor: "green"}} onClick={() => handleApproveTransaction(transaction.transactionId || '')}>
-                                                        <FontAwesomeIcon icon={faCheck} size='xs'/>
-                                                    </button>
-                                                </div>
-                                            )
-                                        }
+                                <td>
+                                    <div className='flex flex-row gap-1'>
+                                        <button className='icon-button gap-2' style={{backgroundColor: "red"}} onClick={() => handleRejectTransaction(transaction.transactionId || '')}>
+                                            <FontAwesomeIcon icon={faTimes} size="lg"/>
+                                            <p>Reject</p>
+                                        </button>
+                                        <button className='icon-button gap-2' style={{backgroundColor: "green"}} onClick={() => handleApproveTransaction(transaction.transactionId || '')}>
+                                            <FontAwesomeIcon icon={faCheck} size='lg'/>
+                                            <p>Approve</p>
+                                        </button>
                                     </div>
-                                </td> */}
+                                </td>
                             </tr>
                         ))}
                     </tbody>

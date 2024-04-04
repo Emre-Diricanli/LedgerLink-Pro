@@ -130,8 +130,3 @@
   background-color: #007a11;
 }
   
-.vertical-divider{
-  width: 1px;
-  height: auto;
-  background-color: var(--soft-gray);
-}

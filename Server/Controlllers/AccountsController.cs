@@ -738,11 +738,11 @@ namespace LedgerLinkPro.Controllers
                     return Ok();
                 }
 
-                List<UnaprovedTransactionsDTO> unaprovedAccountTransactionsDTO = new List<UnaprovedTransactionsDTO>();
+                List<UnapprovedJournalEntryDTO> unaprovedAccountTransactionsDTO = new List<UnapprovedJournalEntryDTO>();
 
                 foreach (var transaction in accountTransactions)
                 {
-                    UnaprovedTransactionsDTO accountTransaction = new UnaprovedTransactionsDTO
+                    UnapprovedJournalEntryDTO accountTransaction = new UnapprovedJournalEntryDTO
                     {
                         AccountId = transaction.AccountId,
                         TransactionId = transaction.TransactionId,
@@ -813,7 +813,7 @@ namespace LedgerLinkPro.Controllers
 
                 await db.SaveChangesAsync();
 
-                UnaprovedTransactionsDTO returnTransaction = new UnaprovedTransactionsDTO
+                UnapprovedJournalEntryDTO returnTransaction = new UnapprovedJournalEntryDTO
                 {
                     AccountId = accountTransaction.AccountId,
                     TransactionId = accountTransaction.TransactionId,
@@ -1024,7 +1024,7 @@ namespace LedgerLinkPro.Controllers
     
         [HttpGet("rejected-transactions")]
         [Authorize]
-        public async Task<IActionResult> GetRejectedTransactions([FromBody] List<string> transactionIds)
+        public async Task<IActionResult> GetRejectedTransactions([FromQuery] string accountId)
         {
             try
             {
@@ -1039,11 +1039,33 @@ namespace LedgerLinkPro.Controllers
                 //get all rejected transactions under transactionIds
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    var rejectedTransactions = await context.RejectedAccountTransactions.Where(a => transactionIds.Contains(a.TransactionId.ToString())).ToListAsync();
+                    var rejectedJournalEntries = await context.RejectedAccountTransactions.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
 
                     //return the rejected transactions
+                    List<RejectedJournalEntryDTO> rejectedJournalEntriesDTO = new List<RejectedJournalEntryDTO>();
 
-                    return Ok(rejectedTransactions);
+                    foreach (var transaction in rejectedJournalEntries)
+                    {
+                        RejectedJournalEntryDTO rejectedJournalEntry = new RejectedJournalEntryDTO
+                        {
+                            TransactionId = transaction.TransactionId,
+                            UserId = transaction.UserId,
+                            AccountId = transaction.AccountId,
+                            TransactionAmount = transaction.TransactionAmount,
+                            TransactionDescription = transaction.TransactionDescription,
+                            TransactionDate = transaction.TransactionDate,
+                            rejectionReason = transaction.rejectionReason,
+                            rejectionDate = transaction.rejectionDate,
+                            rejectedByFullName = transaction.rejectedByFullName,
+                            rejectedById = transaction.rejectedById
+                        };
+
+                        rejectedJournalEntriesDTO.Add(rejectedJournalEntry);
+                    }
+
+
+
+                    return Ok(rejectedJournalEntriesDTO);
                 }
             }
             catch(Exception ex)

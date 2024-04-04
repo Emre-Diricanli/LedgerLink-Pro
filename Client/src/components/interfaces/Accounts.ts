@@ -52,15 +52,18 @@ export interface UnapprovedTransaction {
 }
 
 
-export interface RejectedAccountTransaction {
-    id: string;
-    accountId: string;
+export interface RejectedJournalEntry {
     transactionId: string;
+    userId: string;
+    accountId: string;
+    transactionAmount: number;
+    transactionDescription: string;
     rejectionReason: string;
     rejectionDate: Date;
     rejectedByFullName: string;
     rejectedById: string;
-};
+    transactionDate: Date;
+}
 
 export interface AccountLogs {
     logId: string;
