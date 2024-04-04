@@ -105,7 +105,7 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
                     </select>
                 </div>
                 <div className='flex flex-col items-start w-fit'>
-                    <p>Create User</p>
+                    {/* <p>Create User</p> */}
                     <Tooltip title='Create a New User'>
                     <button onClick={() => setCreateNewUserModalOpen(true)}>Create</button>
                     </Tooltip>
