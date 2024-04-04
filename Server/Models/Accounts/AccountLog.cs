@@ -11,6 +11,7 @@ namespace LedgerLinkPro.Models.Accounts
         public DateTimeOffset Date { get; set; }
         public Account AccountBeforeChanges { get; set; }
         public Account AccountAfterChanges { get; set; }
+        public string? Transaction { get; set; }
         public string UserId { get; set; }
         public string UserName { get; set; }
     }

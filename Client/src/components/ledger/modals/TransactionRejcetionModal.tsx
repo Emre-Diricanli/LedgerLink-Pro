@@ -3,17 +3,18 @@ import ModalBody from '../../Modal/ModalBody';
 import ModalFooter from '../../Modal/ModalFooter';
 import ModalHeader from '../../Modal/ModalHeader';
 import { useSystems } from '../../../Providers/SystemsProvider';
-import { AccountTransaction } from '../../interfaces/Accounts';
-import { SendAccountRejection } from '../../../services/AccountsService';
+import { AccountTransaction, UnapprovedJournalEntry } from '../../interfaces/Accounts';
+import { RejectJournalEntry } from '../../../services/AccountsService';
 
 interface TransactionRejectionModalProps {
-    transaction: AccountTransaction;
+    journalEntry: string;
     isOpen: boolean;
     onClose: (arg0: boolean) => void;
+    successfullRejection: (arg0: string) => void;
 }
 
 
-const TransactionRejectionModal: React.FC<TransactionRejectionModalProps> = ({transaction, isOpen, onClose }) => {
+const JournalEntryRejectionModal: React.FC<TransactionRejectionModalProps> = ({journalEntry, isOpen, onClose, successfullRejection }) => {
     if (!isOpen) return null;
 
     const systems = useSystems();
@@ -24,21 +25,27 @@ const TransactionRejectionModal: React.FC<TransactionRejectionModalProps> = ({tr
     };
 
     const handleSubmitRejections = async () => {
+        console.log("rejecting");
         //if description is empty then alert user
         if (rejectionDescription === '') {
             alert('Please provide a description for the rejection');
             return;
         }
 
+        //log whole object
+
         //send rejection to backend
-        if (transaction.transactionId !== undefined) {
+        if (journalEntry !== undefined) {
            
-            const success = await SendAccountRejection(transaction.transactionId, rejectionDescription, systems.apiUrl);
+            console.log("sending");
+            const success = await RejectJournalEntry(journalEntry, rejectionDescription, systems.apiUrl);
 
             if (!success) {
                 alert('Failed to reject transaction');
                 return;
-            }
+            } 
+
+            successfullRejection(journalEntry);
         }
 
         //if successful then close modal
@@ -48,7 +55,7 @@ const TransactionRejectionModal: React.FC<TransactionRejectionModalProps> = ({tr
     return (
         <div className="modal-backdrop" onClick={() => onClose(false)}>
             <div className="view-account-modal-content" onClick={handleModalClick}>
-                <ModalHeader mainText="Reject Transaction" subText={transaction.transactionDescription} />
+                <ModalHeader mainText="Reject Transaction" subText={journalEntry} />
                     <ModalBody styles={{ padding: 0 }}>
                        <div className='flex flex-col p-8 gap-8'>
                         <h4>To reject this transaction please write a short description explaining why.</h4>
@@ -67,4 +74,4 @@ const TransactionRejectionModal: React.FC<TransactionRejectionModalProps> = ({tr
     );
 };
 
-export default TransactionRejectionModal;
+export default JournalEntryRejectionModal;

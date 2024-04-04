@@ -4,7 +4,7 @@ import ModalFooter from '../../Modal/ModalFooter';
 import ModalHeader from '../../Modal/ModalHeader';
 import { useSystems } from '../../../Providers/SystemsProvider';
 import { AccountTransaction } from '../../interfaces/Accounts';
-import { SendAccountRejection } from '../../../services/AccountsService';
+import { RejectJournalEntry } from '../../../services/AccountsService';
 
 interface ViewTransactionRejectionModalProps {
     transaction: AccountTransaction;

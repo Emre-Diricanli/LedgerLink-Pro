@@ -49,6 +49,10 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
         return { include: actions };
     };
 
+    const formatCurrencyString = (amount: number) => {
+        return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    };
+
     const handleCheckboxChange = (accountId: string) => {
         setSelectedAccounts(prevSelected => {
             const newSelected = prevSelected.includes(accountId)
@@ -157,7 +161,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                     <td>{account.category}</td>
                                     <td>{account.subcategory}</td>
                                     <td>{account.activeStatus ? 'Active' : 'Inactive'}</td>
-                                    <td>${account.balance}</td>
+                                    <td>{formatCurrencyString(account.balance)}</td>
                                     <td>
                                         <AccountsActionDropdown ref={dropdownRef} account={account} accountIds={[activeAccount || '']} showText={false} onActionComplete={onActionComplete} actionConfig={actionConfig(account.activeStatus)} closeDropdown={actionCompleted}/>
                                     </td>

@@ -1,19 +1,13 @@
-using LedgerLinkPro.DTO;
-using LedgerLinkPro.Models.Users;
 using LedgerLinkPro.Services;
 using LedgerLinkPro.Database;
-using LedgerLinkPro.DTO;
 using LedgerLinkPro.Models.Accounts;
-using LedgerLinkPro.Models.Auth;
-using LedgerLinkPro.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
-using System.Web;
 using LedgerLinkPro.DTO.Accounts;
+using Newtonsoft.Json;
 
 namespace LedgerLinkPro.Controllers
 {
@@ -107,6 +101,50 @@ namespace LedgerLinkPro.Controllers
             }
         }
 
+        //for new transactions
+        private async Task LogObjectWithTransaction(string accountId, string action, string userId, string userName, string transaction)
+        {
+            try
+            {
+                // Create a new account log
+                DateTimeOffset utcNow = DateTimeOffset.UtcNow;
+
+                AccountLog accountLog = new AccountLog
+                {
+                    LogId = Guid.NewGuid(),
+                    AccountId = new Guid(accountId),
+                    Action = action,
+                    Date = utcNow,
+                    UserId = userId,
+                    UserName = userName,
+                    Transaction = transaction
+                };
+
+                // Save the account log to the database
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    context.AccountLogs.Add(accountLog);
+                    await context.SaveChangesAsync();
+                }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error logging object. Exception Catched", "AccountsController.cs", "UNKNOWN", "LogObject", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error logging object. Exception Catched", "AccountsController.cs", identityUser.Id, "LogObject", ex.Message);
+
+                return;
+            }
+        }
 
         [HttpPost("create-new-account")]
         [Authorize]
@@ -138,7 +176,6 @@ namespace LedgerLinkPro.Controllers
                     ActiveStatus = true,
                     Debit = 0,
                     Credit = 0,
-                    Balance = newAccount.InitialBalance,
                     DateAdded = utcNow,
                     Order = "",
                     Statement = "",
@@ -199,7 +236,7 @@ namespace LedgerLinkPro.Controllers
                     DateAdded = account.DateAdded,
                     Debit = account.Debit,
                     Description = account.Description,
-                    Balance = account.Balance,
+                    Balance = 50000,
                     NormalSide = account.NormalSide,
                     Order = account.Order,
                     Statement = account.Statement,
@@ -285,13 +322,27 @@ namespace LedgerLinkPro.Controllers
                         DateAdded = account.DateAdded,
                         Debit = account.Debit,
                         Description = account.Description,
-                        Balance = account.Balance,
                         NormalSide = account.NormalSide,
                         Order = account.Order,
                         Statement = account.Statement,
                         Subcategory = account.Subcategory,
                         UserId = account.UserId
                     };
+
+                    //find all transactions and add up the balance via transactionAmount
+                    var transactions = await db.AccountTransactions.Where(a => a.AccountId == account.AccountId).ToListAsync();
+
+                    decimal balance = 0;
+
+                    foreach (var transaction in transactions)
+                    {
+                        foreach (var line in transaction.JournalEntries)
+                        {
+                            balance += line.Amount;
+                        }   
+                    }
+
+                    accountDto.Balance = balance;
 
                     accountsDto.Add(accountDto);
                 }
@@ -338,7 +389,6 @@ namespace LedgerLinkPro.Controllers
                         Category = account.Category,
                         Subcategory = account.Subcategory,
                         ActiveStatus = account.ActiveStatus,
-                        Balance = account.Balance,
                         Credit = account.Credit,
                         Debit = account.Debit,
                         DateAdded = account.DateAdded,
@@ -570,75 +620,6 @@ namespace LedgerLinkPro.Controllers
             }
         }
 
-        [HttpPost("create-new-account-transaction")]
-        [Authorize]
-        public async Task<IActionResult> NewAccountTransaction([FromBody] AccountTransactionsDTO newTransaction)
-        {
-            try
-            {
-                //validate user
-                var user = await _userManager.GetUserAsync(User);
-
-                if (user == null)
-                {
-                    return Unauthorized();
-                }
-
-                var db = _contextFactory.CreateDbContext();
-
-                //Verify if the account exists
-                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId == newTransaction.AccountId);
-
-                if (account == null)
-                {
-                    return NotFound("Account not found");
-                }
-
-                var utcNow = DateTimeOffset.UtcNow;
-
-                UnapprovedTransaction accountTransaction = new UnapprovedTransaction
-                {
-                    TransactionId = Guid.NewGuid(),
-                    UserId = user.Id,
-                    AccountId = newTransaction.AccountId,
-                    TransactionAmount = newTransaction.TransactionAmount,
-                    TransactionDescription = newTransaction.TransactionDescription,
-                    TransactionDate = utcNow
-                };
-
-                await db.UnapprovedTransactions.AddAsync(accountTransaction);
-
-                await db.SaveChangesAsync();
-
-                AccountTransactionsDTO returnTransaction = new AccountTransactionsDTO
-                {
-                    AccountId = accountTransaction.AccountId,
-                    TransactionId = accountTransaction.TransactionId,
-                    TransactionDate = accountTransaction.TransactionDate,
-                    TransactionDescription = accountTransaction.TransactionDescription,
-                    TransactionAmount = accountTransaction.TransactionAmount
-                };
-
-                //return the account transaction
-                return Ok(returnTransaction);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                var identityUser = await _userManager.GetUserAsync(User);
-
-                // Null handling
-                if (identityUser == null)
-                {
-                    await _errorReportingService.ReportError("Error creating new account transaction. Exception Catched", "AccountsController.cs", "UNKNOWN", "NewAccountTransaction", ex.Message);
-                }
-
-                await _errorReportingService.ReportError("Error creating new account transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "NewAccountTransaction", ex.Message);
-
-                return StatusCode(500, "Error creating new account transaction");
-            }
-        }
-
         [HttpGet("get-account-transactions/approved")]
         [Authorize]
         public async Task<IActionResult> GetAccounTransactions([FromQuery] string accountId)
@@ -664,25 +645,59 @@ namespace LedgerLinkPro.Controllers
                 }
 
                 //Get the account transactions
-                var accountTransactions = await db.AccountTransactions.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
+                var accountTransactions = await db.AccountTransactions.Where(a => a.AccountId.ToString() == accountId).OrderBy(t => t.TransactionDate).ToListAsync();
 
                 if (accountTransactions == null || accountTransactions.Count() == 0)
                 {
                     return Ok();
                 }
 
-                List<AccountTransactionsDTO> accountTransactionsDTO = new List<AccountTransactionsDTO>();
+                List<AccountJournalEntryDTO> accountTransactionsDTO = new List<AccountJournalEntryDTO>();
+
+                decimal currentBalance = 0;
 
                 foreach (var transaction in accountTransactions)
                 {
-                    AccountTransactionsDTO accountTransaction = new AccountTransactionsDTO
+
+                    // Calculate balances before and after the transaction
+                    decimal beforeTransactionBalance = currentBalance;
+                    
+
+                    //for after transaction balance, add up all journal entry lines
+                    decimal afterTransactionBalance = 0;
+
+                    foreach (var line in transaction.JournalEntries)
+                    {
+                        afterTransactionBalance += line.Amount;
+                    }
+
+                    AccountJournalEntryDTO accountTransaction = new AccountJournalEntryDTO
                     {
                         AccountId = transaction.AccountId,
                         TransactionId = transaction.TransactionId,
                         TransactionDate = transaction.TransactionDate,
                         TransactionDescription = transaction.TransactionDescription,
-                        TransactionAmount = transaction.TransactionAmount
+                        BeforeTransactionBalance = beforeTransactionBalance,
+                        AfterTransactionBalance = afterTransactionBalance,
+                        TransactionAmount = afterTransactionBalance - beforeTransactionBalance,
+                        JournalEntries = transaction.JournalEntries,
+                        User = "UKNOWN6969"
                     };
+
+
+                    var creator = await db.Users.FirstOrDefaultAsync(u => u.id == transaction.UserId);
+
+                    if (creator != null)
+                    {
+                        accountTransaction.User = creator.FirstName + " " + creator.LastName;
+                    }
+                    else
+                    {
+                        accountTransaction.User = "Unknown";
+                    }
+
+                    // Update the current balance for the next iteration
+                    currentBalance = afterTransactionBalance;
 
                     accountTransactionsDTO.Add(accountTransaction);
                 }
@@ -731,7 +746,7 @@ namespace LedgerLinkPro.Controllers
                 }
 
                 //Get the account transactions
-                var accountTransactions = await db.UnapprovedTransactions.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
+                var accountTransactions = await db.UnapprovedJournalEntries.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
 
                 if (accountTransactions == null || accountTransactions.Count() == 0)
                 {
@@ -747,9 +762,15 @@ namespace LedgerLinkPro.Controllers
                         AccountId = transaction.AccountId,
                         TransactionId = transaction.TransactionId,
                         TransactionDate = transaction.TransactionDate,
+                        JournalEntryLines = transaction.JournalEntryLines,
                         TransactionDescription = transaction.TransactionDescription,
-                        TransactionAmount = transaction.TransactionAmount
+                        TotalAmount = 0
                     };
+
+                    foreach (var line in transaction.JournalEntryLines)
+                    {
+                        accountTransaction.TotalAmount += line.Amount;
+                    }
 
                     unaprovedAccountTransactionsDTO.Add(accountTransaction);
                 }
@@ -773,9 +794,9 @@ namespace LedgerLinkPro.Controllers
             }
         }
 
-        [HttpPost("create-new-unapproved-transaction")]
+        [HttpPost("create-new-unapproved-journal-entry")]
         [Authorize]
-        public async Task<IActionResult> CreateNewUnapprovedAccountransaction([FromQuery] string accountId, [FromQuery] string transactionName, [FromQuery] double transactionAmount)
+        public async Task<IActionResult> CreateNewUnapprovedAccountransaction([FromBody] NewJournalEntryDTO newJournalEntry)
         {
             try
             {
@@ -790,7 +811,7 @@ namespace LedgerLinkPro.Controllers
                 var db = _contextFactory.CreateDbContext();
 
                 //Verify if the account exists
-                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == newJournalEntry.AccountId);
 
                 if (account == null)
                 {
@@ -799,31 +820,37 @@ namespace LedgerLinkPro.Controllers
 
                 var utcNow = DateTimeOffset.UtcNow;
 
-                UnapprovedTransaction accountTransaction = new UnapprovedTransaction
+                UnapprovedJournalEntry unapprovedJournalEntry = new UnapprovedJournalEntry
                 {
                     TransactionId = Guid.NewGuid(),
                     UserId = user.Id,
                     AccountId = account.AccountId,
-                    TransactionAmount = (decimal)transactionAmount,
-                    TransactionDescription = transactionName,
-                    TransactionDate = utcNow
+                    TransactionDate = utcNow,
+                    JournalEntryLines = newJournalEntry.JournalEntryLines,
+                    TransactionDescription = newJournalEntry.EntryName
                 };
 
-                await db.UnapprovedTransactions.AddAsync(accountTransaction);
+                await db.UnapprovedJournalEntries.AddAsync(unapprovedJournalEntry);
 
                 await db.SaveChangesAsync();
 
-                UnapprovedJournalEntryDTO returnTransaction = new UnapprovedJournalEntryDTO
+                UnapprovedJournalEntryDTO returnJournalEntry = new UnapprovedJournalEntryDTO
                 {
-                    AccountId = accountTransaction.AccountId,
-                    TransactionId = accountTransaction.TransactionId,
-                    TransactionDate = accountTransaction.TransactionDate,
-                    TransactionDescription = accountTransaction.TransactionDescription,
-                    TransactionAmount = accountTransaction.TransactionAmount
+                    AccountId = unapprovedJournalEntry.AccountId,
+                    TransactionId = unapprovedJournalEntry.TransactionId,
+                    TransactionDate = unapprovedJournalEntry.TransactionDate,
+                    JournalEntryLines = unapprovedJournalEntry.JournalEntryLines,
                 };
 
+                returnJournalEntry.TotalAmount = 0;
+
+                foreach (var line in unapprovedJournalEntry.JournalEntryLines)
+                {
+                    returnJournalEntry.TotalAmount += line.Amount;
+                }
+
                 //return the account transaction
-                return Ok(returnTransaction);
+                return Ok(returnJournalEntry);
 
             }
             catch (Exception ex)
@@ -887,7 +914,7 @@ namespace LedgerLinkPro.Controllers
     
         [HttpPost("approve-transaction")]
         [Authorize]
-        public async Task<IActionResult> ApproveTransaction([FromBody] string transactionId)
+        public async Task<IActionResult> ApproveTransaction([FromQuery] string transactionId)
         {
             try
             {
@@ -907,22 +934,35 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    var accountTransaction = await context.UnapprovedTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
+                    var accountTransaction = await context.UnapprovedJournalEntries.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
 
                     if (accountTransaction == null)
                     {
                         return NotFound("Transaction not found");
                     }
 
-                    var approvedtransaction = new AccountTransaction
+                    var approvedtransaction = new AccountJournalEntry
                     {
                         TransactionId = accountTransaction.TransactionId,
                         UserId = accountTransaction.UserId,
                         AccountId = accountTransaction.AccountId,
-                        TransactionAmount = accountTransaction.TransactionAmount,
                         TransactionDescription = accountTransaction.TransactionDescription,
                         TransactionDate = accountTransaction.TransactionDate,
+                        JournalEntries = accountTransaction.JournalEntryLines
                     };
+
+                    context.AccountTransactions.Add(approvedtransaction);
+
+                    await context.SaveChangesAsync();
+
+                    //if successful, remove the unapproved transaction
+                    context.UnapprovedJournalEntries.Remove(accountTransaction);
+
+                    //convert the transaction object to a JSON string
+                    string transactionJson = JsonConvert.SerializeObject(accountTransaction);
+
+                    // Use the transactionJson as needed
+                    await LogObjectWithTransaction(accountTransaction.AccountId.ToString(), "Journal Entry Approved", user.Id, user.UserName, transactionJson);
 
                     await context.SaveChangesAsync();
                 }
@@ -947,7 +987,6 @@ namespace LedgerLinkPro.Controllers
 
         }
 
-
         [HttpPost("reject-transaction")]
         [Authorize]
         public async Task<IActionResult> RejectTransaction([FromQuery] string transactionId, [FromQuery] string rejectionReason)
@@ -970,7 +1009,7 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    var accountTransaction = await context.UnapprovedTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
+                    var accountTransaction = await context.UnapprovedJournalEntries.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
 
                     if (accountTransaction == null)
                     {
@@ -984,20 +1023,32 @@ namespace LedgerLinkPro.Controllers
                         return NotFound("User not found");
                     }
 
-
                     DateTimeOffset utcNow = DateTimeOffset.UtcNow;
 
-                    RejectedAccountTransaction rejectedAccountTransaction = new RejectedAccountTransaction
+                    RejectedJournalEntry rejectedAccountTransaction = new RejectedJournalEntry
                     {
                         TransactionId = Guid.NewGuid(),
                         AccountId = accountTransaction.AccountId,
                         rejectionReason = rejectionReason,
                         rejectionDate = utcNow,
                         rejectedByFullName = dbUser.FirstName + " " + dbUser.LastName,
-                        rejectedById = user.Id
+                        rejectedById = user.Id,
+                        TransactionDescription = accountTransaction.TransactionDescription,
+                        TransactionDate = accountTransaction.TransactionDate,
+                        UserId = accountTransaction.UserId,
+                        JournalEntries = accountTransaction.JournalEntryLines
                     };
 
                     context.RejectedAccountTransactions.Add(rejectedAccountTransaction);
+
+                    //if successful, remove the unapproved transaction
+                    context.UnapprovedJournalEntries.Remove(accountTransaction);
+
+                    //convert the rejection reason object to a JSON string
+                    string transactionJson = JsonConvert.SerializeObject(accountTransaction);
+
+                    // Use the transactionJson as needed
+                    await LogObjectWithTransaction(accountTransaction.AccountId.ToString(), "Journal Entry Rejected", user.Id, user.UserName, transactionJson);
 
                     await context.SaveChangesAsync();
                 }
@@ -1063,6 +1114,7 @@ namespace LedgerLinkPro.Controllers
                         rejectedJournalEntriesDTO.Add(rejectedJournalEntry);
                     }
 
+                    
 
 
                     return Ok(rejectedJournalEntriesDTO);
@@ -1085,5 +1137,4 @@ namespace LedgerLinkPro.Controllers
             }
         }
     }
-
 }

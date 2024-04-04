@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, RejectedJournalEntry, UnapprovedTransaction } from "../components/interfaces/Accounts";
-import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, GetRejectedJournalEntries, PostNewUnapprovedTransaction, UpdateAccount } from "../services/AccountsService";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, UnapprovedJournalEntry } from "../components/interfaces/Accounts";
+import { ActivateAccounts, ApproveJournalEntry, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, GetRejectedJournalEntries, PostNewJournalEntry, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -15,9 +15,10 @@ type AccountsContextType = {
     getAccountTransactions: (accountId: string) => Promise<AccountTransaction[]>;
     createAccountTransaction: (transaction: AccountTransaction) => Promise<AccountTransaction>;
     fetchAccountLogs: (accountId: string) => Promise<AccountLogs[]>;
-    getUnapprovedTransactions: (accountId: string) => Promise<UnapprovedTransaction[]>;
-    createUnapprovedTransaction: (accountId: string, value: number, description: string) => Promise<UnapprovedTransaction>;
+    getUnapprovedTransactions: (accountId: string) => Promise<UnapprovedJournalEntry[]>;
+    createNewJournalEntry: (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[]) => Promise<UnapprovedJournalEntry>;
     getRejectedJournalEntries: (accountId: string) => Promise<RejectedJournalEntry[]>;
+    approveJournalEntry: (transactionId: string) => Promise<boolean>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -134,21 +135,27 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
          return response;
     } 
 
-    const HandleFetchUnaprovedTransactions = async (accountId: string): Promise<UnapprovedTransaction[]> => {
+    const HandleFetchUnaprovedTransactions = async (accountId: string): Promise<UnapprovedJournalEntry[]> => {
         const response = await FetchUnapprovedTransactions(accountId, apiUrl);
 
         return response;
     }
 
-    const HandleCreateUnapprovedTransaction = async (accountId: string, value: number, description: string): Promise<UnapprovedTransaction> => {
+    const HandleCreateNewJournalEntry = async (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[]): Promise<UnapprovedJournalEntry> => {
         // Call the create unapproved transaction function from the accounts provider
-        const response = await PostNewUnapprovedTransaction(accountId,  description, value, apiUrl);
+        const response = await PostNewJournalEntry(accountId, journalEntryName, entryLines, apiUrl);
 
         return response;
     }
 
     const HandleGetRejectedJournalEntries = async (accountId: string): Promise<RejectedJournalEntry[]> => {
         const response = await GetRejectedJournalEntries(accountId, apiUrl);
+
+        return response;
+    }
+
+    const HandleApproveJournalEntry = async (transactionId: string): Promise<boolean> => {
+        const response = await ApproveJournalEntry(transactionId, apiUrl);
 
         return response;
     }
@@ -169,8 +176,9 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             createAccountTransaction: HandleCreateAcccountTransaction,
             fetchAccountLogs: HandleFetchAccountLogs,
             getUnapprovedTransactions: HandleFetchUnaprovedTransactions,
-            createUnapprovedTransaction: HandleCreateUnapprovedTransaction,
-            getRejectedJournalEntries: HandleGetRejectedJournalEntries
+            createNewJournalEntry: HandleCreateNewJournalEntry,
+            getRejectedJournalEntries: HandleGetRejectedJournalEntries,
+            approveJournalEntry: HandleApproveJournalEntry
         }}>
             {children}
         </AccountsContext.Provider>

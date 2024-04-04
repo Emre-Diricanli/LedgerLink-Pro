@@ -29,10 +29,10 @@ namespace LedgerLinkPro.Database
         public DbSet<UserProfilePictureLocations> UserProfilePictureLocations { get; set; }
         public DbSet<ReportedErrors> ReportedErrors { get; set; }
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<AccountTransaction> AccountTransactions { get; set; }
+        public DbSet<AccountJournalEntry> AccountTransactions { get; set; }
         public DbSet<AccountLog> AccountLogs { get; set; }
-        public DbSet<RejectedAccountTransaction> RejectedAccountTransactions { get; set; }
-        public DbSet<UnapprovedTransaction> UnapprovedTransactions { get; set; }
+        public DbSet<RejectedJournalEntry> RejectedAccountTransactions { get; set; }
+        public DbSet<UnapprovedJournalEntry> UnapprovedJournalEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +49,32 @@ namespace LedgerLinkPro.Database
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<Account>(v));
+
+            modelBuilder.Entity<AccountLog>()
+                .Property(b => b.Transaction)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<UnapprovedJournalEntry>()
+               .Property(b => b.JournalEntryLines)
+               .HasColumnType("jsonb")
+               .HasConversion(
+                   v => JsonConvert.SerializeObject(v),
+                   v => JsonConvert.DeserializeObject<List<JournalEntryLineDTO>>(v));
+
+            modelBuilder.Entity<AccountJournalEntry>()
+               .Property(b => b.JournalEntries)
+               .HasColumnType("jsonb")
+               .HasConversion(
+                   v => JsonConvert.SerializeObject(v),
+                   v => JsonConvert.DeserializeObject<List<JournalEntryLineDTO>>(v));
+
+            modelBuilder.Entity<RejectedJournalEntry>()
+               .Property(b => b.JournalEntries)
+               .HasColumnType("jsonb")
+               .HasConversion(
+                   v => JsonConvert.SerializeObject(v),
+                   v => JsonConvert.DeserializeObject<List<JournalEntryLineDTO>>(v));
+
 
 
             base.OnModelCreating(modelBuilder);

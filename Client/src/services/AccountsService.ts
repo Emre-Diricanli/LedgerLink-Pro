@@ -1,4 +1,4 @@
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, RejectedJournalEntry, UnapprovedTransaction } from "../components/interfaces/Accounts";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, UnapprovedJournalEntry as UnapprovedJournalEntry } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
 export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
@@ -227,7 +227,7 @@ export const FetchAccountLogs = async (accountId: string, apiUrl: string): Promi
     }
 }
 
-export const SendAccountRejection = async (transactionId: string, rejectionReason: string, apiUrl: string): Promise<boolean> => {
+export const RejectJournalEntry = async (transactionId: string, rejectionReason: string, apiUrl: string): Promise<boolean> => {
     if (!transactionId || typeof transactionId !== 'string') {
         console.error('Invalid or missing transactionId');
         return false;
@@ -261,7 +261,36 @@ export const SendAccountRejection = async (transactionId: string, rejectionReaso
     }
 };
 
-export const FetchUnapprovedTransactions = async ( accountId: String, apiUrl: string): Promise<UnapprovedTransaction[]> => {
+export const ApproveJournalEntry = async (transactionId: string, apiUrl: string): Promise<boolean> => {
+    if (!transactionId || typeof transactionId !== 'string') {
+        console.error('Invalid or missing transactionId');
+        return false;
+    }
+
+    const params = new URLSearchParams({ transactionId });
+
+    try {
+        const response = await fetch(`${apiUrl}/accounts/approve-transaction?${params.toString()}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        return true;
+    }
+    catch (error) {
+        console.error("Error in Send Account Approval: ", (error as Error).message);
+        return false;
+    }
+}
+
+export const FetchUnapprovedTransactions = async ( accountId: String, apiUrl: string): Promise<UnapprovedJournalEntry[]> => {
     try {
         const response = await fetch(`${apiUrl}/accounts/get-account-transactions/unapproved?accountId=${accountId}`, {
             method: 'GET',
@@ -272,49 +301,51 @@ export const FetchUnapprovedTransactions = async ( accountId: String, apiUrl: st
         });
 
         if (!response.ok) {
-            return [] as unknown as UnapprovedTransaction[];
+            return [] as unknown as UnapprovedJournalEntry[];
         }
 
         const data = await response.json();
 
-        const transactions = data as UnapprovedTransaction[];
+        const transactions = data as UnapprovedJournalEntry[];
 
         return transactions;
 
     } catch (error) {
         console.error("Error in Fetch Unapproved Transactions: ", (error as Error).message);
-        return [] as unknown as UnapprovedTransaction[];
+        return [] as unknown as UnapprovedJournalEntry[];
     }
 
 };
 
-export const PostNewUnapprovedTransaction = async (accountId: string, transactionName: string, transactionAmount: number, apiUrl: string): Promise<UnapprovedTransaction> => {
+export const PostNewJournalEntry = async (accountId: string, entryName: string, journalEntryLines: JournalEntryLineDTO[], apiUrl: string): Promise<UnapprovedJournalEntry> => {
     try {
-        if (!transactionName) {
-            throw new Error("Transaction name is required");
-        }
-
-        const response = await fetch(`${apiUrl}/accounts/create-new-unapproved-transaction?accountId=${accountId}&transactionName=${transactionName}&transactionAmount=${transactionAmount}`, {
+        const body = {
+            accountId,
+            entryName,
+            journalEntryLines
+        };
+        const response = await fetch(`${apiUrl}/accounts/create-new-unapproved-journal-entry`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify(body),
             credentials: 'include'
         });
 
         if (!response.ok) {
-            return {} as UnapprovedTransaction;
+            return {} as UnapprovedJournalEntry;
         }
 
         const data = await response.json();
 
-        const newTransaction = data as UnapprovedTransaction;
+        const newJournalEntry = data as UnapprovedJournalEntry;
 
-        return newTransaction;
+        return newJournalEntry;
     } catch (error) {
         console.error("Error in Post New Unapproved Transaction: ", (error as Error).message);
 
-        return {} as UnapprovedTransaction;
+        return {} as UnapprovedJournalEntry;
     }
 };
 

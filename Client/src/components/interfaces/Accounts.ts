@@ -40,15 +40,20 @@ export interface AccountTransaction {
     transactionDate: Date;
     transactionDescription: string;
     transactionAmount: number;
-};
+    beforeTransactionBalance: number;
+    afterTransactionBalance: number;
+    user: string;
+    journalEntries: JournalEntryLineDTO[];
+}
 
-export interface UnapprovedTransaction {
+export interface UnapprovedJournalEntry {
     transactionId: string;
     userId: string;
     accountId: string;
-    transactionAmount: number;
+    totalAmount: number;
     transactionDescription: string;
     transactionDate: Date;
+    journalEntryLines: JournalEntryLineDTO[];
 }
 
 
@@ -63,6 +68,7 @@ export interface RejectedJournalEntry {
     rejectedByFullName: string;
     rejectedById: string;
     transactionDate: Date;
+    journalEntries: JournalEntryLineDTO[];
 }
 
 export interface AccountLogs {
@@ -75,3 +81,15 @@ export interface AccountLogs {
     userId: string;
     userName: string;
 };
+
+export interface NewJournalEntryDTO {
+    accountId: string;
+    entryName: string;
+    journalEntryLines: JournalEntryLineDTO[];
+}
+
+export interface JournalEntryLineDTO {
+    index: number;
+    amount: number;
+    description: string;
+}
