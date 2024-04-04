@@ -2,12 +2,14 @@ import React, {useState} from 'react';
 import './signin-signup.css';
 import {useNavigate} from 'react-router-dom';
 import { useAuth } from '../../Providers/AuthProvider';
+import { Tooltip } from '@mui/material';
 
 const AdminSignin = () => {
     const logoSrc = '/llp-logo.png'
     const auth = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
 
     const navigate = useNavigate();
 
@@ -51,7 +53,9 @@ const AdminSignin = () => {
                 </div>
 
                 <div className="flex flex-row content-center justify-start gap-2 w-full pt-2">
+                    <Tooltip title="Reset Your Password">
                     <p>Forgot password? <a href="/forgot-password">Reset Password</a></p>
+                    </Tooltip>
                 </div>
 
                 <div className="flex flex-row content-center justify-start gap-2 w-full pt-4">
@@ -61,15 +65,21 @@ const AdminSignin = () => {
 
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
+                    <Tooltip title="Sign in to your account">
                     <button className="admin-signin-btn" onClick={handlesignin}>Sign In</button>
+                    </Tooltip>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-14">
-                    <p>Don't have an account? <a href="/admin-signup">Sign Up</a></p>
+                    <Tooltip title="Sign up for a new account">
+                        <p>Don't have an account? <a href="/admin-signup">Sign Up</a></p>
+                    </Tooltip>
                 </div>
 
                 <div className="flex flex-row content-center justify-center gap-2 w-full pt-4">
+                    <Tooltip title = "Go to User Sign in">
                     <p>Looking for User signin? <a href="/user-signin">User Signin</a></p>
+                    </Tooltip>
                 </div>
                 </div>
             

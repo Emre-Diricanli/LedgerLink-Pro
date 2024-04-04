@@ -7,6 +7,7 @@ import { useAccounts } from '../../Providers/AccountsProvider';
 import AccountsActionDropdown from './AccountActionsDropdown';
 import { Account } from '../interfaces/Accounts';
 import ContactButton from '../contact/ContactButton';
+import { Tooltip } from '@mui/material';
 
 
 interface AccountsHotbarProps {
@@ -121,8 +122,10 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
                 </select>
             </div>
             <div className='flex flex-col items-start w-fit'>
-                <p>Create Account</p>
+                {/*<p>Create Account</p>*/}
+                <Tooltip title='Create a New Account'>
                 <button className='w-full' onClick={() => setCreateNewAccountModalOpen(true)}>Create</button>
+                </Tooltip>
                 
             </div>
            
@@ -155,7 +158,7 @@ const AccountsHotbar: React.FC<AccountsHotbarProps> = ({
                 </select>
             </div>
             <div className='flex flex-col items-start w-fit'>
-                <p>Contact</p>
+                {/* <p>Contact</p> */}
                 <ContactButton />
             </div>
                

@@ -2,6 +2,7 @@ import React from 'react';
 import './AccountsComponents.css'
 import { Account } from '../interfaces/Accounts';
 import ViewAccountModal from './Modals/ViewAccountModal';
+import { Tooltip } from '@mui/material';
 
 interface ViewAccountButtonProps {
     account: Account;
@@ -27,9 +28,11 @@ const ViewAccountButton: React.FC<ViewAccountButtonProps> = ({account, needsRefr
        <div>
             <ViewAccountModal account={account} isOpen={isOpen} onClose={hideModal} />
             <div className='view-account-button'>
+                <Tooltip title='View Your Account'>
                 <button onClick={showModal} title='View Account'>
                     View
                 </button>
+                </Tooltip>
             </div>
        </div>
     );

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './ContactButton.css'
 import ContactModal from './ContactModal';
+import { Tooltip } from '@mui/material';
 
 const ContactDropdown = () => {
     const [showDropdown, setShowDropdown] = useState(false);
@@ -44,7 +45,9 @@ const ContactDropdown = () => {
        <>
        <ContactModal contactManager={contactManager} isOpen={showModal} onClose={handleModalClose} />
         <div className='flex flex-col items-start w-fit' ref={dropdownRef}>
+            <Tooltip title='Contact LedgerLink Pro'>
             <button onClick={() => setShowDropdown(prev => !prev)} className='contact-button'>Contact</button>
+            </Tooltip>
             {showDropdown && (
                 <div className='action-dropdown' style={{ right: 20 }}>
                     {['Manager', 'Accountant'].map((option, index) => (

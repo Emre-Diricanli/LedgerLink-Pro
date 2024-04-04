@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import ActionDropdown from './UserActionsDropdown';
 import HotbarActionsDropdown from './UserActionsDropdown';
+import { Tooltip } from '@mui/material';
 
 interface UserManagementHotbarProps {
     setCreateNewUserModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -105,16 +106,22 @@ const UserManagementHotbar: React.FC<UserManagementHotbarProps> = ({
                 </div>
                 <div className='flex flex-col items-start w-fit'>
                     <p>Create User</p>
+                    <Tooltip title='Create a New User'>
                     <button onClick={() => setCreateNewUserModalOpen(true)}>Create</button>
+                    </Tooltip>
                     
                 </div>
                 <div className='flex flex-col items-start w-fit ml-auto'>
+                    <Tooltip title='Refresh Page'>
                     <button className="icon-button secondary" onClick={() => actionComplete(true)}>
                         <FontAwesomeIcon icon={faArrowsRotate} />
                     </button>
+                    </Tooltip>
                 </div>
                 <div className='flex flex-col items-start w-fit' > {/* ref={dropdownRef} */}
+                <Tooltip title='Show Actions'>
                     <ActionDropdown ref={dropdownRef} userIds={userIds} onActionComplete={actionComplete} actionConfig={actionConfig}/>
+                </Tooltip>
                 </div>
                 <div className='flex flex-col items-start w-fit'>
                     <p>Row Count</p>

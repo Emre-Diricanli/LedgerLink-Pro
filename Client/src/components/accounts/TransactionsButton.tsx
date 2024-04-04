@@ -2,6 +2,7 @@ import React from 'react';
 import './AccountsComponents.css'
 import TransactionsModal from './Modals/TransactionsModal';
 import { Account } from '../interfaces/Accounts';
+import { Tooltip } from '@mui/material';
 
 interface TransactionsButtonProps {
     account: Account;
@@ -27,9 +28,11 @@ const TransactionsButton: React.FC<TransactionsButtonProps> = ({account, needsRe
        <div>
             <TransactionsModal account={account} isOpen={isOpen} onClose={hideModal} />
             <div className='transactions-button'>
+                <Tooltip title='View All Transactions'>
                 <button onClick={showModal}>
                     Transactions
                 </button>
+                </Tooltip>
             </div>
        </div>
     );

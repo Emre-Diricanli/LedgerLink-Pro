@@ -5,6 +5,7 @@ import { DeleteProfilePicture, HandleFileUpload } from './profilePictureService'
 import { useSystems } from '../../Providers/SystemsProvider';
 import './UserProfilePictureModal.css';
 import { useUser } from '../../Providers/UserProvider';
+import { Tooltip } from '@mui/material';
 
 interface UserProfilePictureModalProps {
   currentImageUrl: string;
@@ -86,13 +87,19 @@ const UserProfilePictureModal: React.FC<UserProfilePictureModalProps> = ({ curre
                 </label>
              </div>
               {currentImageUrl !== '' && (
+                <Tooltip title='Delete Profile Picture'>
                 <button className="btn danger" onClick={HandleFileDelete}>Delete</button>
+                </Tooltip>
               )}
+              <Tooltip title='Upload Profile Picture'>
               <button className="btn btn-primary" onClick={uploadFile}>Upload</button>
+              </Tooltip>
           </div>
 
-          <div className="flex flex-row items-center justify-center gap-2 w-full pt-8">         
+          <div className="flex flex-row items-center justify-center gap-2 w-full pt-8">   
+          <Tooltip title='Exit'>      
               <button className="modal-content-btn orange sm " onClick={() => onClose()}>Exit</button>
+          </Tooltip>
           </div>
         </div>
       </div>

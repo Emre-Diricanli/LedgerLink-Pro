@@ -7,7 +7,7 @@ import { useAccounts } from '../../../Providers/AccountsProvider';
 import TransactionsButton from '../TransactionsButton';
 import '../AccountsComponents.css';
 import ViewAccountButton from '../ViewAccountButton';
-import { Button } from '@mui/material';
+import { Button, Tooltip } from '@mui/material';
 
 export interface AccountsTableProps {
     showLedger: (account: Account) => void;
@@ -165,7 +165,9 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                         <TransactionsButton account={account} needsRefresh={refreshAccounts}/>
                                     </td>
                                     <td>
+                                        <Tooltip title='Show Ledger'>
                                         <button onClick={() => showLedger(account)}>Ledger</button>
+                                        </Tooltip>
                                         {/* <ViewAccountButton account={account} needsRefresh={refreshAccounts}/> */}
                                     </td>
                                 </tr>

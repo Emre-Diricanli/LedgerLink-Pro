@@ -5,6 +5,7 @@ import ConfirmDeleteModal from '../Modal/ConfirmDeleteModal';
 import EditAccountModal from './Modals/EditAccountModal';
 import { Account } from '../interfaces/Accounts';
 import { useAccounts } from '../../Providers/AccountsProvider';
+import { Tooltip } from '@mui/material';
 
 interface UserActionDropdownProps {
     account?: Account;
@@ -145,8 +146,10 @@ const AccountsActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProp
         <div className='flex flex-col items-start w-fit' ref={dropdownRef}>
             {account && <EditAccountModal account={account} isOpen={showEditModal} onClose={handleEditModalClose} />}
             <ConfirmDeleteModal isOpen={showConfirmDeleteModal} onClose={confirmDelete} headerText='Confirm Delete Account' bodyText='Are you sure you want to delete this account(s)'/>
-            {showText && <p>Actions</p>}
+            {showText && <p></p>}
+            <Tooltip title='Show Actions'>
             <button onClick={() => setShowActionDropdown(prev => !prev)} className='actions-button'>Actions</button>
+            </Tooltip>
             {showActionDropdown && (
                 <div className='action-dropdown'>
                     {getActionOptions().map((option, index) => (

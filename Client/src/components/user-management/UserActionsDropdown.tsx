@@ -7,6 +7,7 @@ import AdminResetUserPasswordModal from '../admin-reset-user-password/AdminReset
 import EditUserModal from './EditUserInfoModal';
 import { User } from '../interfaces/Users';
 import { useSystems } from '../../Providers/SystemsProvider';
+import { Tooltip } from '@mui/material';
 
 interface UserActionDropdownProps {
     user?: User;
@@ -118,7 +119,9 @@ const ActionDropdown = forwardRef<HTMLDivElement, UserActionDropdownProps>(({use
             <AdminResetUserPasswordModal userId={userIds[0] || ''} isOpen={showResetPasswordModal} onClose={handleResetPasswordModalClose} />
             <ConfirmUserDeleteModal isOpen={showConfirmDeleteModal} onClose={confirmDelete} />
             {showText && <p>Actions</p>}
+            <Tooltip title='Show Actions'>
             <button onClick={() => setShowActionDropdown(prev => !prev)} className='actions-button'>Actions</button>
+            </Tooltip>
             {showActionDropdown && (
                 <div className='action-dropdown'>
                     {getActionOptions().map((option, index) => (

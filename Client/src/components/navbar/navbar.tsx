@@ -8,6 +8,7 @@ import ProfileImage from './profileImage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import CalendarModal from '../Modal/CalendarModal';
+import { Tooltip } from '@mui/material';
 
 function Navbar() {
   const logoSrc = '/llp-logo-alpha.png'
@@ -55,25 +56,35 @@ function Navbar() {
         </div>
         
         <div className='navbar-item'>
+          <Tooltip title='Go to Home'>
           <NavLink to="/" className={({ isActive }) => isActive ? "selected" : ""}>Home</NavLink>
+          </Tooltip>
         </div>
         <div className='navbar-item'>
+          <Tooltip title='Go to Accounts'>
           <NavLink to="/accounts" className={({ isActive }) => isActive ? "selected" : ""}>Accounts</NavLink>
+          </Tooltip>
         </div>
         { auth.isAdmin && (
           <div className='navbar-item'>
+            <Tooltip title='Go to User Management'>
             <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>
+            </Tooltip>
           </div>
         )}
       </div>
       <div className='navbar-profile-container'>
         <div className='navbar-item cursor-pointer'>
+          <Tooltip title='Calendar'>
           <FontAwesomeIcon icon={faCalendarDays} size='xl' onClick={handleCalendarClick}/>
+          </Tooltip>
         </div>
         {user ? <p>{user.username}</p> : <p>Loading user...</p>}
 
         <ProfileImage handleProfilePictureClick={handleProfilePictureClick} />
+        <Tooltip title='Sign Out of Account'>
         <button onClick={handleSignout}>Sign Out</button>
+        </Tooltip>
       </div>
     </nav>
   );
