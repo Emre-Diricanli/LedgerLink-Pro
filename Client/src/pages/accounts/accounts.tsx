@@ -7,6 +7,7 @@ import { useAccounts } from '../../Providers/AccountsProvider';
 import { Account } from '../../components/interfaces/Accounts';
 import { CircularProgress } from '@mui/material';
 import SelectedAccountInfo from '../../components/accounts/SelectedAccountInfo';
+import Ledger from '../ledger/Ledger';
 
 const Accounts: React.FC = () => {
     const accountsProvider = useAccounts();
@@ -20,6 +21,9 @@ const Accounts: React.FC = () => {
     const [selectedRowCount, setSelectedRowCount] = useState(5);
     const [searchString, setSearchString] = useState('');
     const [isLoading, setIsLoading] = useState(false); // New state for tracking loading status
+
+    const [showLedger, setShowLedger] = useState(false); //controls ledger visibility
+    const [accountForLedger, setAccountForLedger] = useState<Account | null>(null); //holds the account to show in the ledger
 
     const handleRefreshAccounts = (selectedAccountIds: string[]) => {
         setNeedsRefresh(true);
@@ -81,35 +85,50 @@ const Accounts: React.FC = () => {
         }
     };
 
+    const hideLedger = () => {
+        setShowLedger(false);
+    }
+
+    const setAccountForLedgerMethod = (account: Account) => {
+        setAccountForLedger(account);
+    }
+
+    const showLedgerPage = (account: Account) => {
+        setAccountForLedgerMethod(account);
+        setShowLedger(true);
+    }
     
     return (
         <div className='page-container'>
-            <AccountsHotbar 
-                rowCount={setSelectedRowCount}
-                typeFilter={setSelectedTypeFilter}
-                activeFilter={setSelectedActiveFilter}
-                accountIds={selectedAccountIds}
-                actionComplete={handleActionComplete}
-                searchString={setSearchString} 
-
-            />
-            { isLoading ? ( 
-                <div className='flex flex-col w-full h-full justify-center items-center'>
-                    <CircularProgress value={80} />
-                </div>
-            ): (
-                <div className='flex flex-row justify-center w-full h-full pl-8'>
-                    <AccountsTable
-                        accounts={accountsProvider.accounts}
-                        onActiveAccountChange={handleActiveAccountChange}
-                        onSelectedAccountsChange={handleSelectedAccountsChange} // Ensure this is correctly passed
-                        accountsNeedRefresh={handleRefreshAccounts}
-                        />
-
-                    {/* {activeAccount && <SelectedAccountInfo selectedAccount={activeAccount} />} */}
-                </div>
+            {showLedger && accountForLedger ? (
+                <Ledger account={accountForLedger} hideLedger={hideLedger} />
+            ) : (
+                <>
+                    <AccountsHotbar 
+                        rowCount={setSelectedRowCount}
+                        typeFilter={setSelectedTypeFilter}
+                        activeFilter={setSelectedActiveFilter}
+                        accountIds={selectedAccountIds}
+                        actionComplete={handleActionComplete}
+                        searchString={setSearchString} 
+                    />
+                    {isLoading ? ( 
+                        <div className='flex flex-col w-full h-full justify-center items-center'>
+                            <CircularProgress value={80} />
+                        </div>
+                    ) : (
+                        <div className='flex flex-row justify-center w-full h-full pl-8'>
+                            <AccountsTable
+                                showLedger={showLedgerPage}
+                                accounts={accountsProvider.accounts}
+                                onActiveAccountChange={handleActiveAccountChange}
+                                onSelectedAccountsChange={handleSelectedAccountsChange} // Ensure this is correctly passed
+                                accountsNeedRefresh={handleRefreshAccounts}
+                            />
+                        </div>
+                    )}
+                </>
             )}
-            
         </div>
     );
 }

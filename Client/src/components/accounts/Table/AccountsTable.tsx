@@ -7,15 +7,17 @@ import { useAccounts } from '../../../Providers/AccountsProvider';
 import TransactionsButton from '../TransactionsButton';
 import '../AccountsComponents.css';
 import ViewAccountButton from '../ViewAccountButton';
+import { Button } from '@mui/material';
 
 export interface AccountsTableProps {
+    showLedger: (account: Account) => void;
     accounts: Account[];
     onActiveAccountChange: (accountId: string) => void;
     onSelectedAccountsChange: (accountIds: string[]) => void;
     accountsNeedRefresh: (accountIds: string[]) => void;
 }
 
-const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccountChange, onSelectedAccountsChange, accountsNeedRefresh }) => {
+const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onActiveAccountChange, onSelectedAccountsChange, accountsNeedRefresh }) => {
     const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
     const [activeAccount, setActiveAccount] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -130,7 +132,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccount
                                 <th>Balance</th>
                                 <th>Actions</th>
                                 <th>Transactions</th>
-                                <th>View Account</th>
+                                <th>Ledger</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,7 +165,8 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ accounts, onActiveAccount
                                         <TransactionsButton account={account} needsRefresh={refreshAccounts}/>
                                     </td>
                                     <td>
-                                        <ViewAccountButton account={account} needsRefresh={refreshAccounts}/>
+                                        <button onClick={() => showLedger(account)}>Ledger</button>
+                                        {/* <ViewAccountButton account={account} needsRefresh={refreshAccounts}/> */}
                                     </td>
                                 </tr>
                             ))}
