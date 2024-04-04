@@ -1,17 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace LedgerLinkPro.Models.Accounts
+﻿namespace LedgerLinkPro.DTO.Accounts
 {
-    public class AccountTransaction
+    public class UnaprovedTransactionsDTO
     {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid TransactionId { get; set; }
         public string UserId { get; set; }
         public Guid AccountId { get; set; }
         public decimal TransactionAmount { get; set; }
         public string TransactionDescription { get; set; }
-     
+
         public DateTimeOffset TransactionDate { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
-import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, UpdateAccount } from "../services/AccountsService";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, UnapprovedTransaction } from "../components/interfaces/Accounts";
+import { ActivateAccounts, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -15,6 +15,7 @@ type AccountsContextType = {
     getAccountTransactions: (accountId: string) => Promise<AccountTransaction[]>;
     createAccountTransaction: (transaction: AccountTransaction) => Promise<AccountTransaction>;
     fetchAccountLogs: (accountId: string) => Promise<AccountLogs[]>;
+    getUnapprovedTransactions: (accountId: string) => Promise<UnapprovedTransaction[]>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -122,14 +123,6 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
     const HandleCreateAcccountTransaction = async (transaction: AccountTransaction): Promise<AccountTransaction> => {
         const response = await CreateNewAccountTransaction(transaction, apiUrl);
 
-        if (response != null) {
-            //update the balance of the account
-            const index = accounts.findIndex(a => a.accountId === transaction.accountId);
-            if (index > -1) {
-                accounts[index].balance = response.afterTransactionBalance;
-            }
-        }
-
         return response;
     }
 
@@ -138,6 +131,13 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
 
          return response;
     } 
+
+    const HandleFetchUnaprovedTransactions = async (accountId: string): Promise<UnapprovedTransaction[]> => {
+        const response = await FetchUnapprovedTransactions(accountId, apiUrl);
+
+        return response;
+    }
+
 
     return (
         <AccountsContext.Provider value={{ 
@@ -152,7 +152,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             deactivateAccounts: HandleDeactivateAccounts,
             getAccountTransactions: HandleGetAccountTransactions,
             createAccountTransaction: HandleCreateAcccountTransaction,
-            fetchAccountLogs: HandleFetchAccountLogs
+            fetchAccountLogs: HandleFetchAccountLogs,
+            getUnapprovedTransactions: HandleFetchUnaprovedTransactions
         }}>
             {children}
         </AccountsContext.Provider>

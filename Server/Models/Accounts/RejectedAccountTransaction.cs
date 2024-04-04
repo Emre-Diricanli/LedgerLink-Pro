@@ -1,10 +1,21 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class RejectedAccountTransaction
 {
-    public Guid id { get; set; }
-    public Guid accountId { get; set; }
-    public Guid transactionId { get; set; }
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid TransactionId { get; set; }
+    public string UserId { get; set; }
+    public Guid AccountId { get; set; }
+    public decimal BeforeTransactionBalance { get; set; }
+    public decimal AfterTransactionBalance { get; set; }
+    public decimal TransactionAmount { get; set; }
+    public string TransactionDescription { get; set; }
+
     public string rejectionReason { get; set; }
-    public DateTimeOffset rejectionDate { get; set;  }
+    public DateTimeOffset rejectionDate { get; set; }
     public string rejectedByFullName { get; set; }
     public string rejectedById { get; set; }
+
+    public DateTimeOffset TransactionDate { get; set; }
 }

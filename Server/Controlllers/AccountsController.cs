@@ -584,14 +584,6 @@ namespace LedgerLinkPro.Controllers
                     return Unauthorized();
                 }
 
-                //if user is manager or admin, then allow the transaction
-                bool IsApproved = false;
-                if (await _userManager.IsInRoleAsync(user, "Manager") || await _userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    IsApproved = true;
-                }
-
-
                 var db = _contextFactory.CreateDbContext();
 
                 //Verify if the account exists
@@ -604,32 +596,17 @@ namespace LedgerLinkPro.Controllers
 
                 var utcNow = DateTimeOffset.UtcNow;
 
-                AccountTransaction accountTransaction = new AccountTransaction
+                UnapprovedTransaction accountTransaction = new UnapprovedTransaction
                 {
                     TransactionId = Guid.NewGuid(),
                     UserId = user.Id,
                     AccountId = newTransaction.AccountId,
-                    BeforeTransactionBalance = newTransaction.BeforeTransactionBalance,
-                    AfterTransactionBalance = newTransaction.AfterTransactionBalance,
                     TransactionAmount = newTransaction.TransactionAmount,
                     TransactionDescription = newTransaction.TransactionDescription,
-                    TransactionDate = utcNow,
-                    IsApproved = false,
-                    Rejected = false
+                    TransactionDate = utcNow
                 };
 
-                //To manage concurrency, check if the before transaction balance is the same as the current balance, if not then return an error message
-                if (account.Balance != newTransaction.BeforeTransactionBalance)
-                {
-                    return BadRequest("The before transaction balance does not match the current balance");
-                }
-
-                //Update the account balance
-                account.Balance = newTransaction.AfterTransactionBalance;
-
-                await db.AccountTransactions.AddAsync(accountTransaction);
-
-                db.Accounts.Update(account);
+                await db.UnapprovedTransactions.AddAsync(accountTransaction);
 
                 await db.SaveChangesAsync();
 
@@ -639,15 +616,11 @@ namespace LedgerLinkPro.Controllers
                     TransactionId = accountTransaction.TransactionId,
                     TransactionDate = accountTransaction.TransactionDate,
                     TransactionDescription = accountTransaction.TransactionDescription,
-                    TransactionAmount = accountTransaction.TransactionAmount,
-                    BeforeTransactionBalance = accountTransaction.BeforeTransactionBalance,
-                    AfterTransactionBalance = accountTransaction.AfterTransactionBalance,
-                    UserName = user.UserName
+                    TransactionAmount = accountTransaction.TransactionAmount
                 };
 
                 //return the account transaction
                 return Ok(returnTransaction);
-
             }
             catch (Exception ex)
             {
@@ -666,7 +639,7 @@ namespace LedgerLinkPro.Controllers
             }
         }
 
-        [HttpGet("get-account-transactions")]
+        [HttpGet("get-account-transactions/approved")]
         [Authorize]
         public async Task<IActionResult> GetAccounTransactions([FromQuery] string accountId)
         {
@@ -708,26 +681,8 @@ namespace LedgerLinkPro.Controllers
                         TransactionId = transaction.TransactionId,
                         TransactionDate = transaction.TransactionDate,
                         TransactionDescription = transaction.TransactionDescription,
-                        TransactionAmount = transaction.TransactionAmount,
-                        BeforeTransactionBalance = transaction.BeforeTransactionBalance,
-                        AfterTransactionBalance = transaction.AfterTransactionBalance,
-                        UserName = user.UserName,
-                        IsApproved = transaction.IsApproved,
-                        Rejected = transaction.Rejected
+                        TransactionAmount = transaction.TransactionAmount
                     };
-
-                    if(accountTransaction.Rejected == true)
-                    {
-                        //Grab rejection object
-                        var rejectedTransaction = await db.RejectedAccountTransactions.FirstOrDefaultAsync(a => a.transactionId == transaction.TransactionId);
-
-                        if (rejectedTransaction == null)
-                        {
-                            break;
-                        }
-
-                        accountTransaction.RejectedAccountTransaction = rejectedTransaction;
-                    }
 
                     accountTransactionsDTO.Add(accountTransaction);
                 }
@@ -748,6 +703,146 @@ namespace LedgerLinkPro.Controllers
                 await _errorReportingService.ReportError("Error getting account transactions. Exception Catched", "AccountsController.cs", identityUser.Id, "GetAccounTransactions", ex.Message);
 
                 return StatusCode(500, "Error getting account transactions");
+            }
+        }
+
+        [HttpGet("get-account-transactions/unapproved")]
+        [Authorize]
+        public async Task<IActionResult> GetUnapprovedAccountTransactions([FromQuery] string accountId)
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                var db = _contextFactory.CreateDbContext();
+
+                //Verify if the account exists
+                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+
+                if (account == null)
+                {
+                    return NotFound("Account not found");
+                }
+
+                //Get the account transactions
+                var accountTransactions = await db.UnapprovedTransactions.Where(a => a.AccountId.ToString() == accountId).ToListAsync();
+
+                if (accountTransactions == null || accountTransactions.Count() == 0)
+                {
+                    return Ok();
+                }
+
+                List<UnaprovedTransactionsDTO> unaprovedAccountTransactionsDTO = new List<UnaprovedTransactionsDTO>();
+
+                foreach (var transaction in accountTransactions)
+                {
+                    UnaprovedTransactionsDTO accountTransaction = new UnaprovedTransactionsDTO
+                    {
+                        AccountId = transaction.AccountId,
+                        TransactionId = transaction.TransactionId,
+                        TransactionDate = transaction.TransactionDate,
+                        TransactionDescription = transaction.TransactionDescription,
+                        TransactionAmount = transaction.TransactionAmount
+                    };
+
+                    unaprovedAccountTransactionsDTO.Add(accountTransaction);
+                }
+
+                return Ok(unaprovedAccountTransactionsDTO);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error getting unapproved account transactions. Exception Catched", "AccountsController.cs", "UNKNOWN", "GetUnapprovedAccountTransactions", ex.Message);
+                }
+
+                await _errorReportingService.ReportError("Error getting unapproved account transactions. Exception Catched", "AccountsController.cs", identityUser.Id, "GetUnapprovedAccountTransactions", ex.Message);
+
+                return StatusCode(500, "Error getting unapproved account transactions");
+            }
+        }
+
+        [HttpPost("create-new-unapproved-transaction")]
+        [Authorize]
+        public async Task<IActionResult> CreateNewUnapprovedAccountransaction([FromQuery] string accountId, [FromBody] string transactionName, [FromQuery] double transactionAmount)
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                var db = _contextFactory.CreateDbContext();
+
+                //Verify if the account exists
+                var account = await db.Accounts.FirstOrDefaultAsync(a => a.AccountId.ToString() == accountId);
+
+                if (account == null)
+                {
+                    return NotFound("Account not found");
+                }
+
+                var utcNow = DateTimeOffset.UtcNow;
+
+                UnapprovedTransaction accountTransaction = new UnapprovedTransaction
+                {
+                    TransactionId = Guid.NewGuid(),
+                    UserId = user.Id,
+                    AccountId = account.AccountId,
+                    TransactionAmount = (decimal)transactionAmount,
+                    TransactionDescription = transactionName,
+                    TransactionDate = utcNow
+                };
+
+                await db.UnapprovedTransactions.AddAsync(accountTransaction);
+
+                await db.SaveChangesAsync();
+
+                UnaprovedTransactionsDTO returnTransaction = new UnaprovedTransactionsDTO
+                {
+                    AccountId = accountTransaction.AccountId,
+                    TransactionId = accountTransaction.TransactionId,
+                    TransactionDate = accountTransaction.TransactionDate,
+                    TransactionDescription = accountTransaction.TransactionDescription,
+                    TransactionAmount = accountTransaction.TransactionAmount
+                };
+
+                //return the account transaction
+                return Ok(returnTransaction);
+
+            }
+            catch (Exception ex)
+            {
+                //report error
+                Debug.WriteLine(ex.Message);
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                // Null handling
+                if (identityUser == null)
+                {
+                    await _errorReportingService.ReportError("Error creating new unapproved account transaction. Exception Catched", "AccountsController.cs", "UNKNOWN", "CreateNewUnapprovedAccountransaction", ex.Message);
+
+                    return StatusCode(500, "Error creating new unapproved account transaction");
+                }
+
+                await _errorReportingService.ReportError("Error creating new unapproved account transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "CreateNewUnapprovedAccountransaction", ex.Message);
+
+                return StatusCode(500, "Error creating new unapproved account transaction");
             }
         }
 
@@ -812,16 +907,23 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    var accountTransaction = await context.AccountTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
+                    var accountTransaction = await context.UnapprovedTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
 
                     if (accountTransaction == null)
                     {
                         return NotFound("Transaction not found");
                     }
 
-                    accountTransaction.IsApproved = true;
+                    var approvedtransaction = new AccountTransaction
+                    {
+                        TransactionId = accountTransaction.TransactionId,
+                        UserId = accountTransaction.UserId,
+                        AccountId = accountTransaction.AccountId,
+                        TransactionAmount = accountTransaction.TransactionAmount,
+                        TransactionDescription = accountTransaction.TransactionDescription,
+                        TransactionDate = accountTransaction.TransactionDate,
+                    };
 
-                    context.AccountTransactions.Update(accountTransaction);
                     await context.SaveChangesAsync();
                 }
 
@@ -868,7 +970,7 @@ namespace LedgerLinkPro.Controllers
                 // Get the account
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    var accountTransaction = await context.AccountTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
+                    var accountTransaction = await context.UnapprovedTransactions.FirstOrDefaultAsync(a => a.TransactionId.ToString() == transactionId);
 
                     if (accountTransaction == null)
                     {
@@ -882,17 +984,13 @@ namespace LedgerLinkPro.Controllers
                         return NotFound("User not found");
                     }
 
-                    accountTransaction.Rejected = true;
-
-                    context.AccountTransactions.Update(accountTransaction);
 
                     DateTimeOffset utcNow = DateTimeOffset.UtcNow;
 
                     RejectedAccountTransaction rejectedAccountTransaction = new RejectedAccountTransaction
                     {
-                        id = Guid.NewGuid(),
-                        accountId = accountTransaction.AccountId,
-                        transactionId = accountTransaction.TransactionId,
+                        TransactionId = Guid.NewGuid(),
+                        AccountId = accountTransaction.AccountId,
                         rejectionReason = rejectionReason,
                         rejectionDate = utcNow,
                         rejectedByFullName = dbUser.FirstName + " " + dbUser.LastName,
@@ -900,26 +998,6 @@ namespace LedgerLinkPro.Controllers
                     };
 
                     context.RejectedAccountTransactions.Add(rejectedAccountTransaction);
-
-                    //update account balance
-                    var account = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId == accountTransaction.AccountId);
-
-                    if (account == null)
-                    {
-                        return NotFound("Account not found");
-                    }
-
-                    //to update account balance first determine if the transaction is a debit or credit
-                    if (accountTransaction.TransactionAmount > 0)
-                    {
-                        account.Balance -= accountTransaction.TransactionAmount;
-                    }
-                    else
-                    {
-                        account.Balance -= accountTransaction.TransactionAmount;
-                    }
-
-                    context.Accounts.Update(account);
 
                     await context.SaveChangesAsync();
                 }
@@ -961,7 +1039,7 @@ namespace LedgerLinkPro.Controllers
                 //get all rejected transactions under transactionIds
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    var rejectedTransactions = await context.RejectedAccountTransactions.Where(a => transactionIds.Contains(a.transactionId.ToString())).ToListAsync();
+                    var rejectedTransactions = await context.RejectedAccountTransactions.Where(a => transactionIds.Contains(a.TransactionId.ToString())).ToListAsync();
 
                     //return the rejected transactions
 

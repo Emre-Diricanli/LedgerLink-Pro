@@ -6,6 +6,7 @@ import { useAccounts } from '../../Providers/AccountsProvider';
 import TransactionsTable from '../../components/accounts/Table/TransactionsTable';
 import AccountLogsTable from '../../components/accounts/Table/AccountLogsTable';
 import CreateNewTransactionBar from '../../components/accounts/CreateNewTransactionBar';
+import UnaprovedTransactionsTable from '../../components/UnaprovedTransactions/Tables/UnaprovedTransactionsTable';
 
 interface LedgerProps {
     // define your props here
@@ -40,8 +41,8 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
 
 
     return (
-        <div className='flex flex-col w-full f-full p-4'>
-            <div className='flex flex-row w-full justify-between'>
+        <div className='flex flex-col w-full h-full p-4'>
+            {/* <div className='flex flex-row w-full justify-between'>
                 <button className='icon-button' onClick={hideLedger}>
                     <div className='flex flex-row gap-2 items-center'>
                         <FontAwesomeIcon icon={faArrowRightFromBracket} flip='horizontal'/>
@@ -49,28 +50,29 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
                     </div>
                 </button>
                 <h2 className='ml-auto mr-auto'>{account.accountName}</h2>
-            </div>
-            <div className='flex flex-col w-full h-full'>
-                <div className='flex flex-row w-full h-full'>
-                    <div className='flex flex-col h-full w-full'>
-                        { transactions.length > 0 ? (
-                                <TransactionsTable account={account} transactions={transactions} />
-                        ) : ( 
-                            <p>There are no transactions for this account</p>
-                        )}
-                        <div >
-                            <CreateNewTransactionBar account={account} onCreate={handleCreateTransaction} />
-                        </div>
-                    </div>
-                    <div className='vertical-divider'></div>
-                    <div className='flex flex-col h-full w-full'>
-                        { accountLogs.length > 0 ? (
-                        <>
-                            <AccountLogsTable accountLogs={accountLogs} />
-                        </>
-                        ) : (
-                            <p>There are no logs for this account</p>
-                        )}
+            </div> */}
+            <div className='flex flex-row w-full h-full gap-0'>
+                <div className='flex flex-col w-full'>
+                    { transactions.length > 0 ? (
+                            <TransactionsTable account={account} transactions={transactions} />
+                    ) : ( 
+                        <p>There are no transactions for this account</p>
+                    )}
+                    {/* <div >
+                        <CreateNewTransactionBar account={account} onCreate={handleCreateTransaction} />
+                    </div> */}
+                </div>
+                <div className='vertical-divider'></div>
+                <div className='flex flex-col w-full '>
+                    {/* { accountLogs.length > 0 ? (
+                    <>
+                        <AccountLogsTable accountLogs={accountLogs} />
+                    </>
+                    ) : (
+                        <p>There are no logs for this account</p>
+                    )} */}
+                    <div>
+                        <UnaprovedTransactionsTable account={account} />
                     </div>
                 </div>
             </div>

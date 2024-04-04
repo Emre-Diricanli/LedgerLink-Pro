@@ -1,4 +1,4 @@
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount } from "../components/interfaces/Accounts";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, NewAccount, UnapprovedTransaction } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
 export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
@@ -151,7 +151,7 @@ export const UpdateAccount = async (account: Account, apiUrl: string): Promise<b
 
 export const FetchAccountTransactions = async (accountId: string, apiUrl: string): Promise<AccountTransaction[]> => {
     try{
-        const response = await fetch(`${apiUrl}/accounts/get-account-transactions?accountId=${accountId}`, {
+        const response = await fetch(`${apiUrl}/accounts/get-account-transactions/approved?accountId=${accountId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -258,5 +258,56 @@ export const SendAccountRejection = async (transactionId: string, rejectionReaso
     catch (error) {
         console.error("Error in Send Account Rejection: ", (error as Error).message);
         return false;
+    }
+};
+
+export const FetchUnapprovedTransactions = async ( accountId: String, apiUrl: string): Promise<UnapprovedTransaction[]> => {
+    try {
+        const response = await fetch(`${apiUrl}/accounts/get-account-transactions/unapproved?accountId=${accountId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return [] as unknown as UnapprovedTransaction[];
+        }
+
+        const data = await response.json();
+
+        const transactions = data as UnapprovedTransaction[];
+
+        return transactions;
+
+    } catch (error) {
+        console.error("Error in Fetch Unapproved Transactions: ", (error as Error).message);
+        return [] as unknown as UnapprovedTransaction[];
+    }
+
+};
+
+export const PostNewUnapprovedTransaction = async (accountId: string, transactionName: string, transactionAmount: number, apiUrl: string): Promise<boolean> => {
+    try {
+        const response = await fetch(`${apiUrl}/accounts/create-new-unapproved-transaction?accountId=${accountId}&transactionAmount=${transactionAmount}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                transactionName: transactionName
+            }),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error in Post New Unapproved Transaction: ", (error as Error).message);
+        return false; // Return false in case of error
     }
 };

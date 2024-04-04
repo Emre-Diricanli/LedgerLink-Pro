@@ -40,13 +40,17 @@ export interface AccountTransaction {
     transactionDate: Date;
     transactionDescription: string;
     transactionAmount: number;
-    beforeTransactionBalance : number;
-    afterTransactionBalance : number;
-    userName: string;
-    isApproved: boolean;
-    rejected: boolean;
-    rejectedAccountTransaction: RejectedAccountTransaction;
 };
+
+export interface UnapprovedTransaction {
+    transactionId: string;
+    userId: string;
+    accountId: string;
+    transactionAmount: number;
+    transactionDescription: string;
+    transactionDate: Date;
+}
+
 
 export interface RejectedAccountTransaction {
     id: string;

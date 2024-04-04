@@ -1,38 +1,27 @@
 // UserTable.js
 import React, { useEffect } from 'react';
 import { useState } from 'react';
-import { Account, AccountTransaction } from '../../interfaces/Accounts';
-import '../AccountsComponents.css';
+import { Account, AccountTransaction, UnapprovedTransaction } from '../../interfaces/Accounts';
 import { useAuth } from '../../../Providers/AuthProvider';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTimes, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import TransactionRejectionModal from '../Modals/TransactionRejcetionModal';
-import ViewTransactionRejectionModal from '../Modals/ViewTransactionRejectionModal';
+import TransactionRejectionModal from '../../accounts/Modals/TransactionRejcetionModal';
 import { useAccounts } from '../../../Providers/AccountsProvider';
+import CreateNewTransactionBar from '../../accounts/CreateNewTransactionBar';
 
-export interface TransactionsTableProps {
+
+export interface UnaprovedTransactionsTableProps {
     account: Account;
-    onActiveTransactionChange?: (accountId: string) => void;
-    transactions: AccountTransaction[];
-     
 }
 
-const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActiveTransactionChange, transactions}) => {
+const UnaprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = ({ account}) => {
     const auth = useAuth();
     const accountsProvider = useAccounts();
-    const [activeTransaction, setActiveTransaction] = useState<string | null>(null);
     const [canReject, setCanReject] = useState<boolean>(false);
+    const [unaprovedTransactions, setUnaprovedTransactions] = useState<UnapprovedTransaction[]>([]);
+    const [activeTransaction, setActiveTransaction] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
     const [selectedTransaction, setSelectedTransaction] = useState<AccountTransaction>({} as AccountTransaction);
     
 
-    const handleRowClick = (transactionId: string) => {
-        setActiveTransaction(transactionId);
-        if (onActiveTransactionChange) {
-            onActiveTransactionChange(transactionId);
-        }
-    };
 
     const formatCurrencyString = (amount: number) => {
         return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -42,23 +31,34 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
         // Call the approve transaction function from the accounts provider
     }
 
-    const setSelectTransaction = (transaction: AccountTransaction) => {
-        setSelectedTransaction(transaction);
-    }
-
     const handleRejectTransaction = async (transactionId: string) => {
         // show modal
-        let transaction = transactions.find((transaction) => transaction.transactionId === transactionId);
-        setSelectTransaction(transaction as AccountTransaction);
+        let transaction = unaprovedTransactions.find((transaction) => transaction.transactionId === transactionId);
+        setSelectedTransaction(transaction as UnapprovedTransaction);
         setIsModalOpen(true);
     }
 
-    const handleViewTransactionRejection = async (transactionId: string) => {
-        // show modal
-        let transaction = transactions.find((transaction) => transaction.transactionId === transactionId);
-        setSelectTransaction(transaction as AccountTransaction);
-        setIsViewModalOpen(true);
-    }
+    useEffect(() => {
+        //fetch unapproved transactions
+        const fetchUnapprovedTransactions = async () => {
+            const transactions = await accountsProvider.getUnapprovedTransactions(account.accountId);
+            console.log(transactions);
+            setUnaprovedTransactions(transactions);
+        }
+
+        console.log('fetching unapproved transactions');
+        fetchUnapprovedTransactions();
+        
+    }, []);
+
+    const handleCreateTransaction = async (transaction: UnapprovedTransaction) => {
+        const newTransaction = await Post
+
+        //STOPPED HERE. MOVE THIS LOGIC TO ACCOUNTS PROVIDER
+
+        // Add the new transaction to the transactions list
+        setUnaprovedTransactions([...unaprovedTransactions, newTransaction]);
+    };
 
     useEffect(() => {
         if (auth.isAdmin || auth.isManager) {
@@ -69,7 +69,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
 
     return (
         <>
-            <ViewTransactionRejectionModal transaction={selectedTransaction} isOpen={isViewModalOpen} onClose={setIsViewModalOpen} />
             <TransactionRejectionModal transaction={selectedTransaction} isOpen={isModalOpen} onClose={setIsModalOpen} />
             <div className="transactions-table-container p-6">
                 
@@ -78,17 +77,14 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                         <tr>
                             <th>Date</th>
                             <th>Amount</th>
-                            <th>Before Transaction</th>
-                            <th>After Transaction</th>
                             <th>Description</th>
-                            <th>Approved</th>
+                            <th>Approve</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {transactions.map((transaction) => (
+                        {unaprovedTransactions.map((transaction) => (
                                 <tr 
                                     key={transaction.transactionId} 
-                                    onClick={() => handleRowClick(transaction.transactionId ?? '')}
                                     className={activeTransaction === transaction.transactionId ? 'active-user-row' : ''}
                                 >
                                 {/* <td>
@@ -135,9 +131,10 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                         ))}
                     </tbody>
                 </table>
+                <CreateNewTransactionBar account={account} onCreate={handleCreateTransaction} />
             </div>
         </>
     );
 };
 
-export default TransactionsTable;
+export default UnaprovedTransactionsTable;
