@@ -1102,14 +1102,26 @@ namespace LedgerLinkPro.Controllers
                             TransactionId = transaction.TransactionId,
                             UserId = transaction.UserId,
                             AccountId = transaction.AccountId,
-                            TransactionAmount = transaction.TransactionAmount,
                             TransactionDescription = transaction.TransactionDescription,
                             TransactionDate = transaction.TransactionDate,
                             rejectionReason = transaction.rejectionReason,
                             rejectionDate = transaction.rejectionDate,
                             rejectedByFullName = transaction.rejectedByFullName,
-                            rejectedById = transaction.rejectedById
+                            rejectedById = transaction.rejectedById,
+                            
                         };
+
+                        //find all transactions and add up the balance via transactionAmount
+                        var transactions = await context.AccountTransactions.Where(a => a.TransactionId == transaction.TransactionId).ToListAsync();
+
+                        decimal balance = 0;
+                        foreach (var t in transactions)
+                        {
+                            foreach (var line in t.JournalEntries)
+                            {
+                                balance += line.Amount;
+                            }
+                        }
 
                         rejectedJournalEntriesDTO.Add(rejectedJournalEntry);
                     }

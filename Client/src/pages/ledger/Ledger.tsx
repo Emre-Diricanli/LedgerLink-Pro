@@ -83,20 +83,9 @@ const Ledger: React.FC<LedgerProps> = ({account, hideLedger}) => {
                     ) : ( 
                         <p>There are no transactions for this account</p>
                     )}
-                    {/* <div >
-                        <CreateNewTransactionBar account={account} onCreate={handleCreateTransaction} />
-                    </div> */}
                 </div>
                 <div className='vertical-divider'></div>
                 <div className='flex flex-col w-3/4 h-full'>
-                    {/* { accountLogs.length > 0 ? (
-                    <>
-                        <AccountLogsTable accountLogs={accountLogs} />
-                    </>
-                    ) : (
-                        <p>There are no logs for this account</p>
-                    )} */}
-                    
                     <div className='flex flex-col h-full'>
                     <div className='p-4'>
                             <h3>Unapproved Journal Entries</h3>
