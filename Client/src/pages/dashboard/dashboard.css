@@ -6,7 +6,11 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
+  background-image: url('llp-logo.png');
+  background-repeat: no-repeat;
+  background-size: cover;
 }
+
 
 .dashboard h1 {
   font-size: 2rem;
@@ -35,5 +39,7 @@
 .font-serif.mb-4 {
   margin-bottom: 1rem;
 }
+
+
 
 /* Path: Client/src/pages/dashboard/dashboard.js */
