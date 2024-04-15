@@ -24,21 +24,20 @@ const Dashboard = () => {
     // thimgs to include in the dashboard:greeting, link to chart of accounts, payables, receivables, general ledger, the latest, reports
 
     return (
-        <><div className='flex flex-col justify-top items-center w-full h-full'>
-            <h1 className="font - serif text - x1"> Welcome{userProvider.user ? `, ${userProvider.user?.firstName}!` : '...'} </h1>
-            <h2 className='mt-8'>This Dashboard is a work in progress.</h2>
-        </div>
-            <div className="flex flex-col justify-center items-center w-full h-full">
-                <button className="absolute top-20 left-40 transform - translate-x-20 - translate-y-20 mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-20 px-20 rounded">Accounts</button>
+        <>
+            <div className='flex flex-col justify-top items-center w-full h-full'>
+                <h1 className="font-serif text-x1">LedgerLink PRO</h1>
+                <h2 className="font-serif text-x1">Welcome {userProvider.user ? `, ${userProvider.user?.firstName}!` : '...'} </h2>
             </div>
-                {/* </><div className="flex flex-col justify-center items-center w-full h-full">
-                <button className="absolute top-20 right-20 transform translate-x-20 -translate-y-20 mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-20 px-20 rounded">Reports</button>
-                </div></> */}
-        
-
-            
-
-    </>);
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <div className="flex justify-center">
+                    <button className="m-4 p-8 bg-blue-500 text-white rounded" onClick={() => console.log("Button 1 clicked")}>Accounts</button>
+                    <button className="m-4 p-10 bg-blue-500 text-white rounded" onClick={() => console.log("Button 2 clicked")}>Profile</button>
+                    <button className="m-4 p-8 bg-blue-500 text-white rounded" onClick={() => console.log("Button 3 clicked")}>Sign Out</button>
+                </div>
+            </div>
+        </>
+    );
 };
 
 export default Dashboard;

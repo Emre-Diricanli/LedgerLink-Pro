@@ -32,4 +32,8 @@
   background-color: #0056b3;
 }
 
+.font-serif.mb-4 {
+  margin-bottom: 1rem;
+}
+
 /* Path: Client/src/pages/dashboard/dashboard.js */
