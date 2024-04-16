@@ -18,4 +18,5 @@ public class ReturnAccountDTO
     public string Order { get; set; }
     public string Statement { get; set; }
     public string Comment { get; set; }
+    public string? DateRange { get; set; }
 }

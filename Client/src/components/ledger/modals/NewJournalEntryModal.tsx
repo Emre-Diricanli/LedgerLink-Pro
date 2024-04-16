@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ModalBody from '../../Modal/ModalBody';
 import ModalFooter from '../../Modal/ModalFooter';
 import ModalHeader from '../../Modal/ModalHeader';
-import { Account, AccountTransaction } from '../../interfaces/Accounts';
+import { Account, AccountTransaction, JournalEntryLineDTO } from '../../interfaces/Accounts';
 import CurrencyInput from 'react-currency-input-field';
 import { formatDate } from 'date-fns';
 import { useAccounts } from '../../../Providers/AccountsProvider';
@@ -15,7 +15,8 @@ interface CreateJournalEntryModalProps {
 
 interface Entry {
     name: string;
-    value: number;
+    credit: number;
+    debit: number;
     [key: string]: string | number;
 }
 
@@ -23,15 +24,25 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
     if (!isOpen) return null;
     const accountsProvider = useAccounts();
 
-    const [entries, setEntries] = useState<Entry[]>([{name: '', value: 0}]);
+    const [entries, setEntries] = useState<Entry[]>([]);
     const [name, setName] = useState<string>('');
-    const [value, setValue] = useState<number>(0);
 
-    const onValueChange = (value: string | undefined) => {
+    const [credit, setCredit] = useState<number>(0);
+    const [debit, setDebit] = useState<number>(0);
+
+    const onCreditChange = (value: string | undefined) => {
         if (value) {
-            setValue(Number(value));
+            setCredit(Number(value));
         } else {
-            setValue(0);
+            setCredit(0);
+        }
+    }
+
+    const onDebitChange = (value: string | undefined) => {
+        if (value) {
+            setDebit(Number(value));
+        } else {
+            setDebit(0);
         }
     }
     
@@ -48,15 +59,19 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
 
 
     const addEntry = () => {
-        setEntries([...entries, {name: name, value: value}]);
+        setEntries([...entries, { name: name, credit: credit, debit: debit }]);
+        setName('');
+        setCredit(0);
+        setDebit(0);
     };
 
     const handleCreateNewJournalEntry = async () => {
         //convert entries to JournalEntryLineDTO
-        const newEntries = entries.map((entry, index) => {
+        const newEntries: JournalEntryLineDTO[] = entries.map((entry, index) => {
             return {
                 index: index,
-                amount: entry.value,
+                credit: Number(entry.credit),
+                debit: Number(entry.debit),
                 description: entry.name
             };
         });
@@ -81,42 +96,54 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
                 <ModalHeader mainText="Create Entry" subText={account.accountName} />
                     <ModalBody styles={{ padding: 0 }}>
                     <div className='h-full w-full p-4 flex flex-col'>
-                        <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
-                            <p>Name<strong>*</strong></p>
-                            <input type="text" placeholder="Entry Name" className="modal-content-input" onChange={(e) => setName(e.target.value)} maxLength={40}/>
-                        </div>
                         <div className='h-full w-full p-4 flex flex-col'>
-                            <div className="flex flex-row content-center items-center justify-center gap-4 w-full pt-8">
-                            <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
-                                <p>Name<strong>*</strong></p>
-                                <input type="text" placeholder="Entry Name" className="modal-content-input" onChange={(e) => setName(e.target.value)} maxLength={40}/>
+                            <div className='flex flex-row items-end gap-4'>  
+                                <div className="flex flex-col content-center items-center justify-center gap-4 w-full pt-8">
+                                    <div className="flex flex-col content-center justify-start gap-0 w-full">
+                                        <p>Line Name<strong>*</strong></p>
+                                        <input type="text" placeholder="Line Name" className="modal-content-input" onChange={(e) => setName(e.target.value)} maxLength={40}/>
+                                    </div>
+                                    <div className='flex flex-row gap-4'>
+                                        <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
+                                            <p>Credit<strong>*</strong></p>
+                                            <CurrencyInput
+                                                name="currency-input"
+                                                placeholder="$1,000.00"
+                                                decimalsLimit={2}
+                                                prefix='$'
+                                                onValueChange={onCreditChange}
+                                                />
+                                        </div>
+                                        <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
+                                            <p>Debit<strong>*</strong></p>
+                                            <CurrencyInput
+                                                name="currency-input"
+                                                placeholder="$1,000.00"
+                                                decimalsLimit={2}
+                                                prefix='$'
+                                                onValueChange={onDebitChange}
+                                                />
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={addEntry} style={{height: `60px`, whiteSpace: 'nowrap'}}>Add Entry</button>
                             </div>
-                            <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
-                                <p>Value<strong>*</strong></p>
-                                <CurrencyInput
-                                    name="currency-input"
-                                    placeholder="$1,000.00"
-                                    decimalsLimit={2}
-                                    prefix='$'
-                                    onValueChange={onValueChange}
-                                    />
-                            </div>
-                            <button onClick={addEntry}>Add Entry</button>
-                        </div>
                         </div>
                         <div className='h-full w-full p-4 flex flex-col'>
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Name</th>
-                                        <th>Value</th>
+                                        <th>Credit</th>
+                                        <th>Debit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {entries.map((entry, index) => (
                                         <tr key={index}>
                                             <td>{entry.name}</td>
-                                            <td>{formatCurrencyString(entry.value)}</td>
+                                            <td>{formatCurrencyString(entry.credit)}</td>
+                                            <td>{formatCurrencyString(entry.debit)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

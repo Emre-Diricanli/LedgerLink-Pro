@@ -1,4 +1,4 @@
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, UnapprovedJournalEntry as UnapprovedJournalEntry } from "../components/interfaces/Accounts";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, TrialBalance, UnapprovedJournalEntry as UnapprovedJournalEntry } from "../components/interfaces/Accounts";
 
 //used to sign in the user. returns the user object if successful, else returns null.
 export const CreateNewAccount = async (newAccount : NewAccount, apiUrl : String): Promise<Account | null> => {
@@ -371,5 +371,30 @@ export const GetRejectedJournalEntries = async (accountId: string, apiUrl: strin
     } catch (error) {
         console.error("Error in Get Rejected Journal Entries: ", (error as Error).message);
         return [] as unknown as RejectedJournalEntry[];
+    }
+}
+
+export const GetTrialBalance = async (apiUrl: string): Promise<TrialBalance> => {
+    try {
+        const response = await fetch(`${apiUrl}/accounts/get-trial-balance`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return {} as TrialBalance;
+        }
+
+        const data = await response.json();
+
+        const trialBalance = data as TrialBalance;
+
+        return trialBalance;
+    } catch (error) {
+        console.error("Error in Get Trial Balance: ", (error as Error).message);
+        return {} as TrialBalance;
     }
 }

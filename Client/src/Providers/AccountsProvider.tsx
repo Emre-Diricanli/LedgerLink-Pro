@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, UnapprovedJournalEntry } from "../components/interfaces/Accounts";
-import { ActivateAccounts, ApproveJournalEntry, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, GetRejectedJournalEntries, PostNewJournalEntry, UpdateAccount } from "../services/AccountsService";
+import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, TrialBalance, UnapprovedJournalEntry } from "../components/interfaces/Accounts";
+import { ActivateAccounts, ApproveJournalEntry, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, GetRejectedJournalEntries, GetTrialBalance, PostNewJournalEntry, UpdateAccount } from "../services/AccountsService";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -19,6 +19,7 @@ type AccountsContextType = {
     createNewJournalEntry: (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[]) => Promise<UnapprovedJournalEntry>;
     getRejectedJournalEntries: (accountId: string) => Promise<RejectedJournalEntry[]>;
     approveJournalEntry: (transactionId: string) => Promise<boolean>;
+    getTrialBalance: () => Promise<TrialBalance>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -160,6 +161,12 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
+    const HandleGetTrialBalance = async (): Promise<TrialBalance> => {
+        const response = await GetTrialBalance(apiUrl);
+
+        return response;
+    }
+
 
     return (
         <AccountsContext.Provider value={{ 
@@ -178,7 +185,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             getUnapprovedTransactions: HandleFetchUnaprovedTransactions,
             createNewJournalEntry: HandleCreateNewJournalEntry,
             getRejectedJournalEntries: HandleGetRejectedJournalEntries,
-            approveJournalEntry: HandleApproveJournalEntry
+            approveJournalEntry: HandleApproveJournalEntry,
+            getTrialBalance: HandleGetTrialBalance
         }}>
             {children}
         </AccountsContext.Provider>

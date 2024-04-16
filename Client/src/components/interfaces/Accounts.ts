@@ -16,6 +16,7 @@ export interface Account {
     order: string;
     statement: string;
     comment: string;
+    dateRange?: string;
 }
 
 export interface NewAccount {
@@ -39,7 +40,8 @@ export interface AccountTransaction {
     transactionId?: string;
     transactionDate: Date;
     transactionDescription: string;
-    transactionAmount: number;
+    credit: number;
+    debit: number;
     beforeTransactionBalance: number;
     afterTransactionBalance: number;
     user: string;
@@ -90,6 +92,13 @@ export interface NewJournalEntryDTO {
 
 export interface JournalEntryLineDTO {
     index: number;
-    amount: number;
+    credit: number;
+    debit: number;
     description: string;
+}
+
+export interface TrialBalance {
+    accounts: Account[];
+    totalDebit: number;
+    totalCredit: number;
 }

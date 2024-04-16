@@ -338,7 +338,9 @@ namespace LedgerLinkPro.Controllers
                     {
                         foreach (var line in transaction.JournalEntries)
                         {
-                            balance += line.Amount;
+                            //add credits and debits
+                            balance += line.credit;
+                            balance -= line.debit;
                         }   
                     }
 
@@ -658,32 +660,33 @@ namespace LedgerLinkPro.Controllers
 
                 foreach (var transaction in accountTransactions)
                 {
-
-                    // Calculate balances before and after the transaction
-                    decimal beforeTransactionBalance = currentBalance;
-                    
-
-                    //for after transaction balance, add up all journal entry lines
-                    decimal afterTransactionBalance = 0;
+                    //get credits and debits from journal entries
+                    decimal credits = 0;
+                    decimal debits = 0;
 
                     foreach (var line in transaction.JournalEntries)
                     {
-                        afterTransactionBalance += line.Amount;
+                        credits += line.credit;
+                        debits -= line.debit;
                     }
+
+                    //calculate the balance after the transaction
+                    decimal afterTransactionBalance = currentBalance + credits + debits;
 
                     AccountJournalEntryDTO accountTransaction = new AccountJournalEntryDTO
                     {
                         AccountId = transaction.AccountId,
                         TransactionId = transaction.TransactionId,
                         TransactionDate = transaction.TransactionDate,
-                        TransactionDescription = transaction.TransactionDescription,
-                        BeforeTransactionBalance = beforeTransactionBalance,
-                        AfterTransactionBalance = afterTransactionBalance,
-                        TransactionAmount = afterTransactionBalance - beforeTransactionBalance,
                         JournalEntries = transaction.JournalEntries,
-                        User = "UKNOWN6969"
+                        TransactionDescription = transaction.TransactionDescription,
+                        Debit = debits,
+                        Credit = credits,
+                        AfterTransactionBalance = afterTransactionBalance,
+                        BeforeTransactionBalance = currentBalance
                     };
 
+                    //get the user who created the transaction
 
                     var creator = await db.Users.FirstOrDefaultAsync(u => u.id == transaction.UserId);
 
@@ -769,7 +772,15 @@ namespace LedgerLinkPro.Controllers
 
                     foreach (var line in transaction.JournalEntryLines)
                     {
-                        accountTransaction.TotalAmount += line.Amount;
+                        //add credits and debits
+                        if (line.credit > 0)
+                        {
+                            accountTransaction.TotalAmount += line.credit;
+                        }
+                        else
+                        {
+                            accountTransaction.TotalAmount -= line.debit;
+                        }
                     }
 
                     unaprovedAccountTransactionsDTO.Add(accountTransaction);
@@ -846,7 +857,15 @@ namespace LedgerLinkPro.Controllers
 
                 foreach (var line in unapprovedJournalEntry.JournalEntryLines)
                 {
-                    returnJournalEntry.TotalAmount += line.Amount;
+                    //add credits and debits
+                    if (line.credit > 0)
+                    {
+                        returnJournalEntry.TotalAmount += line.credit;
+                    }
+                    else
+                    {
+                        returnJournalEntry.TotalAmount -= line.debit;
+                    }
                 }
 
                 //return the account transaction
@@ -1119,7 +1138,15 @@ namespace LedgerLinkPro.Controllers
                         {
                             foreach (var line in t.JournalEntries)
                             {
-                                balance += line.Amount;
+                                //add credits and debits
+                                if (line.credit > 0)
+                                {
+                                    balance += line.credit;
+                                }
+                                else
+                                {
+                                    balance -= line.debit;
+                                }
                             }
                         }
 
@@ -1146,6 +1173,115 @@ namespace LedgerLinkPro.Controllers
                 await _errorReportingService.ReportError("Error getting rejected transactions. Exception Catched", "AccountsController.cs", identityUser.Id, "GetRejectedTransactions", ex.Message);
 
                 return StatusCode(500, "Error getting rejected transactions");
+            }
+        }
+    
+    
+        [HttpGet("get-trial-balance")]
+        [Authorize]
+        public async Task<IActionResult> GetTrialBalance()
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+
+                //get all accounts
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    var accounts = await context.Accounts.ToListAsync();
+
+                    //return the trial balance
+                    TrialBalanceDTO trialBalance = new TrialBalanceDTO
+                    {
+                        Accounts = new List<ReturnAccountDTO>(),
+                        TotalCredit = 0,
+                        TotalDebit = 0
+                    };
+
+                    foreach (var account in accounts)
+                    {
+                        ReturnAccountDTO returnAccount = new ReturnAccountDTO
+                        {
+                            AccountId = account.AccountId,
+                            AccountName = account.AccountName,
+                            AccountNumber = account.AccountNumber,
+                            ActiveStatus = account.ActiveStatus,
+                            Category = account.Category,
+                            Comment = account.Comment,
+                            Credit = account.Credit,
+                            DateAdded = account.DateAdded,
+                            Debit = account.Debit,
+                            Description = account.Description,
+                            NormalSide = account.NormalSide,
+                            Order = account.Order,
+                            Statement = account.Statement,
+                            Subcategory = account.Subcategory,
+                            UserId = account.UserId
+                        };
+
+                        //find all transactions and add up the balance via transactionAmount
+                        var transactions = await context.AccountTransactions.Where(a => a.AccountId == account.AccountId).ToListAsync();
+
+                        decimal balance = 0;
+                        DateTime minDate = DateTime.Now;
+                        DateTime maxDate = DateTime.Now;
+
+
+                        foreach (var transaction in transactions)
+                        {
+                            //get the transaction date
+                            if (transaction.TransactionDate < minDate)
+                            {
+                                minDate = transaction.TransactionDate.DateTime;
+                            }
+
+                            if (transaction.TransactionDate > maxDate)
+                            {
+                                maxDate = transaction.TransactionDate.DateTime;
+                            }
+
+                            decimal credit = 0;
+                            decimal debit = 0;
+                            foreach (var line in transaction.JournalEntries)
+                            {
+                                //add credits and debits
+                                credit += line.credit;
+                                debit -= line.debit;
+                            }
+
+                            returnAccount.Credit += credit;
+                            returnAccount.Debit += debit;
+
+                        }
+
+                        //Get total credit and debit for the trial balances
+                        trialBalance.TotalCredit += returnAccount.Credit;
+                        trialBalance.TotalDebit += returnAccount.Debit;
+
+                        //construct date range string
+                        string dateRange = minDate.ToShortDateString() + " - " + maxDate.ToShortDateString();
+
+                        returnAccount.DateRange = dateRange;
+
+                        returnAccount.Balance = balance;
+
+                        trialBalance.Accounts.Add(returnAccount);
+                    }
+
+                    return Ok(trialBalance);
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, "Error getting trial balance");
+
             }
         }
     }

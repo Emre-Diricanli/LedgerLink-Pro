@@ -60,6 +60,9 @@ function Navbar() {
         <div className='navbar-item'>
           <NavLink to="/accounts" className={({ isActive }) => isActive ? "selected" : ""}>Accounts</NavLink>
         </div>
+        <div className='navbar-item'>
+          <NavLink to="/trial-balance" className={({ isActive }) => isActive ? "selected" : ""}>Trial Balance</NavLink>
+        </div>
         { auth.isAdmin && (
           <div className='navbar-item'>
             <NavLink to="/user-management" className={({ isActive }) => isActive ? "selected" : ""}>User Management</NavLink>

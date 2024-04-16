@@ -20,6 +20,7 @@ public class NewJournalEntryDTO
 public class JournalEntryLineDTO
 {
     public int index { get; set; }
-    public decimal Amount { get; set; }
-    public string Description { get; set; }
+    public decimal debit { get; set; }
+    public decimal credit { get; set; }
+    public string description { get; set; }
 }

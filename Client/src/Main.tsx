@@ -21,6 +21,7 @@ import Accounts from './pages/accounts/Accounts';
 import { Layout } from './components/layout/layout';
 import { SystemsProvider } from './Providers/SystemsProvider';
 import AccountsProvider from './Providers/AccountsProvider';
+import TrialBalance from './pages/Trial Balance/TrialBalance';
 
 const apiUrl = 'http://localhost:7071/api/v1'
 
@@ -49,6 +50,7 @@ const apiUrl = 'http://localhost:7071/api/v1'
                       <Route path="/new-user/reset-password" element={<NewUserResetPassword />} />
                       <Route path="/user-management" element={<UserManagement />} />
                       <Route path="/accounts" element={<Accounts />} /> 
+                      <Route path="/trial-balance" element={<TrialBalance />} />
                       <Route path="/server-offline" element={<ServerOfflinePage />} />
                     </Routes>
                   </Layout>

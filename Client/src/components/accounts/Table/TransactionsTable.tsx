@@ -33,7 +33,9 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
     const filterTransactions = (transactions: AccountTransaction[]) => {
     return transactions.filter(transaction => {
         const nameMatch = transaction.transactionDescription.toLowerCase().includes(nameSearch.toLowerCase());
-        const formattedAmount = formatCurrencyString(transaction.transactionAmount).replace(/[$,]/g, '');
+
+        const formattedAmount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(transaction.credit || transaction.debit);
+
         const amountMatch = formattedAmount.includes(amountSearch.replace(/[$,]/g, ''));
         const dateMatch = new Date(transaction.transactionDate).toLocaleString().includes(dateSearch);
         return nameMatch && amountMatch && dateMatch;
@@ -71,7 +73,8 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                         <tr>
                             <th>Date</th>
                             <th>Description</th>
-                            <th>Amount</th>
+                            <th>Credit</th>
+                            <th>Debit</th>
                             <th>Pre Entry</th>
                             <th>Post Entry</th>
                             <th>User</th>
@@ -87,7 +90,8 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                                 >
                                 <td>{new Date(transaction.transactionDate).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                                 <td>{transaction.transactionDescription}</td>
-                                <td>{formatCurrencyString(transaction.transactionAmount)}</td>
+                                <td>{formatCurrencyString(transaction.credit)}</td>
+                                <td>{formatCurrencyString(transaction.debit)}</td>
                                 <td>{formatCurrencyString(transaction.beforeTransactionBalance)}</td>
                                 <td>{formatCurrencyString(transaction.afterTransactionBalance)}</td>
                                 <td>{transaction.user}</td>
