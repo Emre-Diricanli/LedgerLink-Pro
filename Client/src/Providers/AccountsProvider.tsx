@@ -16,10 +16,10 @@ type AccountsContextType = {
     createAccountTransaction: (transaction: AccountTransaction) => Promise<AccountTransaction>;
     fetchAccountLogs: (accountId: string) => Promise<AccountLogs[]>;
     getUnapprovedTransactions: (accountId: string) => Promise<UnapprovedJournalEntry[]>;
-    createNewJournalEntry: (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[]) => Promise<UnapprovedJournalEntry>;
+    createNewJournalEntry: (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[], isAdjustment: boolean, transactionDescription: string) => Promise<UnapprovedJournalEntry>;
     getRejectedJournalEntries: (accountId: string) => Promise<RejectedJournalEntry[]>;
     approveJournalEntry: (transactionId: string) => Promise<boolean>;
-    getTrialBalance: () => Promise<TrialBalance>;
+    getTrialBalance: (startDate: Date | undefined, endDate: Date | undefined) => Promise<TrialBalance>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -142,9 +142,9 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
-    const HandleCreateNewJournalEntry = async (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[]): Promise<UnapprovedJournalEntry> => {
+    const HandleCreateNewJournalEntry = async (accountId: string, journalEntryName: string, entryLines: JournalEntryLineDTO[], isAdjustment: boolean, transactionDescription: string): Promise<UnapprovedJournalEntry> => {
         // Call the create unapproved transaction function from the accounts provider
-        const response = await PostNewJournalEntry(accountId, journalEntryName, entryLines, apiUrl);
+        const response = await PostNewJournalEntry(accountId, journalEntryName, entryLines, isAdjustment, transactionDescription, apiUrl);
 
         return response;
     }
@@ -161,8 +161,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
-    const HandleGetTrialBalance = async (): Promise<TrialBalance> => {
-        const response = await GetTrialBalance(apiUrl);
+    const HandleGetTrialBalance = async (startDate: Date | undefined, endDate: Date | undefined): Promise<TrialBalance> => {
+        const response = await GetTrialBalance(apiUrl, startDate, endDate);
 
         return response;
     }

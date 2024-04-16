@@ -85,6 +85,7 @@ const RejectedJournalEntriesTable: React.FC<RejectedJournalEntriesTableProps> = 
                             <th>Reason</th>
                             <th>Rejected By</th>
                             <th>Rejection Date</th>
+                            <th>Adjustment</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -97,6 +98,7 @@ const RejectedJournalEntriesTable: React.FC<RejectedJournalEntriesTableProps> = 
                                 <td>{journalEntry.rejectionReason}</td>
                                 <td>{journalEntry.rejectedByFullName}</td>
                                 <td>{journalEntry.rejectionDate.toString()}</td>
+                                <td>{journalEntry.isAdjustingEntry ? 'Yes' : 'No'}</td>
                                
                             </tr>
                         ))}

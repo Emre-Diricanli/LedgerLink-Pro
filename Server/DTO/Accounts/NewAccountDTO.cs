@@ -15,6 +15,7 @@ public class NewJournalEntryDTO
     public string AccountId { get; set; }
     public string EntryName { get; set; }
     public List<JournalEntryLineDTO> JournalEntryLines { get; set; }
+    public bool IsAdjustingEntry { get; set; }
 }
 
 public class JournalEntryLineDTO

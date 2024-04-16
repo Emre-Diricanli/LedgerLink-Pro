@@ -12,5 +12,6 @@ namespace LedgerLinkPro.Models.Accounts
         public string TransactionDescription { get; set; }
         public List<JournalEntryLineDTO> JournalEntryLines { get; set; }
         public DateTimeOffset TransactionDate { get; set; }
+        public bool IsAdjustingEntry { get; set; }
     }
 }

@@ -317,12 +317,14 @@ export const FetchUnapprovedTransactions = async ( accountId: String, apiUrl: st
 
 };
 
-export const PostNewJournalEntry = async (accountId: string, entryName: string, journalEntryLines: JournalEntryLineDTO[], apiUrl: string): Promise<UnapprovedJournalEntry> => {
+export const PostNewJournalEntry = async (accountId: string, entryName: string, journalEntryLines: JournalEntryLineDTO[], isAdjustingEntry: boolean, transactionDescription: string, apiUrl: string): Promise<UnapprovedJournalEntry> => {
     try {
         const body = {
             accountId,
             entryName,
-            journalEntryLines
+            journalEntryLines,
+            isAdjustingEntry,
+            transactionDescription
         };
         const response = await fetch(`${apiUrl}/accounts/create-new-unapproved-journal-entry`, {
             method: 'POST',
@@ -374,9 +376,21 @@ export const GetRejectedJournalEntries = async (accountId: string, apiUrl: strin
     }
 }
 
-export const GetTrialBalance = async (apiUrl: string): Promise<TrialBalance> => {
+export const GetTrialBalance = async (apiUrl: string, startDate: Date | undefined, endDate: Date | undefined): Promise<TrialBalance> => {
     try {
-        const response = await fetch(`${apiUrl}/accounts/get-trial-balance`, {
+
+        //if start and end date are provided then add to query params
+        const queryParams = new URLSearchParams();
+
+        if (startDate) {
+            queryParams.append('startDate', startDate.toISOString());
+        }
+
+        if (endDate) {
+            queryParams.append('endDate', endDate.toISOString());
+        }
+
+        const response = await fetch(`${apiUrl}/accounts/get-trial-balance?${queryParams}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

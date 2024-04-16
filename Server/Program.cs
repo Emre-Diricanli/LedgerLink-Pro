@@ -5,6 +5,11 @@ using LedgerLinkPro.Database;
 using LedgerLinkPro.Database;
 using LedgerLinkPro.Services;
 using Microsoft.AspNetCore.Mvc;
+using DinkToPdf.Contracts;
+using System;
+using DinkToPdf;
+using System.Reflection;
+using System.Runtime.Loader;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

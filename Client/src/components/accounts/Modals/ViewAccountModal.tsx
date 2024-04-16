@@ -50,14 +50,6 @@ const ViewAccountModal: React.FC<ViewAccountModalProps> = ({account, isOpen, onC
                     <ReadOnlyAccountInfo account={account} />
                 </div>
                 <div className='vertical-divider'></div>
-                <div className='h-full'>
-                    { transactions.length > 0 ? (
-                        <TransactionsTable account={account} transactions={transactions} />
-                    ) : ( 
-                        <p>There are no transactions for this account</p>
-                    )}
-                </div>
-                <div className='vertical-divider'></div>
                 <div className='p-6'>
                     { accountLogs.length > 0 ? (
                         <>

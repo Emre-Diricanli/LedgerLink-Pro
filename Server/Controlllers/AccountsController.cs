@@ -1,13 +1,14 @@
-using LedgerLinkPro.Services;
 using LedgerLinkPro.Database;
+using LedgerLinkPro.DTO.Accounts;
 using LedgerLinkPro.Models.Accounts;
+using LedgerLinkPro.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using LedgerLinkPro.DTO.Accounts;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Text;
 
 namespace LedgerLinkPro.Controllers
 {
@@ -683,7 +684,8 @@ namespace LedgerLinkPro.Controllers
                         Debit = debits,
                         Credit = credits,
                         AfterTransactionBalance = afterTransactionBalance,
-                        BeforeTransactionBalance = currentBalance
+                        BeforeTransactionBalance = currentBalance,
+                        IsAdjustingEntry = transaction.IsAdjustingEntry
                     };
 
                     //get the user who created the transaction
@@ -767,6 +769,7 @@ namespace LedgerLinkPro.Controllers
                         TransactionDate = transaction.TransactionDate,
                         JournalEntryLines = transaction.JournalEntryLines,
                         TransactionDescription = transaction.TransactionDescription,
+                        IsAdjustingEntry = transaction.IsAdjustingEntry,
                         TotalAmount = 0
                     };
 
@@ -838,7 +841,8 @@ namespace LedgerLinkPro.Controllers
                     AccountId = account.AccountId,
                     TransactionDate = utcNow,
                     JournalEntryLines = newJournalEntry.JournalEntryLines,
-                    TransactionDescription = newJournalEntry.EntryName
+                    TransactionDescription = newJournalEntry.EntryName,
+                    IsAdjustingEntry = newJournalEntry.IsAdjustingEntry
                 };
 
                 await db.UnapprovedJournalEntries.AddAsync(unapprovedJournalEntry);
@@ -851,6 +855,8 @@ namespace LedgerLinkPro.Controllers
                     TransactionId = unapprovedJournalEntry.TransactionId,
                     TransactionDate = unapprovedJournalEntry.TransactionDate,
                     JournalEntryLines = unapprovedJournalEntry.JournalEntryLines,
+                    TransactionDescription = unapprovedJournalEntry.TransactionDescription,
+                    IsAdjustingEntry = unapprovedJournalEntry.IsAdjustingEntry
                 };
 
                 returnJournalEntry.TotalAmount = 0;
@@ -867,6 +873,9 @@ namespace LedgerLinkPro.Controllers
                         returnJournalEntry.TotalAmount -= line.debit;
                     }
                 }
+
+                //create log
+                await LogObjectWithTransaction(account.AccountId.ToString(), "Journal Entry Created", user.Id, user.UserName, JsonConvert.SerializeObject(unapprovedJournalEntry));
 
                 //return the account transaction
                 return Ok(returnJournalEntry);
@@ -887,6 +896,9 @@ namespace LedgerLinkPro.Controllers
                 }
 
                 await _errorReportingService.ReportError("Error creating new unapproved account transaction. Exception Catched", "AccountsController.cs", identityUser.Id, "CreateNewUnapprovedAccountransaction", ex.Message);
+
+                //create log
+                await LogObjectWithTransaction("UNKNOWN", "Journal Entry Created", "UNKNOWN", "UNKNOWN", JsonConvert.SerializeObject(ex.Message));
 
                 return StatusCode(500, "Error creating new unapproved account transaction");
             }
@@ -967,7 +979,8 @@ namespace LedgerLinkPro.Controllers
                         AccountId = accountTransaction.AccountId,
                         TransactionDescription = accountTransaction.TransactionDescription,
                         TransactionDate = accountTransaction.TransactionDate,
-                        JournalEntries = accountTransaction.JournalEntryLines
+                        JournalEntries = accountTransaction.JournalEntryLines,
+                        IsAdjustingEntry = accountTransaction.IsAdjustingEntry
                     };
 
                     context.AccountTransactions.Add(approvedtransaction);
@@ -985,6 +998,9 @@ namespace LedgerLinkPro.Controllers
 
                     await context.SaveChangesAsync();
                 }
+
+                //create log
+                await LogObjectWithTransaction("UNKNOWN", "Journal Entry Approved", "UNKNOWN", "UNKNOWN", "Journal Entry Approved");
 
                 return Ok("Transaction approved successfully");
             }
@@ -1055,7 +1071,8 @@ namespace LedgerLinkPro.Controllers
                         TransactionDescription = accountTransaction.TransactionDescription,
                         TransactionDate = accountTransaction.TransactionDate,
                         UserId = accountTransaction.UserId,
-                        JournalEntries = accountTransaction.JournalEntryLines
+                        JournalEntries = accountTransaction.JournalEntryLines,
+                        IsAdjustingEntry = accountTransaction.IsAdjustingEntry
                     };
 
                     context.RejectedAccountTransactions.Add(rejectedAccountTransaction);
@@ -1071,6 +1088,9 @@ namespace LedgerLinkPro.Controllers
 
                     await context.SaveChangesAsync();
                 }
+
+                //create log
+                await LogObjectWithTransaction("UNKNOWN", "Journal Entry Rejected", "UNKNOWN", "UNKNOWN", "Journal Entry Rejected");
 
                 //return the account transaction
                 return Ok("Transaction rejected successfully");
@@ -1127,6 +1147,7 @@ namespace LedgerLinkPro.Controllers
                             rejectionDate = transaction.rejectionDate,
                             rejectedByFullName = transaction.rejectedByFullName,
                             rejectedById = transaction.rejectedById,
+                            IsAdjustingEntry = transaction.IsAdjustingEntry,
                             
                         };
 
@@ -1179,7 +1200,7 @@ namespace LedgerLinkPro.Controllers
     
         [HttpGet("get-trial-balance")]
         [Authorize]
-        public async Task<IActionResult> GetTrialBalance()
+        public async Task<IActionResult> GetTrialBalance([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try
             {
@@ -1194,6 +1215,8 @@ namespace LedgerLinkPro.Controllers
                 //get all accounts
                 using (var context = _contextFactory.CreateDbContext())
                 {
+                    DateTime tbMinDate = DateTime.Now;
+                    DateTime? tbMaxDate = null;
                     var accounts = await context.Accounts.ToListAsync();
 
                     //return the trial balance
@@ -1226,11 +1249,21 @@ namespace LedgerLinkPro.Controllers
                         };
 
                         //find all transactions and add up the balance via transactionAmount
-                        var transactions = await context.AccountTransactions.Where(a => a.AccountId == account.AccountId).ToListAsync();
+                        var transactionsQuery = context.AccountTransactions.Where(a => a.AccountId == account.AccountId);
+
+                        var tempTransactions = await transactionsQuery.ToListAsync();
+
+                        //if start and en date are provided filter the transactions
+                        if (startDate != null && endDate != null)
+                        {
+                            transactionsQuery = transactionsQuery.Where(a => a.TransactionDate >= startDate && a.TransactionDate <= endDate);
+                        }
+
+                        var transactions = await transactionsQuery.ToListAsync();
 
                         decimal balance = 0;
                         DateTime minDate = DateTime.Now;
-                        DateTime maxDate = DateTime.Now;
+                        DateTime? maxDate = null;
 
 
                         foreach (var transaction in transactions)
@@ -1241,9 +1274,32 @@ namespace LedgerLinkPro.Controllers
                                 minDate = transaction.TransactionDate.DateTime;
                             }
 
-                            if (transaction.TransactionDate > maxDate)
+                            var tempMaxDate = transaction.TransactionDate.DateTime;
+
+                            if (maxDate == null)
                             {
-                                maxDate = transaction.TransactionDate.DateTime;
+                                maxDate = tempMaxDate;
+                            }
+
+                            if (tempMaxDate > maxDate)
+                            {
+                                maxDate = tempMaxDate;
+                            }
+
+                            //Do TB date range
+                            if (transaction.TransactionDate < tbMinDate)
+                            {
+                                tbMinDate = transaction.TransactionDate.DateTime;
+                            }
+
+                            if(tbMaxDate == null)
+                            {
+                                tbMaxDate = tempMaxDate;
+                            }
+
+                            if (tempMaxDate > tbMaxDate)
+                            {
+                                tbMaxDate = tempMaxDate;
                             }
 
                             decimal credit = 0;
@@ -1264,8 +1320,15 @@ namespace LedgerLinkPro.Controllers
                         trialBalance.TotalCredit += returnAccount.Credit;
                         trialBalance.TotalDebit += returnAccount.Debit;
 
+                        if (maxDate == null)
+                        {
+                            maxDate = minDate;
+                        }
+
+                        DateTime maxDate2 = maxDate.Value;
+
                         //construct date range string
-                        string dateRange = minDate.ToShortDateString() + " - " + maxDate.ToShortDateString();
+                        string dateRange = minDate.ToShortDateString() + " - " + maxDate2.ToShortDateString();
 
                         returnAccount.DateRange = dateRange;
 
@@ -1273,6 +1336,16 @@ namespace LedgerLinkPro.Controllers
 
                         trialBalance.Accounts.Add(returnAccount);
                     }
+
+                    if(tbMaxDate == null)
+                    {
+                        tbMaxDate = tbMinDate;
+                    }
+
+                    DateTime tbMaxDate2 = tbMaxDate.Value;
+
+                    //set date range for trial balance
+                    trialBalance.DateRange = tbMinDate.ToShortDateString() + " - " + tbMaxDate2.ToShortDateString();
 
                     return Ok(trialBalance);
                 }
@@ -1284,5 +1357,405 @@ namespace LedgerLinkPro.Controllers
 
             }
         }
+
+        private async Task<TrialBalanceDTO> GetTrialBalanceData(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                //get all accounts
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    DateTime tbMinDate = DateTime.Now;
+                    DateTime? tbMaxDate = null;
+                    var accounts = await context.Accounts.ToListAsync();
+
+                    //return the trial balance
+                    TrialBalanceDTO trialBalance = new TrialBalanceDTO
+                    {
+                        Accounts = new List<ReturnAccountDTO>(),
+                        TotalCredit = 0,
+                        TotalDebit = 0
+                    };
+
+                    foreach (var account in accounts)
+                    {
+                        Debug.WriteLine(account.AccountName);
+                        ReturnAccountDTO returnAccount = new ReturnAccountDTO
+                        {
+                            AccountId = account.AccountId,
+                            AccountName = account.AccountName,
+                            AccountNumber = account.AccountNumber,
+                            ActiveStatus = account.ActiveStatus,
+                            Category = account.Category,
+                            Comment = account.Comment,
+                            Credit = account.Credit,
+                            DateAdded = account.DateAdded,
+                            Debit = account.Debit,
+                            Description = account.Description,
+                            NormalSide = account.NormalSide,
+                            Order = account.Order,
+                            Statement = account.Statement,
+                            Subcategory = account.Subcategory,
+                            UserId = account.UserId
+                        };
+
+                        //find all transactions and add up the balance via transactionAmount
+                        var transactionsQuery = context.AccountTransactions.Where(a => a.AccountId == account.AccountId);
+
+                        var tempTransactions = await transactionsQuery.ToListAsync();
+
+                        //if start and en date are provided filter the transactions
+                        if (startDate != null && endDate != null)
+                        {
+                            transactionsQuery = transactionsQuery.Where(a => a.TransactionDate >= startDate && a.TransactionDate <= endDate);
+                        }
+
+                        var transactions = await transactionsQuery.ToListAsync();
+
+                        decimal balance = 0;
+                        DateTime minDate = DateTime.Now;
+                        DateTime? maxDate = null;
+
+
+                        foreach (var transaction in transactions)
+                        {
+                            //get the transaction date
+                            if (transaction.TransactionDate < minDate)
+                            {
+                                minDate = transaction.TransactionDate.DateTime;
+                            }
+
+                            var tempMaxDate = transaction.TransactionDate.DateTime;
+
+                            if (maxDate == null)
+                            {
+                                maxDate = tempMaxDate;
+                            }
+
+                            if (tempMaxDate > maxDate)
+                            {
+                                maxDate = tempMaxDate;
+                            }
+
+                            //Do TB date range
+                            if (transaction.TransactionDate < tbMinDate)
+                            {
+                                tbMinDate = transaction.TransactionDate.DateTime;
+                            }
+
+                            if (tbMaxDate == null)
+                            {
+                                tbMaxDate = tempMaxDate;
+                            }
+
+                            if (tempMaxDate > tbMaxDate)
+                            {
+                                tbMaxDate = tempMaxDate;
+                            }
+
+                            decimal credit = 0;
+                            decimal debit = 0;
+                            foreach (var line in transaction.JournalEntries)
+                            {
+                                //add credits and debits
+                                credit += line.credit;
+                                debit -= line.debit;
+                            }
+
+                            returnAccount.Credit += credit;
+                            returnAccount.Debit += debit;
+
+                        }
+
+                        //Get total credit and debit for the trial balances
+                        trialBalance.TotalCredit += returnAccount.Credit;
+                        trialBalance.TotalDebit += returnAccount.Debit;
+
+                        if (maxDate == null)
+                        {
+                            maxDate = minDate;
+                        }
+
+                        DateTime maxDate2 = maxDate.Value;
+
+                        //construct date range string
+                        string dateRange = minDate.ToShortDateString() + " - " + maxDate2.ToShortDateString();
+
+                        returnAccount.DateRange = dateRange;
+
+                        returnAccount.Balance = balance;
+
+                        trialBalance.Accounts.Add(returnAccount);
+                    }
+
+                    if (tbMaxDate == null)
+                    {
+                        tbMaxDate = tbMinDate;
+                    }
+
+                    DateTime tbMaxDate2 = tbMaxDate.Value;
+
+                    //set date range for trial balance
+                    trialBalance.DateRange = tbMinDate.ToShortDateString() + " - " + tbMaxDate2.ToShortDateString();
+
+                    return trialBalance;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+
+            }
+        }
+
+        private async Task<TrialBalanceDTO> GetIncomeStatementData(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                //get all accounts
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    DateTime tbMinDate = DateTime.Now;
+                    DateTime? tbMaxDate = null;
+                    var accounts = await context.Accounts.ToListAsync();
+
+                    //return the trial balance
+                    TrialBalanceDTO trialBalance = new TrialBalanceDTO
+                    {
+                        Accounts = new List<ReturnAccountDTO>(),
+                        TotalCredit = 0,
+                        TotalDebit = 0
+                    };
+
+                    foreach (var account in accounts)
+                    {
+                        Debug.WriteLine(account.AccountName);
+                        ReturnAccountDTO returnAccount = new ReturnAccountDTO
+                        {
+                            AccountId = account.AccountId,
+                            AccountName = account.AccountName,
+                            AccountNumber = account.AccountNumber,
+                            ActiveStatus = account.ActiveStatus,
+                            Category = account.Category,
+                            Comment = account.Comment,
+                            Credit = account.Credit,
+                            DateAdded = account.DateAdded,
+                            Debit = account.Debit,
+                            Description = account.Description,
+                            NormalSide = account.NormalSide,
+                            Order = account.Order,
+                            Statement = account.Statement,
+                            Subcategory = account.Subcategory,
+                            UserId = account.UserId
+                        };
+
+                        //find all transactions and add up the balance via transactionAmount
+                        var transactionsQuery = context.AccountTransactions.Where(a => a.AccountId == account.AccountId);
+
+                        var tempTransactions = await transactionsQuery.ToListAsync();
+
+                        //if start and en date are provided filter the transactions
+                        if (startDate != null && endDate != null)
+                        {
+                            transactionsQuery = transactionsQuery.Where(a => a.TransactionDate >= startDate && a.TransactionDate <= endDate);
+                        }
+
+                        var transactions = await transactionsQuery.ToListAsync();
+
+                        decimal balance = 0;
+                        DateTime minDate = DateTime.Now;
+                        DateTime? maxDate = null;
+
+                        //get the account category
+                        var accountCategory = account.Category;
+
+                        //check if the account is an income or expense account
+                        if (accountCategory == "Revenue" || accountCategory == "Expenses")
+                        {
+                            foreach (var transaction in transactions)
+                            {
+                                //get the transaction date
+                                if (transaction.TransactionDate < minDate)
+                                {
+                                    minDate = transaction.TransactionDate.DateTime;
+                                }
+
+                                var tempMaxDate = transaction.TransactionDate.DateTime;
+
+                                if (maxDate == null)
+                                {
+                                    maxDate = tempMaxDate;
+                                }
+
+                                if (tempMaxDate > maxDate)
+                                {
+                                    maxDate = tempMaxDate;
+                                }
+
+                                //Do TB date range
+                                if (transaction.TransactionDate < tbMinDate)
+                                {
+                                    tbMinDate = transaction.TransactionDate.DateTime;
+                                }
+
+                                if (tbMaxDate == null)
+                                {
+                                    tbMaxDate = tempMaxDate;
+                                }
+
+                                if (tempMaxDate > tbMaxDate)
+                                {
+                                    tbMaxDate = tempMaxDate;
+                                }
+
+                                decimal credit = 0;
+                                decimal debit = 0;
+                                foreach (var line in transaction.JournalEntries)
+                                {
+                                    //add credits and debits
+                                    credit += line.credit;
+                                    debit -= line.debit;
+                                }
+
+                                returnAccount.Credit += credit;
+                                returnAccount.Debit += debit;
+
+                            }
+
+                            //Get total credit and debit for the trial balances
+                            trialBalance.TotalCredit += returnAccount.Credit;
+                            trialBalance.TotalDebit += returnAccount.Debit;
+
+                            if (maxDate == null)
+                            {
+                                maxDate = minDate;
+                            }
+
+                            DateTime maxDate2 = maxDate.Value;
+
+                            //construct date range string
+                            string dateRange = minDate.ToShortDateString() + " - " + maxDate2.ToShortDateString();
+
+                            returnAccount.DateRange = dateRange;
+
+                            returnAccount.Balance = balance;
+
+                            trialBalance.Accounts.Add(returnAccount);
+                        }
+
+                    }
+
+                    if (tbMaxDate == null)
+                    {
+                        tbMaxDate = tbMinDate;
+                    }
+
+                    DateTime tbMaxDate2 = tbMaxDate.Value;
+
+                    //set date range for trial balance
+
+                    trialBalance.DateRange = tbMinDate.ToShortDateString() + " - " + tbMaxDate2.ToShortDateString();
+
+                    return trialBalance;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+
+            }
+
+        }
+
+
+
+        [HttpGet("export-trial-balance-html")]
+        [Authorize]
+        public async Task<IActionResult> ExportTrialBalanceAsPDF([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var trialBalance = await GetTrialBalanceData(startDate, endDate);
+                if (trialBalance == null)
+                {
+                    return NotFound("Trial balance not found.");
+                }
+
+                var htmlContent = GenerateHtmlForTrialBalance(trialBalance); // Generate the HTML content
+
+                return Content(htmlContent, "text/html");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, "Error generating HTML for trial balance");
+            }
+        }
+
+        [HttpGet("export-income-statement-html")]
+        [Authorize]
+        public async Task<IActionResult> ExportIncomeStatementAsPDF([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var incomeStatement = await GetIncomeStatementData(startDate, endDate);
+                if (incomeStatement == null)
+                {
+                    return NotFound("Income statement not found.");
+                }
+
+                var htmlContent = GenerateHtmlForIncomeStatement(incomeStatement); // Generate the HTML content
+
+                return Content(htmlContent, "text/html");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, "Error generating HTML for income statement");
+            }
+        }
+
+
+        private string GenerateHtmlForTrialBalance(TrialBalanceDTO trialBalance)
+        {
+            // Here, convert your TrialBalanceDTO to HTML string
+            var builder = new StringBuilder();
+            builder.Append("<html><head><title>Trial Balance</title></head><body>");
+            builder.Append("<h1>Trial Balance Report</h1>");
+            builder.Append("<table><thead><tr><th>Account Name</th><th>Debit</th><th>Credit</th></tr></thead><tbody>");
+
+            foreach (var account in trialBalance.Accounts)
+            {
+                builder.Append($"<tr><td>{account.AccountName}</td><td>{account.Debit}</td><td>{account.Credit}</td></tr>");
+            }
+            builder.Append("</tbody></table>");
+            builder.Append($"<p>Total Debit: {trialBalance.TotalDebit}</p><p>Total Credit: {trialBalance.TotalCredit}</p>");
+            builder.Append("</body></html>");
+
+            return builder.ToString();
+        }
+
+        private string GenerateHtmlForIncomeStatement(TrialBalanceDTO incomeStatement)
+        {
+            // Here, convert your TrialBalanceDTO to HTML string
+            var builder = new StringBuilder();
+            builder.Append("<html><head><title>Income Statement</title></head><body>");
+            builder.Append("<h1>Income Statement Report</h1>");
+            builder.Append("<table><thead><tr><th>Account Name</th><th>Debit</th><th>Credit</th></tr></thead><tbody>");
+
+            foreach (var account in incomeStatement.Accounts)
+            {
+                builder.Append($"<tr><td>{account.AccountName}</td><td>{account.Debit}</td><td>{account.Credit}</td></tr>");
+            }
+            builder.Append("</tbody></table>");
+            builder.Append($"<p>Total Debit: {incomeStatement.TotalDebit}</p><p>Total Credit: {incomeStatement.TotalCredit}</p>");
+            builder.Append("</body></html>");
+
+            return builder.ToString();
+        }
+
     }
 }

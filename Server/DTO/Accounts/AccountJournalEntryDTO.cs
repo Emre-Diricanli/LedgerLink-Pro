@@ -13,5 +13,7 @@
         public string? User { get; set; }
         public List<JournalEntryLineDTO> JournalEntries { get; set; }
 
+        public bool IsAdjustingEntry { get; set; }
+
     }
 }

@@ -78,6 +78,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                             <th>Pre Entry</th>
                             <th>Post Entry</th>
                             <th>User</th>
+                            <th>Adjustment</th>
                             <th>PR</th>
                         </tr>
                     </thead>
@@ -95,6 +96,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ account, onActive
                                 <td>{formatCurrencyString(transaction.beforeTransactionBalance)}</td>
                                 <td>{formatCurrencyString(transaction.afterTransactionBalance)}</td>
                                 <td>{transaction.user}</td>
+                                <td>{transaction.isAdjustingEntry ? 'Yes' : 'No'}</td>
                                 <td>
                                     <button onClick={() => showJournalEntryPostReferenceModal(transaction)} className='icon-button'>
                                         <FontAwesomeIcon icon={faArrowUpRightFromSquare} />

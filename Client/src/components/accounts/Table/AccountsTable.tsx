@@ -137,6 +137,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                 <th>Actions</th>
                                 {/* <th>Transactions</th> */}
                                 <th>Ledger</th>
+                                <th>View</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -156,8 +157,8 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                             }}
                                         />
                                     </td>
-                                    <td>{account.accountName}</td>
-                                    <td>{account.accountNumber}</td>
+                                    <td><a className='cursor-pointer underline' onClick={() => showLedger(account)}>{account.accountName}</a></td>
+                                    <td><a className='cursor-pointer underline' onClick={() => showLedger(account)}>{account.accountNumber}</a></td>
                                     <td>{account.category}</td>
                                     <td>{account.subcategory}</td>
                                     <td>{account.activeStatus ? 'Active' : 'Inactive'}</td>
@@ -170,7 +171,9 @@ const AccountsTable: React.FC<AccountsTableProps> = ({ showLedger, accounts, onA
                                     </td> */}
                                     <td>
                                         <button onClick={() => showLedger(account)}>Ledger</button>
-                                        {/* <ViewAccountButton account={account} needsRefresh={refreshAccounts}/> */}
+                                    </td>
+                                    <td>
+                                        <ViewAccountButton account={account} needsRefresh={refreshAccounts}/>
                                     </td>
                                 </tr>
                             ))}

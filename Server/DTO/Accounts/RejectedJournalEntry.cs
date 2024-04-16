@@ -14,6 +14,8 @@
 
 
         public DateTimeOffset TransactionDate { get; set; }
+        
+        public bool IsAdjustingEntry { get; set; }
     }
 
     public class UnapprovedJournalEntryDTO
@@ -26,5 +28,7 @@
         public List<JournalEntryLineDTO> JournalEntryLines { get; set; }
 
         public DateTimeOffset TransactionDate { get; set; }
+
+        public bool IsAdjustingEntry { get; set; }
     }
 }

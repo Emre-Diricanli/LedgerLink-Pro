@@ -46,6 +46,7 @@ export interface AccountTransaction {
     afterTransactionBalance: number;
     user: string;
     journalEntries: JournalEntryLineDTO[];
+    isAdjustingEntry: boolean;
 }
 
 export interface UnapprovedJournalEntry {
@@ -56,6 +57,7 @@ export interface UnapprovedJournalEntry {
     transactionDescription: string;
     transactionDate: Date;
     journalEntryLines: JournalEntryLineDTO[];
+    isAdjustingEntry: boolean;
 }
 
 
@@ -71,6 +73,7 @@ export interface RejectedJournalEntry {
     rejectedById: string;
     transactionDate: Date;
     journalEntries: JournalEntryLineDTO[];
+    isAdjustingEntry: boolean;
 }
 
 export interface AccountLogs {
@@ -101,4 +104,5 @@ export interface TrialBalance {
     accounts: Account[];
     totalDebit: number;
     totalCredit: number;
+    dateRange: string;
 }

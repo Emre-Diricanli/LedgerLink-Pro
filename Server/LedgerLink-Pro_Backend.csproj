@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+		<PackageReference Include="DinkToPdf" Version="1.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />

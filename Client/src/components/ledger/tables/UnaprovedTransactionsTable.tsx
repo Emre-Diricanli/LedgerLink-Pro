@@ -136,6 +136,7 @@ const UnapprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = (
                             <th>Total Amount</th>
                             <th>Description</th>
                             <th>Approve</th>
+                            <th>Adjustment</th>
                             <th>PR</th>
                         </tr>
                     </thead>
@@ -159,6 +160,9 @@ const UnapprovedTransactionsTable: React.FC<UnaprovedTransactionsTableProps> = (
                                             <p>Approve</p>
                                         </button>
                                     </div>
+                                </td>
+                                <td>
+                                   {transaction.isAdjustingEntry ? 'Yes' : 'No'}
                                 </td>
                                 <td>
                                     <button onClick={() => showJournalEntryPostReferenceModal(transaction)} className='icon-button'>

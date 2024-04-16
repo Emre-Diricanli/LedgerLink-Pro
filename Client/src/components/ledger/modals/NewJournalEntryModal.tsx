@@ -30,6 +30,8 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
     const [credit, setCredit] = useState<number>(0);
     const [debit, setDebit] = useState<number>(0);
 
+    const [isAdjustment, setIsAdjustment] = useState<boolean>(false);
+
     const onCreditChange = (value: string | undefined) => {
         if (value) {
             setCredit(Number(value));
@@ -60,7 +62,6 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
 
     const addEntry = () => {
         setEntries([...entries, { name: name, credit: credit, debit: debit }]);
-        setName('');
         setCredit(0);
         setDebit(0);
     };
@@ -75,7 +76,12 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
                 description: entry.name
             };
         });
-        const success = await accountsProvider.createNewJournalEntry(account.accountId, name, newEntries);
+
+
+        console.log('name: ' + name);
+
+
+        const success = await accountsProvider.createNewJournalEntry(account.accountId, name, newEntries, isAdjustment, name);
 
         console.log('Success:', success);
 
@@ -99,9 +105,21 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
                         <div className='h-full w-full p-4 flex flex-col'>
                             <div className='flex flex-row items-end gap-4'>  
                                 <div className="flex flex-col content-center items-center justify-center gap-4 w-full pt-8">
-                                    <div className="flex flex-col content-center justify-start gap-0 w-full">
-                                        <p>Line Name<strong>*</strong></p>
-                                        <input type="text" placeholder="Line Name" className="modal-content-input" onChange={(e) => setName(e.target.value)} maxLength={40}/>
+                                    <div className='flex flex-row w-full'>
+                                        <div className="flex flex-col content-center justify-start gap-0 w-full">
+                                            <p>Line Name<strong>*</strong></p>
+                                            <input type="text" placeholder="Line Name" className="modal-content-input" onChange={(e) => setName(e.target.value)} maxLength={40}/>
+                                        </div>
+                                        <div className="flex flex-col content-center justify-start gap-0 w-fit p-4"> 
+                                            <p className='text-nowrap'>Is Adjustment?</p>
+                                            <div className='flex flex-row gap-4 pt-2'>
+                                            <input type="radio" name="isAdjustment" value="false" checked={!isAdjustment} onChange={() => setIsAdjustment(false)} />
+                                            <label>No</label>
+                                            <input type="radio" name="isAdjustment" value="true" checked={isAdjustment} onChange={() => setIsAdjustment(true)} />
+                                            <label>Yes</label>
+
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className='flex flex-row gap-4'>
                                         <div className="flex flex-col content-center justify-start gap-0 w-full pt-8">
@@ -126,6 +144,9 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
                                         </div>
                                     </div>
                                 </div>
+                               
+                            </div>
+                            <div className='w-full flex flex-row justify-center pt-4'>
                                 <button onClick={addEntry} style={{height: `60px`, whiteSpace: 'nowrap'}}>Add Entry</button>
                             </div>
                         </div>
@@ -133,7 +154,7 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th>Index</th>
                                         <th>Credit</th>
                                         <th>Debit</th>
                                     </tr>
@@ -141,7 +162,7 @@ const CreateJournalEntryModal: React.FC<CreateJournalEntryModalProps> = ({accoun
                                 <tbody>
                                     {entries.map((entry, index) => (
                                         <tr key={index}>
-                                            <td>{entry.name}</td>
+                                            <td>{index}</td>
                                             <td>{formatCurrencyString(entry.credit)}</td>
                                             <td>{formatCurrencyString(entry.debit)}</td>
                                         </tr>
