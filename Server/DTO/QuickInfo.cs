@@ -1,4 +1,6 @@
-﻿namespace LedgerLinkPro.DTO
+﻿using LedgerLinkPro.DTO.Accounts;
+
+namespace LedgerLinkPro.DTO
 {
     public class DashboardQuickInfo
     {
@@ -23,5 +25,34 @@
     {
         public int ErrorCount { get; set; }
         public string ErrorType { get; set; }
+    }
+
+    public class AccountsChartInfo
+    {
+        public List<AccountJournalEntryDTO> accountJournalEntries { get; set; }
+
+        public AccountsChartInfo()
+        {
+            accountJournalEntries = new List<AccountJournalEntryDTO>();
+        }
+    }
+
+    public class DashboardInfoDTO
+    {
+        public string AccountType { get; set; }
+        public int AccountCount { get; set; }
+        public List<CreditDebitMonthDTO> CreditDebitMonth { get; set; }
+
+        public DashboardInfoDTO()
+        {
+            CreditDebitMonth = new List<CreditDebitMonthDTO>();
+        }
+    }
+
+    public class CreditDebitMonthDTO
+    {
+        public string Month { get; set; }
+        public decimal Credit { get; set; }
+        public decimal Debit { get; set; }
     }
 }

@@ -1204,7 +1204,64 @@ namespace LedgerLinkPro.Controllers
         {
             try
             {
-
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    switch (accountType)
+                    {
+                        case "assets":
+                            var assets = await context.Accounts.Where(a => a.Category == "Assets").ToListAsync();
+        
+                            var transactions = await context.AccountTransactions.ToListAsync();
+        
+                            DashboardInfoDTO assetsDashboard = new DashboardInfoDTO
+                            {
+                                AccountType = "Assets",
+                                AccountCount = assets.Count,
+                            };
+        
+                            foreach (var transaction in transactions)
+                            {
+                                string month = transaction.TransactionDate.Month.ToString() + "-" + transaction.TransactionDate.Year.ToString();
+        
+                                //go through each journal entry
+                                foreach(var entry in transaction.JournalEntries)
+                                {
+                                    //get total credit and total debit
+                                    if (entry.credit > 0)
+                                    {
+                                        var creditDebitMonth = assetsDashboard.CreditDebitMonth.FirstOrDefault(x => x.Month == month);
+        
+                                        if (creditDebitMonth == null)
+                                        {
+                                            creditDebitMonth = new CreditDebitMonthDTO { Month = month };
+                                            assetsDashboard.CreditDebitMonth.Add(creditDebitMonth);
+                                        }
+        
+                                        creditDebitMonth.Credit += entry.credit;
+                                    }
+                                    else
+                                    {
+                                        var creditDebitMonth = assetsDashboard.CreditDebitMonth.FirstOrDefault(x => x.Month == month);
+        
+                                        if (creditDebitMonth == null)
+                                        {
+                                            creditDebitMonth = new CreditDebitMonthDTO { Month = month };
+                                            assetsDashboard.CreditDebitMonth.Add(creditDebitMonth);
+                                        }
+        
+                                        creditDebitMonth.Debit += entry.debit;
+                                    }
+                                }
+                            }
+        
+                            // Sort the CreditDebitMonth list by month
+                            assetsDashboard.CreditDebitMonth = assetsDashboard.CreditDebitMonth.OrderBy(x => x.Month).ToList();
+        
+                            return Ok(assetsDashboard);
+                        default:
+                            return BadRequest("Invalid account type");
+                    }
+                }
             }
             catch(Exception ex)
             {
@@ -1856,4 +1913,6 @@ namespace LedgerLinkPro.Controllers
         }
 
     }
+
+    
 }
