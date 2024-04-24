@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { Account, AccountLogs, AccountSearchQuery, AccountTransaction, JournalEntryLineDTO, NewAccount, RejectedJournalEntry, TrialBalance, UnapprovedJournalEntry } from "../components/interfaces/Accounts";
 import { ActivateAccounts, ApproveJournalEntry, CreateNewAccount, CreateNewAccountTransaction, DeactivateAccounts, DeleteAccounts, FetchAccountLogs, FetchAccountTransactions, FetchAccounts, FetchUnapprovedTransactions, GetRejectedJournalEntries, GetTrialBalance, PostNewJournalEntry, UpdateAccount } from "../services/AccountsService";
+import { DashboardQuickInfo } from "../components/interfaces/Dashboard";
 
 type AccountsContextType = {
     isLoading: boolean;
@@ -20,6 +21,7 @@ type AccountsContextType = {
     getRejectedJournalEntries: (accountId: string) => Promise<RejectedJournalEntry[]>;
     approveJournalEntry: (transactionId: string) => Promise<boolean>;
     getTrialBalance: (startDate: Date | undefined, endDate: Date | undefined) => Promise<TrialBalance>;
+    getDashboardQuickStats: () => Promise<DashboardQuickInfo>;
 };
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -167,6 +169,28 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
         return response;
     }
 
+    const HandleGetDashboardQuickStats = async (): Promise<DashboardQuickInfo> => {
+        try {
+            const response = await fetch(`${apiUrl}/accounts/quickinfo`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                return {} as DashboardQuickInfo;
+            }
+        } catch (error) {
+            console.error('Error fetching dashboard quick stats:', error);
+            return {} as DashboardQuickInfo;
+        }
+    };
+
 
     return (
         <AccountsContext.Provider value={{ 
@@ -186,7 +210,8 @@ export default function AccountsProvider({ children, apiUrl }: AccountProviderPr
             createNewJournalEntry: HandleCreateNewJournalEntry,
             getRejectedJournalEntries: HandleGetRejectedJournalEntries,
             approveJournalEntry: HandleApproveJournalEntry,
-            getTrialBalance: HandleGetTrialBalance
+            getTrialBalance: HandleGetTrialBalance,
+            getDashboardQuickStats: HandleGetDashboardQuickStats
         }}>
             {children}
         </AccountsContext.Provider>

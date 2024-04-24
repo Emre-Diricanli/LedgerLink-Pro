@@ -1,4 +1,5 @@
 using LedgerLinkPro.Database;
+using LedgerLinkPro.DTO;
 using LedgerLinkPro.DTO.Accounts;
 using LedgerLinkPro.Models.Accounts;
 using LedgerLinkPro.Services;
@@ -1196,7 +1197,21 @@ namespace LedgerLinkPro.Controllers
                 return StatusCode(500, "Error getting rejected transactions");
             }
         }
-    
+
+        [HttpGet("get-dashboard-info")]
+        [Authorize]
+        public async Task<IActionResult> GetDashboardInfo([FromQuery] string accountType)
+        {
+            try
+            {
+
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, "Error getting dashboard info");
+            }
+        }
     
         [HttpGet("get-trial-balance")]
         [Authorize]
@@ -1670,6 +1685,89 @@ namespace LedgerLinkPro.Controllers
 
         }
 
+        [HttpGet("quickinfo")]
+        [Authorize]
+        public async Task<IActionResult> GetQuickInfo()
+        {
+            try
+            {
+                //validate user
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    return BadRequest();
+                }
+
+                //get all accounts
+                using (var context = _contextFactory.CreateDbContext())
+                {
+                    //first gather the top 5 accounts with the most unapproved transactions
+                    var unapprovedTransactions = context.UnapprovedJournalEntries;
+
+                    //get the top 5 accounts with the most unapproved transactions
+                    var top5Accounts = await unapprovedTransactions.GroupBy(a => a.AccountId)
+                        .Select(group => new
+                        {
+                            AccountId = group.Key,
+                            Count = group.Count()
+                        })
+                        .OrderByDescending(a => a.Count)
+                        .Take(5)
+                        .ToListAsync();
+
+
+                    //get the top 5 types of error messages sorted by .methodName
+                    var errorMessages = context.ReportedErrors.GroupBy(a => a.MethodName)
+                        .Select(group => new
+                        {
+                            MethodName = group.Key,
+                            Count = group.Count()
+                        })
+                        .OrderByDescending(a => a.Count)
+                        .Take(5)
+                        .ToList();
+
+
+                    //attach to QuickInfo object
+                    DashboardQuickInfo quickInfo = new DashboardQuickInfo();
+
+                    foreach (var account in top5Accounts)
+                    {
+                        var k = new UnapprovedJournalEntryStats();
+
+                        //get account based on id
+                        var accountObj = await context.Accounts.FirstOrDefaultAsync(a => a.AccountId == account.AccountId);
+
+                        k.AccountName = accountObj.AccountName;
+                        k.AccountNumber = accountObj.AccountNumber;
+
+                        k.TotalAmount = account.Count;
+
+                        quickInfo.UnapprovedJournalEntries.Add(k);
+                    }
+
+                    //attach error messages
+                    foreach (var error in errorMessages)
+                    {
+                        var k = new ErrorLogStats();
+
+                        k.ErrorType = error.MethodName;
+
+                        k.ErrorCount = error.Count;
+
+                        quickInfo.ErrorLogs.Add(k);
+                    }
+
+                    return Ok(quickInfo);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return StatusCode(500, "Error getting quick info");
+            }
+        }   
 
 
         [HttpGet("export-trial-balance-html")]

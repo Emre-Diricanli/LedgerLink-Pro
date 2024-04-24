@@ -1,28 +1,43 @@
-import { useUser } from '../../Providers/UserProvider';
+import React, { useState } from 'react';
+import AssetsDashboard from "../../components/dashboard/AssetsDashboard";
+import DashboardHotbar from '../../components/dashboard/DashboardHotbar';
+import DashboardNotifications from '../../components/dashboard/DashboardNotifications';
+import LiabillitiesDashboard from '../../components/dashboard/LiabilitiesDashboard';
 
 const Dashboard = () => {
-    const userProvider = useUser();
+    const [selectedDashboard, setSelectedDashboard] = useState('assets');
 
-    // useEffect(() => {
-    //     //verify role status
-    //     const verifyRoleStatus = async () => {
-    //         try {
-    //             // Call the auth_service API to get the auth level
-    //             const authLevel = await auth.HandleGetRole();
-
-    //         } catch (error) {
-    //             // Handle any errors that occurred during the API call
-    //             console.error('Error:', error);
-    //         }
-    //     };
-
-    //     verifyRoleStatus();
-    // }, []);
+    const renderDashboard = () => {
+        switch(selectedDashboard) {
+            case 'assets':
+                return <div className='flex flex-col w-full h-full'>
+                    <AssetsDashboard />
+                    {/* <AssetsDashboard /> */}
+                </div>
+            case 'liabilities':
+                return <div className='flex flex-col w-full h-full'>
+                    <LiabillitiesDashboard />
+                </div>
+            case 'equity':
+                return <div className='flex flex-col w-full h-full'>
+                    <p>Equity</p>
+                </div>
+            default:
+                return <div className='flex flex-col w-full h-full'>
+                    <AssetsDashboard />
+                    {/* <AssetsDashboard /> */}
+                </div>
+        }
+    };
 
     return (
-        <div className='flex flex-col justify-center items-center w-full h-full'>
-            <h1>Welcome{userProvider.user ? `, ${userProvider.user?.firstName}!` : '...'} </h1>
-            <h2 className='mt-8'>This Dashboard is a work in progress.</h2>
+        <div className='page-container'>
+            <DashboardHotbar setSelectedDashboard={setSelectedDashboard} />
+            <div className='flex flex-row w-full h-full'>
+                {renderDashboard()}
+                <div className='vertical-divider'></div>
+                <DashboardNotifications />
+            </div>
         </div>
     );
 };
