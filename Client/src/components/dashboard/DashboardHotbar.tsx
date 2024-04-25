@@ -19,6 +19,8 @@ const DashboardHotbar: React.FC<DashboardHotbarProps> = ({
                         <option value="assets">Assets</option>
                         <option value="liabilities">Liabilities</option>
                         <option value="equity">Equity</option>
+                        <option value="revenue">Revenue</option>
+                        <option value="expenses">Expenses</option>
                     </select>
                </div>
             </div>

@@ -1199,77 +1199,68 @@ namespace LedgerLinkPro.Controllers
         }
 
         [HttpGet("get-dashboard-info")]
-        [Authorize]
         public async Task<IActionResult> GetDashboardInfo([FromQuery] string accountType)
         {
+            if (accountType != "asset" && accountType != "expenses" && accountType != "liability" && accountType != "equity" && accountType != "revenue")
+            {
+                return BadRequest("Invalid account type");
+            }
+
             try
             {
                 using (var context = _contextFactory.CreateDbContext())
                 {
-                    switch (accountType)
+                    var accounts = await context.Accounts
+                        .Where(a => a.Category.ToLower() == accountType.ToLower())
+                        .ToListAsync();
+
+                    var transactions = await context.AccountTransactions.ToListAsync();
+
+                    DashboardInfoDTO dashboard = new DashboardInfoDTO
                     {
-                        case "assets":
-                            var assets = await context.Accounts.Where(a => a.Category == "Assets").ToListAsync();
-        
-                            var transactions = await context.AccountTransactions.ToListAsync();
-        
-                            DashboardInfoDTO assetsDashboard = new DashboardInfoDTO
+                        AccountType = accountType,
+                        AccountCount = accounts.Count,
+                    };
+
+                    //filter transactions where they contain ids from accounts list
+                    transactions = transactions.Where(t => accounts.Any(a => a.AccountId == t.AccountId)).ToList();
+
+
+                    foreach (var transaction in transactions)
+                    {
+                        string month = transaction.TransactionDate.Month.ToString() + "-" + transaction.TransactionDate.Year.ToString();
+
+                        foreach (var entry in transaction.JournalEntries)
+                        {
+                            if (entry.credit > 0 || entry.debit > 0)
                             {
-                                AccountType = "Assets",
-                                AccountCount = assets.Count,
-                            };
-        
-                            foreach (var transaction in transactions)
-                            {
-                                string month = transaction.TransactionDate.Month.ToString() + "-" + transaction.TransactionDate.Year.ToString();
-        
-                                //go through each journal entry
-                                foreach(var entry in transaction.JournalEntries)
+                                var creditDebitMonth = dashboard.CreditDebitMonth
+                                    .FirstOrDefault(x => x.Month == month) ?? new CreditDebitMonthDTO { Month = month };
+
+                                if (dashboard.CreditDebitMonth.All(x => x.Month != month))
                                 {
-                                    //get total credit and total debit
-                                    if (entry.credit > 0)
-                                    {
-                                        var creditDebitMonth = assetsDashboard.CreditDebitMonth.FirstOrDefault(x => x.Month == month);
-        
-                                        if (creditDebitMonth == null)
-                                        {
-                                            creditDebitMonth = new CreditDebitMonthDTO { Month = month };
-                                            assetsDashboard.CreditDebitMonth.Add(creditDebitMonth);
-                                        }
-        
-                                        creditDebitMonth.Credit += entry.credit;
-                                    }
-                                    else
-                                    {
-                                        var creditDebitMonth = assetsDashboard.CreditDebitMonth.FirstOrDefault(x => x.Month == month);
-        
-                                        if (creditDebitMonth == null)
-                                        {
-                                            creditDebitMonth = new CreditDebitMonthDTO { Month = month };
-                                            assetsDashboard.CreditDebitMonth.Add(creditDebitMonth);
-                                        }
-        
-                                        creditDebitMonth.Debit += entry.debit;
-                                    }
+                                    dashboard.CreditDebitMonth.Add(creditDebitMonth);
                                 }
+
+                                creditDebitMonth.Credit += entry.credit;
+                                creditDebitMonth.Debit += entry.debit;
                             }
-        
-                            // Sort the CreditDebitMonth list by month
-                            assetsDashboard.CreditDebitMonth = assetsDashboard.CreditDebitMonth.OrderBy(x => x.Month).ToList();
-        
-                            return Ok(assetsDashboard);
-                        default:
-                            return BadRequest("Invalid account type");
+                        }
                     }
+
+                    dashboard.CreditDebitMonth = dashboard.CreditDebitMonth.OrderBy(x => x.Month).ToList();
+
+                    return Ok(dashboard);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 return StatusCode(500, "Error getting dashboard info");
             }
         }
-    
+
+
         [HttpGet("get-trial-balance")]
         [Authorize]
         public async Task<IActionResult> GetTrialBalance([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)

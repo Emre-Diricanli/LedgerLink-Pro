@@ -106,3 +106,16 @@ export interface TrialBalance {
     totalCredit: number;
     dateRange: string;
 }
+
+export interface CreditDebitMonthDTO {
+    month: string;
+    credit: number;
+    debit: number;
+
+};
+
+export interface DashboardInfoDTO {
+    accountType: string;
+    accountCount: number;
+    creditDebitMonth: CreditDebitMonthDTO[];
+};

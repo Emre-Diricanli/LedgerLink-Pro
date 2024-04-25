@@ -79,7 +79,7 @@ const getBarData = (assetData: AssetData, accountType: string) => {
     };
 };
 
-const AssetsDashboard = (props: {}) => {
+const RevenueDashboard = (props: {}) => {
     const [creditAssetData, setCreditAssetData] = useState<AssetData>(new AssetData());
     const [debitAssetData, setDebitAssetData] = useState<AssetData>(new AssetData());
     const systemsProvider = useSystems();
@@ -88,7 +88,7 @@ const AssetsDashboard = (props: {}) => {
     useEffect(() => {
         const fetchAssetData = async () => {
             const apiUrl = systemsProvider.apiUrl;
-            const response = await fetch(`${apiUrl}/accounts/get-dashboard-info?accountType=asset`);
+            const response = await fetch(`${apiUrl}/accounts/get-dashboard-info?accountType=revenue`);
     
             if (response.status === 200) {
                 const data = await response.json() as DashboardInfoDTO;
@@ -140,4 +140,4 @@ const AssetsDashboard = (props: {}) => {
     );
 };
 
-export default AssetsDashboard;
+export default RevenueDashboard;

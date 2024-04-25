@@ -3,6 +3,9 @@ import AssetsDashboard from "../../components/dashboard/AssetsDashboard";
 import DashboardHotbar from '../../components/dashboard/DashboardHotbar';
 import DashboardNotifications from '../../components/dashboard/DashboardNotifications';
 import LiabillitiesDashboard from '../../components/dashboard/LiabilitiesDashboard';
+import EquityDashboard from '../../components/dashboard/EquityDashboard';
+import RevenueDashboard from '../../components/dashboard/RevenueDashboard';
+import ExpensesDashboard from '../../components/dashboard/ExpensesDashboard';
 
 const Dashboard = () => {
     const [selectedDashboard, setSelectedDashboard] = useState('assets');
@@ -20,12 +23,19 @@ const Dashboard = () => {
                 </div>
             case 'equity':
                 return <div className='flex flex-col w-full h-full'>
-                    <p>Equity</p>
+                    <EquityDashboard />
+                </div>
+            case 'revenue':
+                return <div className='flex flex-col w-full h-full'>
+                    <RevenueDashboard />
+                </div>
+            case 'expenses':
+                return <div className='flex flex-col w-full h-full'>
+                    <ExpensesDashboard />
                 </div>
             default:
                 return <div className='flex flex-col w-full h-full'>
                     <AssetsDashboard />
-                    {/* <AssetsDashboard /> */}
                 </div>
         }
     };

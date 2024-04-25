@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarController, BarElement } from 'chart.js';
+import { useSystems } from '../../Providers/SystemsProvider';
+import Dashboard from '../../pages/dashboard/Dashboard';
+import { DashboardInfoDTO } from '../interfaces/Accounts';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarController, BarElement);
 
@@ -22,70 +25,117 @@ class AssetData {
         this.assets.push({ date, value, account });
     }
 
+    getAssetDataByAccount(accountType: string) {
+        return this.assets.filter(asset => asset.account === accountType);
+    }
+
     getAssetData() {
         return this.assets;
     }
-}
+};
 
-const LiabillitiesDashboard = (props: {}) => {
-    const [assetData, setAssetData] = useState<AssetData>(new AssetData());
 
-    // Generate random data
-    useEffect(() => {
-        const newData = new AssetData();
-        const startDate = new Date('2023-01-01');
-        const accounts = ['Account1', 'Account2', 'Account3'];
+const getLineData = (assetData: AssetData) => {
+    const creditData = assetData.getAssetDataByAccount('Credit').map(asset => asset.value);
+    const debitData = assetData.getAssetDataByAccount('Debit').map(asset => asset.value);
+    const labels = assetData.getAssetDataByAccount('Credit').map(asset => asset.date); // Assuming dates are the same for credits and debits
 
-        for (let i = 0; i < 24; i++) {
-            const date = new Date(startDate.getFullYear(), startDate.getMonth() + i);
-            const dateString = date.toISOString().split('T')[0];
-            const value = Math.floor(Math.random() * 50000) + 10000;
-            const account = accounts[Math.floor(Math.random() * accounts.length)];
-
-            newData.addAsset(dateString, value, account);
-        }
-
-        setAssetData(newData);
-    }, []);
-
-    const lineData = {
-        labels: assetData.getAssetData().map(entry => entry.date),
+    return {
+        labels,
         datasets: [
             {
-                label: 'Assets Over Time',
-                data: assetData.getAssetData().map(entry => entry.value),
+                label: 'Credit Value',
+                data: creditData,
                 fill: false,
-                backgroundColor: 'rgb(75, 192, 192)',
-                borderColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgb(75, 192, 192)', // Greenish
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            },
+            {
+                label: 'Debit Value',
+                data: debitData,
+                fill: false,
+                borderColor: 'rgb(255, 99, 132)', // Reddish
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            }
+        ],
+    };
+};
+
+
+const getBarData = (assetData: AssetData, accountType: string) => {
+    const filteredData = assetData.getAssetDataByAccount(accountType);
+    const labels = filteredData.map(asset => asset.date);
+    const data = filteredData.map(asset => asset.value);
+
+    return {
+        labels,
+        datasets: [
+            {
+                label: `${accountType} Asset Value`,
+                data,
+                backgroundColor: accountType === 'Credit' ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)',
             },
         ],
     };
+};
 
-    const accounts = [...new Set(assetData.getAssetData().map(entry => entry.account))]; // Get unique account names
-    const barData = {
-        labels: accounts,
-        datasets: [{
-            label: 'Assets in Each Account',
-            data: accounts.map(account => 
-                assetData.getAssetData().filter(entry => entry.account === account).reduce((sum, entry) => sum + entry.value, 0)
-            ),
-            backgroundColor: 'rgb(75, 192, 192)',
-            borderColor: 'rgba(75, 192, 192, 0.2)',
-        }],
-    };
+const LiabillitiesDashboard = (props: {}) => {
+    const [creditAssetData, setCreditAssetData] = useState<AssetData>(new AssetData());
+    const [debitAssetData, setDebitAssetData] = useState<AssetData>(new AssetData());
+    const systemsProvider = useSystems();
+
+    //get data from server
+    useEffect(() => {
+        const fetchAssetData = async () => {
+            const apiUrl = systemsProvider.apiUrl;
+            const response = await fetch(`${apiUrl}/accounts/get-dashboard-info?accountType=liability`);
+    
+            if (response.status === 200) {
+                const data = await response.json() as DashboardInfoDTO;
+                const creditData = new AssetData();
+                const debitData = new AssetData();
+    
+                data.creditDebitMonth.forEach(month => {
+                    creditData.addAsset(month.month, month.credit, 'Credit');
+                    debitData.addAsset(month.month, month.debit, 'Debit');
+                });
+    
+                setCreditAssetData(creditData);
+                setDebitAssetData(debitData);
+            }
+        };
+    
+        fetchAssetData();
+
+
+    }, []);
+
+    useEffect(() => {
+        console.log(creditAssetData.getAssetData());
+        console.log(debitAssetData.getAssetData());
+    }, [creditAssetData, debitAssetData]);
+    
 
     const options = {
         scales: {
             y: {
-                beginAtZero: true
-            }
-        }
+                beginAtZero: true,
+            },
+        },
     };
 
     return (
         <div className='w-full h-full p-4'>
-            <Line data={lineData} options={options} />
-            <Bar data={barData} options={options} />
+            <Line data={getLineData(creditAssetData)} options={options} />
+            <div className='flex flex-row'>
+                <div className='flex flex-col w-1/2'>
+                    <Bar data={getBarData(creditAssetData, 'Credit')} options={options} />
+                </div>
+                <div className='flex flex-col w-1/2'>
+                    <Bar data={getBarData(debitAssetData, 'Debit')} options={options} />
+                </div>
+
+            </div>
         </div>
     );
 };
